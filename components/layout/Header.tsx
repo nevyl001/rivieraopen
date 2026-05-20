@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { Menu, X, Instagram, Facebook } from "lucide-react";
 import { TikTokIcon } from "@/components/ui/TikTokIcon";
 import { Navigation } from "./Navigation";
@@ -58,7 +57,12 @@ export function Header() {
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3">
-              <Logo className="w-40 h-10 text-white" />
+              <Logo
+                width={44}
+                height={44}
+                className="h-11 w-11 object-contain"
+                priority
+              />
             </Link>
 
             {/* Desktop Navigation */}

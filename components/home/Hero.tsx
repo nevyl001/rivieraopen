@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui";
+import { Logo } from "@/components/ui/Logo";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
-import { ChevronDown } from "lucide-react";
 import { useTranslation } from "@/lib/hooks/useTranslation";
 
 export function Hero() {
@@ -39,12 +38,11 @@ export function Hero() {
         {/* Logo */}
         <AnimatedSection animation="slide-up" delay={0}>
           <div className="mb-6 md:mb-8">
-            <Image
-              src="/img/logo.png"
-              alt="Riviera Open Logo"
-              width={180}
-              height={180}
-              className="mx-auto md:w-[200px] md:h-[200px]"
+            <Logo
+              width={200}
+              height={200}
+              className="mx-auto h-[180px] w-[180px] md:h-[200px] md:w-[200px] object-contain"
+              priority
             />
           </div>
         </AnimatedSection>
