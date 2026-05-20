@@ -1,0 +1,48 @@
+{
+  "name": "riviera-open-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:db:setup": "bash scripts/test-db-setup.sh",
+    "test:db:stop": "bash scripts/test-db-teardown.sh",
+    "test:db:reset": "bash scripts/test-db-reset.sh",
+    "test:integration": "DATABASE_URL=postgresql://testuser:testpassword@localhost:5433/riviera_open_test jest --testPathPattern=integration",
+    "env:switch": "bash scripts/switch-env.sh",
+    "env:demo": "bash scripts/demo-environments.sh",
+    "db:add-allan": "docker exec -i riviera-open-test-db psql -U testuser -d riviera_open_test < scripts/add-allan-castellanos.sql"
+  },
+  "dependencies": {
+    "cloudinary": "^2.9.0",
+    "lucide-react": "^0.553.0",
+    "next": "^16.0.7",
+    "pg": "^8.16.3",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@fast-check/jest": "^2.1.1",
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20",
+    "@types/pg": "^8.16.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "^16.0.7",
+    "fast-check": "^4.4.0",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

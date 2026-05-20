@@ -1,0 +1,62 @@
+{
+  "navigation": {
+    "home": "Home",
+    "tournaments": "Tournaments",
+    "rankings": "Rankings",
+    "gallery": "Gallery",
+    "contact": "Contact"
+  },
+  "buttons": {
+    "viewDetails": "View Details",
+    "register": "Register",
+    "viewAll": "View All",
+    "close": "Close",
+    "next": "Next",
+    "previous": "Previous",
+    "viewRankings": "View Rankings",
+    "upcomingTournaments": "Upcoming Tournaments",
+    "scrollToContent": "Scroll to content"
+  },
+  "status": {
+    "upcoming": "Upcoming",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "registrationOpen": "Registration Open",
+    "registrationClosed": "Registration Closed"
+  },
+  "labels": {
+    "level": "Level",
+    "points": "Points",
+    "rank": "Rank",
+    "email": "Email",
+    "phone": "Phone",
+    "date": "Date",
+    "location": "Location",
+    "club": "Club"
+  },
+  "aria": {
+    "instagram": "Instagram",
+    "facebook": "Facebook",
+    "twitter": "Twitter",
+    "toggleMenu": "Toggle menu"
+  },
+  "footer": {
+    "about": {
+      "title": "About Riviera Open",
+      "description": "Riviera Open — Play like elite. An exclusive experience in CDMX, on and off the court."
+    },
+    "quickLinks": {
+      "title": "Quick Links"
+    },
+    "contact": {
+      "title": "Contact"
+    },
+    "social": {
+      "title": "Follow Us",
+      "description": "Stay updated with the latest tournament results and announcements."
+    },
+    "copyright": "All rights reserved.",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service"
+  }
+}

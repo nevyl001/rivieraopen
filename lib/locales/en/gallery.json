@@ -1,0 +1,35 @@
+{
+  "labels": {
+    "photoGallery": "Gallery",
+    "tournamentPhotos": "Tournament Photos",
+    "eventPhotos": "Event Photos",
+    "filterPhotos": "Filter Photos",
+    "viewLarger": "View Larger",
+    "downloadPhoto": "Download Photo",
+    "sharePhoto": "Share Photo"
+  },
+  "filters": {
+    "all": "All",
+    "byTournament": "By Tournament",
+    "byYear": "By Year",
+    "byEvent": "By Event",
+    "recent": "Recent"
+  },
+  "navigation": {
+    "previous": "Previous",
+    "next": "Next",
+    "close": "Close",
+    "viewAll": "View All"
+  },
+  "metadata": {
+    "tournament": "Tournament",
+    "date": "Date",
+    "location": "Location",
+    "photographer": "Photographer"
+  },
+  "messages": {
+    "noPhotos": "No photos available.",
+    "loadingPhotos": "Loading photos...",
+    "photoLoadError": "Error loading photo."
+  }
+}

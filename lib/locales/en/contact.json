@@ -1,0 +1,45 @@
+{
+  "form": {
+    "contactUs": "Contact Us",
+    "getInTouch": "Get in Touch",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "subject": "Subject",
+    "message": "Message",
+    "send": "Send",
+    "sending": "Sending...",
+    "required": "Required",
+    "optional": "Optional"
+  },
+  "placeholders": {
+    "enterName": "Enter your name",
+    "enterEmail": "Enter your email",
+    "enterPhone": "Enter your phone",
+    "enterSubject": "Enter subject",
+    "enterMessage": "Enter your message"
+  },
+  "validation": {
+    "nameRequired": "Name is required",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Please enter a valid email",
+    "messageRequired": "Message is required",
+    "phoneInvalid": "Please enter a valid phone number"
+  },
+  "success": {
+    "messageSent": "Message sent successfully",
+    "thankYou": "Thank you for contacting us",
+    "willRespond": "We'll respond soon"
+  },
+  "error": {
+    "sendFailed": "Failed to send message",
+    "tryAgain": "Please try again",
+    "networkError": "Connection error"
+  },
+  "info": {
+    "contactInfo": "Contact Information",
+    "address": "Address",
+    "hours": "Hours",
+    "followUs": "Follow Us"
+  }
+}

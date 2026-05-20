@@ -1,0 +1,36 @@
+{
+  "titles": {
+    "home": "Riviera Open - Juega como élite",
+    "tournaments": "Torneos - Riviera Open",
+    "rankings": "Rankings - Riviera Open",
+    "gallery": "Galería - Riviera Open",
+    "contact": "Contacto - Riviera Open",
+    "about": "Acerca de - Riviera Open",
+    "playerProfile": "{{playerName}} - Perfil del Jugador - Riviera Open",
+    "tournamentDetails": "{{tournamentName}} - Detalles del Torneo - Riviera Open"
+  },
+  "descriptions": {
+    "home": "Una experiencia exclusiva de pádel dentro y fuera de la cancha.",
+    "tournaments": "Descubre los próximos torneos de pádel en el circuito Riviera Open. Regístrate y compite con jugadores de tu nivel.",
+    "rankings": "Consulta los rankings oficiales de jugadores del circuito Riviera Open organizados por niveles de habilidad.",
+    "gallery": "Explora la galería de fotos de los torneos y eventos del circuito Riviera Open. Revive los mejores momentos.",
+    "contact": "Ponte en contacto con el equipo de Riviera Open para más información sobre torneos, registros y el circuito.",
+    "about": "Conoce más sobre el circuito Riviera Open, nuestra misión y cómo funciona nuestro sistema de rankings.",
+    "playerProfile": "Perfil completo de {{playerName}} en el circuito Riviera Open. Estadísticas, historial de torneos y logros.",
+    "tournamentDetails": "Información completa sobre {{tournamentName}} - fechas, ubicación, participantes y resultados."
+  },
+  "openGraph": {
+    "siteName": "Riviera Open",
+    "type": "website",
+    "locale": "es_ES",
+    "homeTitle": "Riviera Open - Juega como élite",
+    "homeDescription": "El circuito de pádel más prestigioso de Ciudad de México con torneos competitivos y rankings oficiales."
+  },
+  "keywords": {
+    "home": "pádel, circuito, Ciudad de México, CDMX, torneos, rankings, competición, deporte",
+    "tournaments": "torneos pádel, competición, registro, Ciudad de México, CDMX, Riviera Open",
+    "rankings": "rankings pádel, clasificación jugadores, niveles, puntos",
+    "gallery": "fotos pádel, galería torneos, imágenes competición",
+    "contact": "contacto, información, registro torneos, Riviera Open"
+  }
+}

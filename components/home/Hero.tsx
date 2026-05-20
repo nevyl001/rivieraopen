@@ -1,0 +1,94 @@
+"use client";
+
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui";
+import { AnimatedSection } from "@/components/ui/AnimatedSection";
+import { ChevronDown } from "lucide-react";
+import { useTranslation } from "@/lib/hooks/useTranslation";
+
+export function Hero() {
+  const { t } = useTranslation("home");
+  const { t: tCommon } = useTranslation("common");
+
+  const scrollToContent = () => {
+    const element = document.getElementById("upcoming-tournaments");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  return (
+    <section className="relative top-0 h-[700px] md:h-[800px] flex items-center justify-center overflow-hidden pt-20 pb-20 md:pt-0 md:pb-0">
+      {/* Background Image with Overlay */}
+      <div className="absolute inset-0">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/img/header-bg.png')" }}
+        />
+      </div>
+
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/70" />
+
+      {/* Content */}
+      <AnimatedSection
+        animation="fade-in"
+        className="relative z-10 text-center px-4 max-w-4xl mx-auto"
+      >
+        {/* Logo */}
+        <AnimatedSection animation="slide-up" delay={0}>
+          <div className="mb-6 md:mb-8">
+            <Image
+              src="/img/logo.png"
+              alt="Riviera Open Logo"
+              width={180}
+              height={180}
+              className="mx-auto md:w-[200px] md:h-[200px]"
+            />
+          </div>
+        </AnimatedSection>
+
+        <AnimatedSection animation="slide-up" delay={200}>
+          <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 md:mb-6 leading-tight">
+            {t("hero.title")}
+          </h1>
+        </AnimatedSection>
+
+        <AnimatedSection animation="slide-up" delay={400}>
+          <p className="text-lg md:text-2xl text-white/90 mb-3 md:mb-4 font-light">
+            {t("hero.subtitle")}
+          </p>
+        </AnimatedSection>
+
+        <AnimatedSection animation="slide-up" delay={600}>
+          <p className="text-base md:text-xl text-white/80 mb-6 md:mb-10 max-w-2xl mx-auto">
+            {t("hero.description")}
+          </p>
+        </AnimatedSection>
+
+        {/* CTA Buttons */}
+        <AnimatedSection animation="slide-up" delay={800}>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-4 md:mt-6">
+            <Link href="/rankings">
+              <Button
+                variant="primary"
+                className="w-full sm:w-auto min-w-[200px]"
+              >
+                {t("hero.cta.viewRankings")}
+              </Button>
+            </Link>
+            <Link href="/tournaments">
+              <Button
+                variant="secondary"
+                className="w-full sm:w-auto min-w-[200px]"
+              >
+                {t("hero.cta.upcomingTournaments")}
+              </Button>
+            </Link>
+          </div>
+        </AnimatedSection>
+      </AnimatedSection>
+    </section>
+  );
+}

@@ -1,0 +1,36 @@
+{
+  "titles": {
+    "home": "Riviera Open - Play like elite",
+    "tournaments": "Tournaments - Riviera Open",
+    "rankings": "Rankings - Riviera Open",
+    "gallery": "Gallery - Riviera Open",
+    "contact": "Contact - Riviera Open",
+    "about": "About - Riviera Open",
+    "playerProfile": "{{playerName}} - Player Profile - Riviera Open",
+    "tournamentDetails": "{{tournamentName}} - Tournament Details - Riviera Open"
+  },
+  "descriptions": {
+    "home": "An exclusive padel experience in CDMX, on and off the court.",
+    "tournaments": "Discover upcoming padel tournaments in the Riviera Open circuit. Register and compete with the best players at your level.",
+    "rankings": "Check the official player rankings of the Riviera Open circuit organized by skill levels.",
+    "gallery": "Explore the photo gallery of tournaments and events from the Riviera Open circuit. Relive the best moments.",
+    "contact": "Get in touch with the Riviera Open team for more information about tournaments, registration, and the circuit.",
+    "about": "Learn more about the Riviera Open circuit, our mission, and how our ranking system works.",
+    "playerProfile": "Complete profile of {{playerName}} in the Riviera Open circuit. Statistics, tournament history, and achievements.",
+    "tournamentDetails": "Complete information about {{tournamentName}} - dates, location, participants, and results."
+  },
+  "openGraph": {
+    "siteName": "Riviera Open",
+    "type": "website",
+    "locale": "en_US",
+    "homeTitle": "Riviera Open - Play like elite",
+    "homeDescription": "The most prestigious padel circuit in Mexico City with competitive tournaments and official rankings."
+  },
+  "keywords": {
+    "home": "padel, circuit, Mexico City, CDMX, tournaments, rankings, competition, sport",
+    "tournaments": "padel tournaments, competition, registration, Mexico City, CDMX, Riviera Open",
+    "rankings": "padel rankings, player standings, levels, points",
+    "gallery": "padel photos, tournament gallery, competition images",
+    "contact": "contact, information, tournament registration, Riviera Open"
+  }
+}

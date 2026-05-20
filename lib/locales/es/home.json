@@ -1,0 +1,21 @@
+{
+  "hero": {
+    "title": "Riviera Open",
+    "subtitle": "Juega como élite",
+    "description": "Una experiencia exclusiva de pádel dentro y fuera de la cancha.",
+    "cta": {
+      "viewRankings": "Ver Rankings",
+      "upcomingTournaments": "Próximos Torneos"
+    }
+  },
+  "sections": {
+    "upcomingTournaments": "Próximos Torneos",
+    "upcomingTournamentsDescription": "Regístrate ahora para nuestros próximos torneos y compite con los mejores jugadores de tu nivel.",
+    "featuredPlayers": "Jugadores Destacados",
+    "featuredPlayersDescription": "Conoce a los mejores jugadores del circuito en todos los niveles.",
+    "gallery": "Galería",
+    "galleryDescription": "Revive los mejores momentos de nuestros torneos.",
+    "sponsors": "Nuestros Patrocinadores",
+    "sponsorsDescription": "Gracias a nuestros socios que hacen posible el Riviera Open."
+  }
+}

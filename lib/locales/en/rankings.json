@@ -1,0 +1,58 @@
+{
+  "title": "Player Rankings",
+  "description": "View current standings of all players in the Riviera Open circuit. Rankings are updated after each tournament based on performance and points earned.",
+  "labels": {
+    "playerRankings": "Player Rankings",
+    "levelCategories": "Levels",
+    "playerProfile": "Player Profile",
+    "totalPoints": "Total Points",
+    "currentRank": "Current Rank",
+    "tournamentHistory": "Tournament History",
+    "achievements": "Achievements",
+    "contactInfo": "Contact Information",
+    "socialMedia": "Social Media",
+    "winLossRecord": "Win/Loss Record",
+    "bestFinishes": "Best Finishes",
+    "selectLevel": "Select Level",
+    "showing": "Showing",
+    "player": "player",
+    "players": "players",
+    "inThisLevel": "in this level",
+    "howRankingsWork": "How Rankings Work",
+    "pointSystem": "Point System",
+    "rank": "Rank",
+    "pts": "pts"
+  },
+  "levels": {
+    "open": "Open",
+    "1": "First",
+    "2": "Second",
+    "3": "Third",
+    "4": "Fourth",
+    "5": "Fifth",
+    "6": "Sixth",
+    "openLevel": "Open Level",
+    "level": "Level"
+  },
+  "placementIndicators": {
+    "first": "1st Place",
+    "second": "2nd Place",
+    "third": "3rd Place",
+    "finalist": "Finalist",
+    "semifinalist": "Semifinalist"
+  },
+  "pointSystem": {
+    "description": "Players earn points based on their performance in tournaments. The more tournaments you play and the better you finish, the higher your ranking.",
+    "firstPlace": "1st Place: 1000 points",
+    "secondPlace": "2nd Place: 750 points",
+    "semiFinals": "Semi-Finals: 500 points",
+    "quarterFinals": "Quarter-Finals: 250 points",
+    "participation": "Participation: 100 points",
+    "updateInfo": "Rankings are updated after each tournament. Players can advance to higher levels based on consistent performance and point thresholds."
+  },
+  "messages": {
+    "noPlayers": "No players found at this level.",
+    "loadingRankings": "Loading rankings...",
+    "playerNotFound": "Player not found."
+  }
+}

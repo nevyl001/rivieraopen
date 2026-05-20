@@ -1,0 +1,45 @@
+{
+  "form": {
+    "contactUs": "Contáctanos",
+    "getInTouch": "Ponte en Contacto",
+    "name": "Nombre",
+    "email": "Email",
+    "phone": "Teléfono",
+    "subject": "Asunto",
+    "message": "Mensaje",
+    "send": "Enviar",
+    "sending": "Enviando...",
+    "required": "Requerido",
+    "optional": "Opcional"
+  },
+  "placeholders": {
+    "enterName": "Ingresa tu nombre",
+    "enterEmail": "Ingresa tu email",
+    "enterPhone": "Ingresa tu teléfono",
+    "enterSubject": "Ingresa el asunto",
+    "enterMessage": "Ingresa tu mensaje"
+  },
+  "validation": {
+    "nameRequired": "El nombre es requerido",
+    "emailRequired": "El email es requerido",
+    "emailInvalid": "Por favor ingresa un email válido",
+    "messageRequired": "El mensaje es requerido",
+    "phoneInvalid": "Por favor ingresa un número de teléfono válido"
+  },
+  "success": {
+    "messageSent": "Mensaje enviado exitosamente",
+    "thankYou": "Gracias por contactarnos",
+    "willRespond": "Te responderemos pronto"
+  },
+  "error": {
+    "sendFailed": "Error al enviar el mensaje",
+    "tryAgain": "Por favor intenta nuevamente",
+    "networkError": "Error de conexión"
+  },
+  "info": {
+    "contactInfo": "Información de Contacto",
+    "address": "Dirección",
+    "hours": "Horarios",
+    "followUs": "Síguenos"
+  }
+}

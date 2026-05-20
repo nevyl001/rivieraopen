@@ -1,0 +1,62 @@
+{
+  "navigation": {
+    "home": "Inicio",
+    "tournaments": "Torneos",
+    "rankings": "Rankings",
+    "gallery": "Galería",
+    "contact": "Contacto"
+  },
+  "buttons": {
+    "viewDetails": "Ver Detalles",
+    "register": "Registrarse",
+    "viewAll": "Ver Todos",
+    "close": "Cerrar",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "viewRankings": "Ver Rankings",
+    "upcomingTournaments": "Próximos Torneos",
+    "scrollToContent": "Desplazarse al contenido"
+  },
+  "status": {
+    "upcoming": "Próximo",
+    "inProgress": "En Progreso",
+    "completed": "Completado",
+    "registrationOpen": "Registro Abierto",
+    "registrationClosed": "Registro Cerrado"
+  },
+  "labels": {
+    "level": "Categoría",
+    "points": "Puntos",
+    "rank": "Ranking",
+    "email": "Email",
+    "phone": "Teléfono",
+    "date": "Fecha",
+    "location": "Ubicación",
+    "club": "Club"
+  },
+  "aria": {
+    "instagram": "Instagram",
+    "facebook": "Facebook",
+    "twitter": "Twitter",
+    "toggleMenu": "Alternar menú"
+  },
+  "footer": {
+    "about": {
+      "title": "Acerca de Riviera Open",
+      "description": "Riviera Open — Juega como élite. Una experiencia exclusiva en CDMX, dentro y fuera de la cancha."
+    },
+    "quickLinks": {
+      "title": "Enlaces Rápidos"
+    },
+    "contact": {
+      "title": "Contacto"
+    },
+    "social": {
+      "title": "Síguenos",
+      "description": "Mantente actualizado con los últimos resultados de torneos y anuncios."
+    },
+    "copyright": "Todos los derechos reservados.",
+    "privacyPolicy": "Política de Privacidad",
+    "termsOfService": "Términos de Servicio"
+  }
+}

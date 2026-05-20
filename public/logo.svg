@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595.09 106.6">
+  <defs>
+    <style>
+      .cls-1 {
+        letter-spacing: 0em;
+      }
+
+      .cls-2 {
+        font-family: StackSansHeadline-Medium, 'Stack Sans Headline';
+        font-size: 100px;
+        font-variation-settings: 'wght' 500;
+        font-weight: 500;
+      }
+
+      .cls-3 {
+        letter-spacing: 0em;
+      }
+
+      .cls-4 {
+        letter-spacing: 0em;
+      }
+
+      .cls-5 {
+        letter-spacing: 0em;
+      }
+
+      .cls-6 {
+        letter-spacing: -.02em;
+      }
+
+      .cls-7 {
+        letter-spacing: 0em;
+      }
+
+      .cls-8 {
+        letter-spacing: 0em;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <text class="cls-2" transform="translate(0 85)"><tspan class="cls-8" x="0" y="0">R</tspan><tspan class="cls-7" x="64.1" y="0">ivi</tspan><tspan class="cls-4" x="166.4" y="0">e</tspan><tspan class="cls-6" x="226.4" y="0">r</tspan><tspan x="262" y="0">a </tspan><tspan class="cls-5" x="339.1" y="0">O</tspan><tspan class="cls-1" x="414.2" y="0">p</tspan><tspan class="cls-3" x="476.49" y="0">e</tspan><tspan x="536.49" y="0">n</tspan></text>
+  </g>
+</svg>

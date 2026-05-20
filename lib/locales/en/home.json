@@ -1,0 +1,21 @@
+{
+  "hero": {
+    "title": "Riviera Open",
+    "subtitle": "Play like elite",
+    "description": "An exclusive padel experience in CDMX, on and off the court.",
+    "cta": {
+      "viewRankings": "View Rankings",
+      "upcomingTournaments": "Upcoming Tournaments"
+    }
+  },
+  "sections": {
+    "upcomingTournaments": "Upcoming Tournaments",
+    "upcomingTournamentsDescription": "Register now for our upcoming tournaments and compete with the best players at your level.",
+    "featuredPlayers": "Featured Players",
+    "featuredPlayersDescription": "Meet the top players in the circuit across all levels.",
+    "gallery": "Gallery",
+    "galleryDescription": "Relive the best moments from our tournaments.",
+    "sponsors": "Our Sponsors",
+    "sponsorsDescription": "Thanks to our partners who make Riviera Open possible."
+  }
+}

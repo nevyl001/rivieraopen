@@ -1,0 +1,46 @@
+{
+  "title": "Torneos",
+  "description": "Explora todos los torneos del circuito Riviera Open. Filtra por estado y nivel para encontrar la competencia perfecta para ti.",
+  "filters": {
+    "filterByStatus": "Filtrar por Estado",
+    "filterByLevel": "Filtrar por Categoría",
+    "all": "Todos",
+    "allLevels": "Todas las Categorías"
+  },
+  "labels": {
+    "tournamentDetails": "Detalles del Torneo",
+    "registrationStatus": "Estado de Registro",
+    "participants": "Participantes",
+    "results": "Resultados",
+    "photoGallery": "Galería",
+    "winner": "Ganador",
+    "runnerUp": "Subcampeón",
+    "firstPlace": "1er Lugar",
+    "secondPlace": "2do Lugar",
+    "showing": "Mostrando",
+    "tournament": "torneo",
+    "tournaments": "torneos"
+  },
+  "status": {
+    "registrationOpen": "Registro Abierto",
+    "registrationClosed": "Registro Cerrado",
+    "upcoming": "Próximo",
+    "inProgress": "En Progreso",
+    "completed": "Completado"
+  },
+  "levels": {
+    "open": "Open",
+    "1": "Primera",
+    "2": "Segunda",
+    "3": "Tercera",
+    "4": "Cuarta",
+    "5": "Quinta",
+    "6": "Sexta"
+  },
+  "messages": {
+    "noTournaments": "No se encontraron torneos que coincidan con tus filtros.",
+    "loadingTournaments": "Cargando torneos...",
+    "registrationSuccess": "Registro exitoso. Te contactaremos pronto con más detalles.",
+    "registrationError": "Error en el registro. Por favor intenta nuevamente."
+  }
+}

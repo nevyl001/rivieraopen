@@ -1,0 +1,58 @@
+{
+  "title": "Rankings de Jugadores",
+  "description": "Ve las posiciones actuales de todos los jugadores en el circuito Riviera Open. Los rankings se actualizan después de cada torneo basándose en el rendimiento y los puntos obtenidos.",
+  "labels": {
+    "playerRankings": "Rankings de Jugadores",
+    "levelCategories": "Categorías",
+    "playerProfile": "Perfil del Jugador",
+    "totalPoints": "Puntos Totales",
+    "currentRank": "Ranking Actual",
+    "tournamentHistory": "Historial de Torneos",
+    "achievements": "Logros",
+    "contactInfo": "Información de Contacto",
+    "socialMedia": "Redes Sociales",
+    "winLossRecord": "Récord de Victorias/Derrotas",
+    "bestFinishes": "Mejores Resultados",
+    "selectLevel": "Seleccionar Categoría",
+    "showing": "Mostrando",
+    "player": "jugador",
+    "players": "jugadores",
+    "inThisLevel": "en esta categoría",
+    "howRankingsWork": "Cómo Funcionan los Rankings",
+    "pointSystem": "Sistema de Puntos",
+    "rank": "Ranking",
+    "pts": "pts"
+  },
+  "levels": {
+    "open": "Open",
+    "1": "Primera",
+    "2": "Segunda",
+    "3": "Tercera",
+    "4": "Cuarta",
+    "5": "Quinta",
+    "6": "Sexta",
+    "openLevel": "Categoría Open",
+    "level": "Categoría"
+  },
+  "placementIndicators": {
+    "first": "1er Lugar",
+    "second": "2do Lugar",
+    "third": "3er Lugar",
+    "finalist": "Finalista",
+    "semifinalist": "Semifinalista"
+  },
+  "pointSystem": {
+    "description": "Los jugadores ganan puntos basándose en su rendimiento en torneos. Mientras más torneos juegues y mejor termines, más alto será tu ranking.",
+    "firstPlace": "1er Lugar: 1000 puntos",
+    "secondPlace": "2do Lugar: 750 puntos",
+    "semiFinals": "Semifinales: 500 puntos",
+    "quarterFinals": "Cuartos de Final: 250 puntos",
+    "participation": "Participación: 100 puntos",
+    "updateInfo": "Los rankings se actualizan después de cada torneo. Los jugadores pueden avanzar a niveles superiores basándose en rendimiento consistente y umbrales de puntos."
+  },
+  "messages": {
+    "noPlayers": "No se encontraron jugadores en este nivel.",
+    "loadingRankings": "Cargando rankings...",
+    "playerNotFound": "Jugador no encontrado."
+  }
+}

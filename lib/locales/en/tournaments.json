@@ -1,0 +1,46 @@
+{
+  "title": "Tournaments",
+  "description": "Explore all tournaments in the Riviera Open circuit. Filter by status and level to find the perfect competition for you.",
+  "filters": {
+    "filterByStatus": "Filter by Status",
+    "filterByLevel": "Filter by Level",
+    "all": "All",
+    "allLevels": "All Levels"
+  },
+  "labels": {
+    "tournamentDetails": "Tournament Details",
+    "registrationStatus": "Registration Status",
+    "participants": "Participants",
+    "results": "Results",
+    "photoGallery": "Gallery",
+    "winner": "Winner",
+    "runnerUp": "Runner-up",
+    "firstPlace": "1st Place",
+    "secondPlace": "2nd Place",
+    "showing": "Showing",
+    "tournament": "tournament",
+    "tournaments": "tournaments"
+  },
+  "status": {
+    "registrationOpen": "Registration Open",
+    "registrationClosed": "Registration Closed",
+    "upcoming": "Upcoming",
+    "inProgress": "In Progress",
+    "completed": "Completed"
+  },
+  "levels": {
+    "open": "Open",
+    "1": "First",
+    "2": "Second",
+    "3": "Third",
+    "4": "Fourth",
+    "5": "Fifth",
+    "6": "Sixth"
+  },
+  "messages": {
+    "noTournaments": "No tournaments found matching your filters.",
+    "loadingTournaments": "Loading tournaments...",
+    "registrationSuccess": "Registration successful. We'll contact you soon with more details.",
+    "registrationError": "Registration error. Please try again."
+  }
+}
