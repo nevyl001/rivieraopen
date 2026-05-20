@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://riviera-open-web.vercel.app"),
+  metadataBase: new URL("https://www.rivieraopen.com"),
   title: {
     default: "Riviera Open — Juega como élite.",
     template: "%s | Riviera Open",
@@ -37,13 +37,13 @@ export const metadata: Metadata = {
     title: "Riviera Open — Juega como élite.",
     description:
       "Una experiencia de padel exclusiva en CDMX, dentro y fuera de la cancha.",
-    url: "https://riviera-open-web.vercel.app",
+    url: "https://www.rivieraopen.com",
     siteName: "Riviera Open",
     type: "website",
     locale: "es_ES",
     images: [
       {
-        url: "https://riviera-open-web.vercel.app/img/meta.jpg",
+        url: "https://www.rivieraopen.com/img/meta.jpg",
         width: 1200,
         height: 630,
         alt: "Riviera Open Circuito de Pádel",

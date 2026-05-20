@@ -24,9 +24,6 @@ export const metadata: Metadata = {
 };
 
 export default async function RankingsPage() {
-  // Fetch all categories of players on the server
-  const playerRepository = await RepositoryFactory.getPlayerRepository();
-
   const categories: Category[] = ["Open", "1", "2", "3", "4", "5", "6"];
   const playersByCategory: Record<Category, Player[]> = {
     Open: [],
@@ -38,10 +35,16 @@ export default async function RankingsPage() {
     "6": [],
   };
 
-  for (const category of categories) {
-    playersByCategory[category] = await playerRepository.getByCategory(
-      category
-    );
+  try {
+    const playerRepository = await RepositoryFactory.getPlayerRepository();
+
+    for (const category of categories) {
+      playersByCategory[category] = await playerRepository.getByCategory(
+        category
+      );
+    }
+  } catch (error) {
+    console.error("RankingsPage:", error);
   }
 
   return <RankingsPageClient initialPlayersByCategory={playersByCategory} />;

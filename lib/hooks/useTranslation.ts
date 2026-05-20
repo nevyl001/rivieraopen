@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Translations, TranslationParams } from "@/lib/types";
 import { SupportedLocale } from "@/lib/i18n/config";
 import {
-  loadTranslations,
+  getTranslations,
   getNamespacedTranslation,
 } from "@/lib/i18n/translations";
 import {
@@ -38,46 +38,18 @@ export interface UseTranslationReturn {
 export function useTranslation(
   namespace?: keyof Translations
 ): UseTranslationReturn {
-  const [translations, setTranslations] = useState<Translations | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { locale } = useLocale();
+  const [translations, setTranslations] = useState<Translations>(() =>
+    getTranslations(locale)
+  );
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get locale from context instead of using hardcoded DEFAULT_LOCALE
-  const { locale } = useLocale();
-
-  // Load translations when locale changes
   useEffect(() => {
-    let isMounted = true;
-
-    const loadTranslationsAsync = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const loadedTranslations = await loadTranslations(locale);
-
-        if (isMounted) {
-          setTranslations(loadedTranslations);
-        }
-      } catch (err) {
-        if (isMounted) {
-          setError(
-            err instanceof Error ? err.message : "Failed to load translations"
-          );
-          console.error("Translation loading error:", err);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadTranslationsAsync();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [locale]); // Re-run when locale changes
+    setTranslations(getTranslations(locale));
+    setIsLoading(false);
+    setError(null);
+  }, [locale]);
 
   // Translation function
   const t = useCallback(
