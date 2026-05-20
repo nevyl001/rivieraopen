@@ -49,7 +49,7 @@ export function Hero() {
 
         <AnimatedSection animation="slide-up" delay={200}>
           <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 md:mb-6 leading-tight">
-            {t("hero.title")}
+            Riviera Open
           </h1>
         </AnimatedSection>
 
