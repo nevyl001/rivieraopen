@@ -22,6 +22,3 @@ if (typeof Request === "undefined") {
     }
   };
 }
-
-// Set environment for tests
-process.env.NEXT_PUBLIC_ENV = "dev";

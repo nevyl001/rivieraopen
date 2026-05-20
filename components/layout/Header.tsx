@@ -16,7 +16,6 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const { t } = useTranslation("common");
-  const isDev = process.env.NEXT_PUBLIC_ENV === "dev";
 
   // Define white-themed pages that should always have black header
   const whiteThemedPages = [
@@ -60,11 +59,6 @@ export function Header() {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3">
               <Logo className="w-40 h-10 text-white" />
-              {isDev && (
-                <span className="bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded uppercase">
-                  DEV
-                </span>
-              )}
             </Link>
 
             {/* Desktop Navigation */}

@@ -9,7 +9,6 @@ import { LanguageToggle } from "@/components/ui/LanguageToggle";
 export function Footer() {
   const { t } = useTranslation("common");
   const currentYear = new Date().getFullYear();
-  const isDev = process.env.NEXT_PUBLIC_ENV === "dev";
 
   return (
     <footer className="bg-background text-white">
@@ -131,13 +130,6 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-primary-light">
-          {isDev && (
-            <div className="mb-4 bg-yellow-500 text-black px-4 py-2 rounded text-center">
-              <p className="text-sm font-semibold">
-                🚧 DEVELOPMENT ENVIRONMENT - Using Mock Data
-              </p>
-            </div>
-          )}
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-gray-400 text-sm">
               © {currentYear} Riviera Open. {t("footer.copyright")}

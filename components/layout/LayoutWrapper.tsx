@@ -6,8 +6,6 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { DocumentTitle } from "@/components/layout/DocumentTitle";
 import { LocaleProvider } from "@/lib/contexts/LocaleContext";
-import { DataSourceBadge } from "@/components/ui/DataSourceBadge";
-
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdminRoute = pathname.startsWith("/admin");
@@ -40,7 +38,6 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
       <Header />
       <main className="min-h-screen">{children}</main>
       <Footer />
-      <DataSourceBadge />
     </LocaleProvider>
   );
 }
