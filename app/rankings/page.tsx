@@ -3,6 +3,8 @@ import { RankingsPageClient } from "./RankingsPageClient";
 import RepositoryFactory from "@/lib/data/repositories/repository-factory";
 import { Category, Player } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Rankings - Riviera Open",
   description:

@@ -73,8 +73,29 @@ describe("Environment Configuration", () => {
 
     it("should throw ConfigurationError when NEXT_PUBLIC_ENV is missing", () => {
       delete process.env.NEXT_PUBLIC_ENV;
+      delete process.env.VERCEL_ENV;
 
       expect(() => getEnvironmentConfig()).toThrow(ConfigurationError);
+    });
+
+    it('should use prod on Vercel production when NEXT_PUBLIC_ENV is unset', () => {
+      delete process.env.NEXT_PUBLIC_ENV;
+      process.env.VERCEL_ENV = "production";
+      process.env.DATABASE_URL = "postgresql://localhost:5432/test";
+
+      const config = getEnvironmentConfig();
+
+      expect(config.env).toBe("prod");
+    });
+
+    it('should use dev on Vercel preview when NEXT_PUBLIC_ENV is unset', () => {
+      delete process.env.NEXT_PUBLIC_ENV;
+      process.env.VERCEL_ENV = "preview";
+      delete process.env.DATABASE_URL;
+
+      const config = getEnvironmentConfig();
+
+      expect(config.env).toBe("dev");
     });
 
     it("should throw ConfigurationError when NEXT_PUBLIC_ENV is invalid", () => {

@@ -12,14 +12,31 @@ export class ConfigurationError extends Error {
   }
 }
 
-export function getEnvironmentConfig(): EnvironmentConfig {
-  const env = process.env.NEXT_PUBLIC_ENV as Environment;
+function resolveEnvironment(): Environment {
+  const explicit = process.env.NEXT_PUBLIC_ENV as Environment | undefined;
 
-  if (!env || !["dev", "prod"].includes(env)) {
-    throw new ConfigurationError(
-      'NEXT_PUBLIC_ENV must be set to "dev" or "prod"'
-    );
+  if (explicit && ["dev", "prod"].includes(explicit)) {
+    return explicit;
   }
+
+  // Vercel: infer when NEXT_PUBLIC_ENV is not set in project settings
+  if (process.env.VERCEL_ENV === "production") {
+    return "prod";
+  }
+  if (
+    process.env.VERCEL_ENV === "preview" ||
+    process.env.VERCEL_ENV === "development"
+  ) {
+    return "dev";
+  }
+
+  throw new ConfigurationError(
+    'NEXT_PUBLIC_ENV must be set to "dev" or "prod"'
+  );
+}
+
+export function getEnvironmentConfig(): EnvironmentConfig {
+  const env = resolveEnvironment();
 
   if (env === "prod") {
     const databaseUrl = process.env.DATABASE_URL;
