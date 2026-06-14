@@ -32,7 +32,7 @@ export async function generateMetadata({
 
   return {
     title: `${fullName} - Riviera Open`,
-    description: `Perfil y estadísticas de ${fullName}. Ranking #${player.rank} en Categoría ${player.category} con ${player.points} puntos.`,
+    description: `Jugador oficial de Riviera Open. Ranking #${player.rank} con ${player.points} puntos.`,
     keywords: [
       "jugador pádel",
       fullName,

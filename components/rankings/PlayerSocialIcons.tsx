@@ -12,13 +12,14 @@ const DEFAULT_URLS = {
 
 interface PlayerSocialIconsProps {
   socials: PlayerSocials;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
   className?: string;
 }
 
 const sizeMap = {
   sm: { button: "w-8 h-8", icon: 16 },
   md: { button: "w-9 h-9", icon: 18 },
+  lg: { button: "w-11 h-11", icon: 20 },
 } as const;
 
 export function PlayerSocialIcons({
@@ -68,8 +69,12 @@ export function PlayerSocialIcons({
           aria-label={network.label}
           className={`${dimensions.button} inline-flex items-center justify-center rounded-full border transition-all duration-200 ${
             network.hasPersonal
-              ? "border-gray-200 text-text-secondary hover:border-accent hover:text-accent hover:bg-accent/5"
-              : "border-gray-100 text-gray-300 hover:border-gray-200 hover:text-text-secondary"
+              ? size === "lg"
+                ? "border-primary/15 bg-gray-50 text-primary hover:border-primary hover:bg-primary hover:text-white"
+                : "border-gray-200 text-text-secondary hover:border-accent hover:text-accent hover:bg-accent/5"
+              : size === "lg"
+                ? "border-gray-100 bg-white text-gray-300 hover:border-gray-200 hover:text-text-secondary"
+                : "border-gray-100 text-gray-300 hover:border-gray-200 hover:text-text-secondary"
           }`}
         >
           {network.icon}
