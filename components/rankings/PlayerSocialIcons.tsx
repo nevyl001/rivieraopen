@@ -13,6 +13,7 @@ const DEFAULT_URLS = {
 interface PlayerSocialIconsProps {
   socials: PlayerSocials;
   size?: "sm" | "md" | "lg";
+  tone?: "default" | "poster";
   className?: string;
 }
 
@@ -25,6 +26,7 @@ const sizeMap = {
 export function PlayerSocialIcons({
   socials,
   size = "md",
+  tone = "default",
   className = "",
 }: PlayerSocialIconsProps) {
   const dimensions = sizeMap[size];
@@ -67,14 +69,16 @@ export function PlayerSocialIcons({
           rel="noopener noreferrer"
           data-social-link
           aria-label={network.label}
-          className={`${dimensions.button} inline-flex items-center justify-center rounded-full border transition-all duration-200 ${
-            network.hasPersonal
-              ? size === "lg"
-                ? "border-primary/15 bg-gray-50 text-primary hover:border-primary hover:bg-primary hover:text-white"
-                : "border-gray-200 text-text-secondary hover:border-accent hover:text-accent hover:bg-accent/5"
-              : size === "lg"
-                ? "border-gray-100 bg-white text-gray-300 hover:border-gray-200 hover:text-text-secondary"
-                : "border-gray-100 text-gray-300 hover:border-gray-200 hover:text-text-secondary"
+          className={`${dimensions.button} inline-flex items-center justify-center rounded-full transition-all duration-200 ${
+            tone === "poster"
+              ? "text-[#555] hover:text-[#aaa]"
+              : network.hasPersonal
+                ? size === "lg"
+                  ? "border border-primary/15 bg-gray-50 text-primary hover:border-primary hover:bg-primary hover:text-white"
+                  : "border border-gray-200 text-text-secondary hover:border-accent hover:text-accent hover:bg-accent/5"
+                : size === "lg"
+                  ? "border border-gray-100 bg-white text-gray-300 hover:border-gray-200 hover:text-text-secondary"
+                  : "border border-gray-100 text-gray-300 hover:border-gray-200 hover:text-text-secondary"
           }`}
         >
           {network.icon}

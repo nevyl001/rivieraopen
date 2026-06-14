@@ -1,6 +1,7 @@
 {
   "labels": {
     "photoGallery": "Galería",
+    "galleryDescription": "Explora la galería de fotos por evento del circuito Riviera Open. Revive los mejores momentos.",
     "tournamentPhotos": "Fotos de Torneos",
     "eventPhotos": "Fotos de Eventos",
     "filterPhotos": "Filtrar Fotos",
@@ -19,7 +20,8 @@
     "previous": "Anterior",
     "next": "Siguiente",
     "close": "Cerrar",
-    "viewAll": "Ver Todas"
+    "viewAll": "Ver Todas",
+    "backToGallery": "Volver a la galería"
   },
   "metadata": {
     "tournament": "Torneo",
@@ -29,6 +31,8 @@
   },
   "messages": {
     "noPhotos": "No hay fotos disponibles.",
+    "noEvents": "No hay eventos en la galería todavía.",
+    "noCover": "Sin portada",
     "loadingPhotos": "Cargando fotos...",
     "photoLoadError": "Error al cargar la foto."
   }

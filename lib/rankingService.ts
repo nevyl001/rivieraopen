@@ -176,3 +176,34 @@ export async function getRankingPublico(
     return [];
   }
 }
+
+const FEATURED_CATEGORIES: { category: Category; limit: number }[] = [
+  { category: "Open", limit: 3 },
+  { category: "5", limit: 2 },
+  { category: "4", limit: 2 },
+  { category: "1", limit: 2 },
+];
+
+/**
+ * Jugadores destacados para el home (top por categoría desde Supabase).
+ */
+export async function getJugadoresDestacados(): Promise<Player[]> {
+  const featured: Player[] = [];
+  const seen = new Set<string>();
+
+  for (const { category, limit } of FEATURED_CATEGORIES) {
+    const players = await getRankingPublico(category, "Male");
+    for (const player of players.slice(0, limit)) {
+      if (seen.has(player.id)) continue;
+      seen.add(player.id);
+      featured.push(player);
+    }
+  }
+
+  const topFemale = (await getRankingPublico("Open", "Female"))[0];
+  if (topFemale && !seen.has(topFemale.id)) {
+    featured.push(topFemale);
+  }
+
+  return featured;
+}

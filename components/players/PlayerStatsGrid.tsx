@@ -1,14 +1,6 @@
 "use client";
 
-import { Card } from "@/components/ui";
 import { PlayerProfileDetail } from "@/lib/types";
-import {
-  Swords,
-  Target,
-  TrendingUp,
-  Flame,
-  CalendarDays,
-} from "lucide-react";
 import { useTranslation } from "@/lib/hooks/useTranslation";
 
 interface PlayerStatsGridProps {
@@ -23,69 +15,56 @@ export function PlayerStatsGrid({ player }: PlayerStatsGridProps) {
     {
       label: t("profile.matchesPlayed"),
       value: stats.totalPartidos,
-      icon: Swords,
-    },
-    {
-      label: t("profile.wins"),
-      value: stats.victorias,
-      icon: Target,
-      accent: true,
-    },
-    {
-      label: t("profile.losses"),
-      value: stats.derrotas,
-      icon: Target,
     },
     {
       label: t("profile.gamesWon"),
       value: stats.setsFavor,
-      icon: TrendingUp,
     },
     {
       label: t("profile.gamesLost"),
       value: stats.setsContra,
-      icon: TrendingUp,
+    },
+    {
+      label: t("profile.wins"),
+      value: stats.victorias,
+    },
+    {
+      label: t("profile.losses"),
+      value: stats.derrotas,
     },
     {
       label: t("profile.winRate"),
       value: `${stats.pctVictorias}%`,
-      icon: Flame,
-      accent: true,
     },
   ];
 
   return (
-    <Card>
-      <h2 className="font-heading text-2xl font-semibold text-primary mb-6">
+    <div>
+      <h2 className="mb-4 text-[10px] uppercase tracking-[0.18em] text-[#555]">
         {t("profile.matchStats")}
       </h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[10px] bg-[#222] md:grid-cols-3">
         {items.map((item) => (
-          <div
-            key={item.label}
-            className="p-5 bg-gray-50 rounded-2xl text-center hover:bg-gray-100 transition-colors"
-          >
-            <item.icon
-              size={22}
-              className={`mx-auto mb-2 ${item.accent ? "text-accent" : "text-text-secondary"}`}
-            />
-            <p
-              className={`text-3xl font-bold mb-1 ${item.accent ? "text-accent" : "text-primary"}`}
-            >
+          <div key={item.label} className="bg-[#111] px-4 py-4">
+            <p className="mb-2 text-[10px] uppercase tracking-wide text-[#555]">
+              {item.label}
+            </p>
+            <p className="text-[26px] font-medium tabular-nums leading-none text-white">
               {item.value}
             </p>
-            <p className="text-sm text-text-secondary">{item.label}</p>
           </div>
         ))}
       </div>
+
       {stats.ultimaActividad && (
-        <div className="mt-6 flex items-center justify-center gap-2 text-text-secondary">
-          <CalendarDays size={16} className="text-accent" />
-          <span>
-            {t("profile.lastActivity")}: {stats.ultimaActividad}
+        <div className="mt-4 flex items-center justify-between border-t border-[#222] pt-4 text-sm">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-[#555]">
+            {t("profile.lastActivity")}
           </span>
+          <span className="font-medium text-white">{stats.ultimaActividad}</span>
         </div>
       )}
-    </Card>
+    </div>
   );
 }

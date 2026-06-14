@@ -21,16 +21,17 @@ export function Header() {
     "/tournaments",
     "/rankings",
     "/gallery",
+    "/galeria",
     "/contact",
     "/players",
     "/privacy",
     "/terms",
   ];
 
-  // Check if current page should have black header
-  const shouldHaveBlackHeader = whiteThemedPages.some((page) =>
+  const isLightPage = whiteThemedPages.some((page) =>
     pathname.startsWith(page),
   );
+  const useSolidHeader = isLightPage || isScrolled || isMobileMenuOpen;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -41,12 +42,25 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const headerStyles =
-    shouldHaveBlackHeader || isScrolled || isMobileMenuOpen
-      ? "bg-background shadow-md"
-      : "bg-transparent";
+  const headerStyles = useSolidHeader
+    ? isLightPage
+      ? "bg-white shadow-md border-b border-gray-200"
+      : "bg-background shadow-md"
+    : "bg-transparent";
 
-  const textStyles = "text-white";
+  const textStyles = useSolidHeader
+    ? isLightPage
+      ? "text-primary"
+      : "text-white"
+    : "text-white";
+
+  const logoStyles = useSolidHeader
+    ? isLightPage
+      ? "text-primary"
+      : "text-white"
+    : "text-white";
+
+  const navTheme = useSolidHeader && isLightPage ? "light" : "dark";
 
   return (
     <>
@@ -57,16 +71,16 @@ export function Header() {
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3">
-              <Logo className="w-40 h-10 text-white" />
+              <Logo className={`w-40 h-10 ${logoStyles}`} />
             </Link>
 
             {/* Desktop Navigation */}
-            <div className={`hidden lg:flex items-center gap-8 ${textStyles}`}>
-              <Navigation />
+            <div className={`hidden md:flex items-center gap-8 ${textStyles}`}>
+              <Navigation theme={navTheme} />
             </div>
 
             {/* Social Icons & Language Toggle - Desktop */}
-            <div className="hidden lg:flex items-center gap-4">
+            <div className={`hidden md:flex items-center gap-4 ${textStyles}`}>
               <a
                 href="https://instagram.com/rivieraopen"
                 target="_blank"
@@ -94,13 +108,17 @@ export function Header() {
               >
                 <TikTokIcon size={20} />
               </a>
-              <div className="w-px h-5 bg-white/30 mx-1"></div>
-              <LanguageToggle variant="header" />
+              <div
+                className={`w-px h-5 mx-1 ${
+                  isLightPage ? "bg-primary/20" : "bg-white/30"
+                }`}
+              ></div>
+              <LanguageToggle variant="header" theme={navTheme} />
             </div>
 
             {/* Mobile Menu Button */}
             <button
-              className={`lg:hidden p-2 ${textStyles}`}
+              className={`md:hidden p-2 ${textStyles}`}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label={t("aria.toggleMenu")}
             >
@@ -112,7 +130,7 @@ export function Header() {
 
       {/* Mobile Menu Full Screen */}
       <div
-        className={`fixed inset-0 z-40 lg:hidden transition-all duration-300 ${
+        className={`fixed inset-0 z-40 md:hidden transition-all duration-300 ${
           isMobileMenuOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"

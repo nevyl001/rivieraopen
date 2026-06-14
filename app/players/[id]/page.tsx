@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Container } from "@/components/ui";
-import { PlayerProfile } from "@/components/players/PlayerProfile";
+import { PlayerProfile, PlayerPersonalInfo } from "@/components/players/PlayerProfile";
 import { PlayerStatsGrid } from "@/components/players/PlayerStatsGrid";
 import { PlayerActivitySummary } from "@/components/players/PlayerActivitySummary";
 import { getJugadorPublico } from "@/lib/playerService";
@@ -55,20 +55,38 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
     notFound();
   }
 
+  const hasPersonalInfo = Boolean(
+    player.age ||
+      player.manoDominante ||
+      player.enCancha ||
+      player.paisCodigo?.trim(),
+  );
+
   return (
-    <div className="pt-32 pb-16 bg-gray-50">
-      <Container>
+    <div className="min-h-screen bg-[#0a0a0a] pt-32 pb-16">
+      <Container size="md">
         <Link
           href="/rankings"
-          className="inline-flex items-center gap-2 text-text-secondary hover:text-primary mb-8 transition-colors font-medium"
+          className="mb-8 inline-flex items-center gap-2 rounded-lg border border-[#333] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:border-[#555] hover:bg-[#111]"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={18} className="text-white" />
           Volver a Rankings
         </Link>
 
-        <div className="space-y-6">
+        <div className="space-y-2">
           <PlayerProfile player={player} />
-          <PlayerStatsGrid player={player} />
+
+          <div
+            className={`grid grid-cols-1 gap-6 border-t border-[#222] pt-6 ${
+              hasPersonalInfo ? "lg:grid-cols-2 lg:items-start" : ""
+            }`}
+          >
+            {hasPersonalInfo && <PlayerPersonalInfo player={player} />}
+            <div className={hasPersonalInfo ? "" : "lg:col-span-2"}>
+              <PlayerStatsGrid player={player} />
+            </div>
+          </div>
+
           <PlayerActivitySummary player={player} />
         </div>
       </Container>

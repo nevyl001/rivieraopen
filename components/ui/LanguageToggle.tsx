@@ -5,11 +5,13 @@ import { SupportedLocale } from "@/lib/i18n/config";
 
 export interface LanguageToggleProps {
   variant?: "header" | "footer";
+  theme?: "light" | "dark";
   className?: string;
 }
 
 export function LanguageToggle({
   variant = "header",
+  theme = "dark",
   className = "",
 }: LanguageToggleProps) {
   const { locale, setLocale } = useLocale();
@@ -23,11 +25,17 @@ export function LanguageToggle({
     "inline-flex items-center gap-2 transition-colors focus:outline-none";
 
   const variantStyles = {
-    header: "focus:ring-white",
+    header: theme === "light" ? "focus:ring-primary" : "focus:ring-white",
     footer: "focus:ring-gray-300",
   };
 
   const currentLanguageLabel = locale === "en" ? "English" : "Español";
+  const activeLanguageClass =
+    variant === "header" && theme === "light" ? "text-primary" : "text-white";
+  const inactiveLanguageClass =
+    variant === "header" && theme === "light"
+      ? "text-primary/50"
+      : "text-white/50";
 
   return (
     <button
@@ -40,15 +48,15 @@ export function LanguageToggle({
       <span className="flex items-center gap-1.5">
         <span
           className={`text-sm font-medium transition-colors ${
-            locale === "en" ? "text-white" : "text-white/50"
+            locale === "en" ? activeLanguageClass : inactiveLanguageClass
           }`}
         >
           EN
         </span>
-        <span className="text-sm text-white/50">/</span>
+        <span className={`text-sm ${inactiveLanguageClass}`}>/</span>
         <span
           className={`text-sm font-medium transition-colors ${
-            locale === "es" ? "text-white" : "text-white/50"
+            locale === "es" ? activeLanguageClass : inactiveLanguageClass
           }`}
         >
           ES

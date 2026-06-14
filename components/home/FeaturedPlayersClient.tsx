@@ -5,8 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { Container, Badge } from "@/components/ui";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
-import { ChevronLeft, ChevronRight, Trophy } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "@/lib/hooks/useTranslation";
+import { getCategoryTranslationKey } from "@/lib/categoryUtils";
 import { Player } from "@/lib/types";
 
 interface FeaturedPlayersClientProps {
@@ -18,6 +19,7 @@ export function FeaturedPlayersClient({
 }: FeaturedPlayersClientProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const { t } = useTranslation("home");
+  const { t: tRankings } = useTranslation("rankings");
   const { t: tCommon } = useTranslation("common");
 
   // Auto-rotate carousel (only if we have players)
@@ -102,42 +104,38 @@ export function FeaturedPlayersClient({
         <AnimatedSection delay={400} className="relative">
           {/* Carousel */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {getVisiblePlayers().map((player, index) => (
+            {getVisiblePlayers().map((player) => (
               <Link
                 key={player.id}
                 href={`/players/${player.id}`}
                 className="group"
               >
-                <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-accent/20 hover:border-accent/30">
-                  {/* Player Image */}
-                  <div className="relative h-80 overflow-hidden">
+                <div className="flex items-stretch overflow-hidden rounded-3xl border border-gray-200 bg-white transition-all duration-300 hover:border-accent/30 hover:shadow-xl hover:shadow-accent/20">
+                  <div className="relative w-36 min-h-[220px] shrink-0 self-stretch overflow-hidden bg-gray-900 sm:w-40 md:w-44">
                     <Image
                       src={player.photo}
                       alt={`${player.firstName} ${player.lastName}`}
                       fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover object-top"
+                      sizes="176px"
                     />
-                    <div className="absolute inset-0 bg-black/20" />
-                    {/* Rank Badge */}
-                    <div className="absolute top-4 right-4">
-                      <div className="bg-accent text-text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
+                    <div className="absolute bottom-3 left-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-white shadow-md">
                         #{player.rank}
                       </div>
                     </div>
                   </div>
 
-                  {/* Player Info */}
-                  <div className="p-6">
-                    <Badge variant="default" className="mb-3">
-                      {tCommon("labels.level")} {player.category}
+                  <div className="flex min-w-0 flex-1 flex-col justify-center p-5 md:p-6">
+                    <Badge variant="default" className="mb-3 w-fit">
+                      {tRankings(getCategoryTranslationKey(player.category))}
                     </Badge>
-                    <h3 className="font-heading text-3xl font-semibold text-primary mb-2 group-hover:text-accent transition-colors">
+                    <h3 className="font-heading text-2xl font-semibold text-primary transition-colors group-hover:text-accent md:text-3xl">
                       {player.firstName} {player.lastName}
                     </h3>
-                    <div className="flex items-center justify-between text-gray-600">
+                    <div className="mt-4 flex items-center justify-between gap-4 border-t border-gray-100 pt-4 text-gray-600">
                       <span className="text-sm">
-                        {tCommon("labels.points")}
+                        {tRankings("labels.totalPoints")}
                       </span>
                       <span className="text-2xl font-bold text-accent">
                         {player.points.toLocaleString()}

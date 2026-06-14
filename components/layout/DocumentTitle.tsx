@@ -20,7 +20,10 @@ export function DocumentTitle() {
       pageType = "tournaments";
     } else if (pathname.startsWith("/rankings")) {
       pageType = "rankings";
-    } else if (pathname.startsWith("/gallery")) {
+    } else if (
+      pathname.startsWith("/gallery") ||
+      pathname.startsWith("/galeria")
+    ) {
       pageType = "gallery";
     } else if (pathname.startsWith("/contact")) {
       pageType = "contact";
