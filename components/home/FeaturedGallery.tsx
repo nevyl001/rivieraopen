@@ -1,80 +1,136 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Button, Container } from "@/components/ui";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
-import { FeaturedGalleryPhoto } from "@/lib/galeriaService";
+import { GaleriaEventCard } from "@/components/gallery/GaleriaEventCard";
+import { GaleriaEvento } from "@/lib/types/galeria";
 import { useTranslation } from "@/lib/hooks/useTranslation";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface FeaturedGalleryProps {
-  photos: FeaturedGalleryPhoto[];
+  eventos: GaleriaEvento[];
 }
 
-export function FeaturedGallery({ photos }: FeaturedGalleryProps) {
+export function FeaturedGallery({ eventos }: FeaturedGalleryProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
   const { t } = useTranslation("gallery");
   const { t: tHome } = useTranslation("home");
+  const { t: tCommon } = useTranslation("common");
+
+  const visibleCount = Math.min(3, eventos.length);
+
+  useEffect(() => {
+    if (eventos.length <= visibleCount) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % eventos.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [eventos.length, visibleCount]);
+
+  const getVisibleEventos = () => {
+    if (eventos.length === 0) return [];
+
+    const visible: GaleriaEvento[] = [];
+    for (let i = 0; i < visibleCount; i++) {
+      visible.push(eventos[(currentIndex + i) % eventos.length]);
+    }
+    return visible;
+  };
+
+  const goToPrevious = () => {
+    if (eventos.length === 0) return;
+    setCurrentIndex((prev) => (prev - 1 + eventos.length) % eventos.length);
+  };
+
+  const goToNext = () => {
+    if (eventos.length === 0) return;
+    setCurrentIndex((prev) => (prev + 1) % eventos.length);
+  };
 
   return (
-    <section className="py-24 md:py-32 bg-background">
+    <section className="py-20 md:py-28 bg-background">
       <Container>
-        <AnimatedSection className="text-center mb-16 md:mb-20">
+        <AnimatedSection className="text-center mb-12 md:mb-14">
           <AnimatedSection delay={0}>
-            <h2 className="font-heading text-5xl md:text-6xl lg:text-7xl font-bold text-text mb-6">
-              {t("labels.photoGallery")}
+            <h2 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-text mb-4">
+              {tHome("sections.galleries")}
             </h2>
           </AnimatedSection>
           <AnimatedSection delay={200}>
-            <p className="text-xl md:text-2xl text-text-secondary max-w-3xl mx-auto">
+            <p className="text-lg md:text-xl text-text-secondary max-w-2xl mx-auto">
               {tHome("sections.galleryDescription")}
             </p>
           </AnimatedSection>
         </AnimatedSection>
 
-        {photos.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-text-secondary text-lg mb-6">
-              {t("messages.noEvents")}
-            </p>
+        {eventos.length === 0 ? (
+          <div className="text-center py-10">
+            <p className="text-text-secondary mb-6">{t("messages.noEvents")}</p>
             <Link href="/galeria">
               <Button variant="secondary">{t("navigation.viewAll")}</Button>
             </Link>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:gap-6 mb-12">
-              {photos.map((photo, index) => (
-                <AnimatedSection key={photo.id} delay={400 + index * 100}>
-                  <Link
-                    href={`/galeria/${photo.eventoId}`}
-                    className="group flex flex-col overflow-hidden rounded-2xl border border-[#222] bg-[#111] transition-all duration-300 hover:border-[#444] hover:bg-[#151515] sm:flex-row"
+            <AnimatedSection delay={400} className="relative mb-10">
+              <div className="flex flex-wrap justify-center gap-5 sm:gap-6 lg:gap-8">
+                {getVisibleEventos().map((evento, index) => (
+                  <div
+                    key={`${evento.id}-${currentIndex}-${index}`}
+                    className="w-full max-w-[240px] sm:max-w-[260px]"
                   >
-                    <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-[#0a0a0a] sm:w-48 md:w-56">
-                      <Image
-                        src={photo.url}
-                        alt={photo.eventoNombre}
-                        fill
-                        className="object-contain object-center p-2 transition-transform duration-300 group-hover:scale-[1.02]"
-                        sizes="(max-width: 640px) 100vw, 224px"
-                      />
-                    </div>
-                    <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 p-5">
-                      <p className="text-[10px] uppercase tracking-[0.18em] text-[#555]">
-                        {t("metadata.tournament")}
-                      </p>
-                      <h3 className="font-heading text-xl font-semibold text-white transition-colors group-hover:text-[#ddd] line-clamp-2">
-                        {photo.eventoNombre}
-                      </h3>
-                      {photo.eventoLugar && (
-                        <p className="text-sm text-[#777]">{photo.eventoLugar}</p>
-                      )}
-                    </div>
-                  </Link>
-                </AnimatedSection>
-              ))}
-            </div>
+                    <GaleriaEventCard
+                      evento={evento}
+                      variant="dark"
+                      priority={index === 0}
+                    />
+                  </div>
+                ))}
+              </div>
 
-            <AnimatedSection delay={800} className="text-center">
+              {eventos.length > visibleCount && (
+                <>
+                  <button
+                    type="button"
+                    onClick={goToPrevious}
+                    className="absolute left-0 top-1/2 hidden -translate-x-3 -translate-y-1/2 rounded-full bg-[#111] p-3 text-white shadow-lg ring-1 ring-[#333] transition-colors hover:bg-[#222] md:block"
+                    aria-label={tCommon("buttons.previous")}
+                  >
+                    <ChevronLeft size={22} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goToNext}
+                    className="absolute right-0 top-1/2 hidden translate-x-3 -translate-y-1/2 rounded-full bg-[#111] p-3 text-white shadow-lg ring-1 ring-[#333] transition-colors hover:bg-[#222] md:block"
+                    aria-label={tCommon("buttons.next")}
+                  >
+                    <ChevronRight size={22} />
+                  </button>
+
+                  <div className="mt-8 flex justify-center gap-2">
+                    {eventos.map((_, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => setCurrentIndex(index)}
+                        className={`h-2 rounded-full transition-all ${
+                          index === currentIndex
+                            ? "w-8 bg-white"
+                            : "w-2 bg-[#444] hover:bg-[#666]"
+                        }`}
+                        aria-label={`Evento ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </AnimatedSection>
+
+            <AnimatedSection delay={700} className="text-center">
               <Link href="/galeria">
                 <Button variant="secondary">{t("navigation.viewAll")}</Button>
               </Link>

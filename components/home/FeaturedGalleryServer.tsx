@@ -1,12 +1,12 @@
-import { getFeaturedGalleryPhotos } from "@/lib/galeriaService";
+import { getEventos } from "@/lib/galeriaService";
 import { FeaturedGallery } from "./FeaturedGallery";
 
 export async function FeaturedGalleryServer() {
   try {
-    const photos = await getFeaturedGalleryPhotos(3);
-    return <FeaturedGallery photos={photos} />;
+    const eventos = await getEventos();
+    return <FeaturedGallery eventos={eventos} />;
   } catch (error) {
     console.error("FeaturedGalleryServer:", error);
-    return <FeaturedGallery photos={[]} />;
+    return <FeaturedGallery eventos={[]} />;
   }
 }
