@@ -14,6 +14,7 @@
     "winLossRecord": "Win/Loss Record",
     "bestFinishes": "Best Finishes",
     "selectLevel": "Select Level",
+    "selectGender": "Select Division",
     "showing": "Showing",
     "player": "player",
     "players": "players",
@@ -23,16 +24,20 @@
     "rank": "Rank",
     "pts": "pts"
   },
+  "genders": {
+    "varonil": "Men's",
+    "femenil": "Women's"
+  },
   "levels": {
     "open": "Open",
-    "1": "First",
-    "2": "Second",
-    "3": "Third",
-    "4": "Fourth",
-    "5": "Fifth",
-    "6": "Sixth",
-    "openLevel": "Open Level",
-    "level": "Level"
+    "1": "1st Force",
+    "2": "2nd Force",
+    "3": "3rd Force",
+    "4": "4th Force",
+    "5": "5th Force",
+    "6": "6th Force",
+    "openLevel": "Open",
+    "level": "Force"
   },
   "placementIndicators": {
     "first": "1st Place",
@@ -42,17 +47,82 @@
     "semifinalist": "Semifinalist"
   },
   "pointSystem": {
-    "description": "Players earn points based on their performance in tournaments. The more tournaments you play and the better you finish, the higher your ranking.",
-    "firstPlace": "1st Place: 1000 points",
-    "secondPlace": "2nd Place: 750 points",
-    "semiFinals": "Semi-Finals: 500 points",
-    "quarterFinals": "Quarter-Finals: 250 points",
-    "participation": "Participation: 100 points",
-    "updateInfo": "Rankings are updated after each tournament. Players can advance to higher levels based on consistent performance and point thresholds."
+    "description": "Players accumulate points in tournaments, leagues, americans and challenges. The more you play and the better you perform, the higher your ranking.",
+    "table": {
+      "concept": "Concept",
+      "points": "Points"
+    },
+    "tournament": {
+      "title": "Tournament",
+      "subtitle": "The full path adds up to 600 pts:",
+      "note": "Concepts stack: the champion earns participation + stages + podium.",
+      "participate": "Participate",
+      "groupStage": "Advance from group stage",
+      "semiFinal": "Reach semi-final",
+      "final": "Reach the final",
+      "champion": "Champion",
+      "runnerUp": "Runner-up",
+      "semiFinalists": "Semi-finalists (3rd / 4th)"
+    },
+    "league": {
+      "title": "League",
+      "firstRegistration": "First registration in the season",
+      "winRound": "Win a matchday",
+      "champion": "League champion",
+      "runnerUp": "Runner-up",
+      "thirdPlace": "Third place"
+    },
+    "american": {
+      "title": "American",
+      "participate": "Participate",
+      "winDuel": "Each duel win",
+      "champion": "Champion",
+      "runnerUp": "Runner-up",
+      "thirdPlace": "Third place"
+    },
+    "challenge": {
+      "title": "Challenge (individual or teams)",
+      "participate": "Participate (4th place onwards)",
+      "champion": "Champion",
+      "runnerUp": "Runner-up",
+      "thirdPlace": "Third place"
+    },
+    "rules": {
+      "title": "General rules",
+      "noDeduction": "You only gain points; none are deducted for losing.",
+      "tieBreak": "Rankings are ordered by total points; ties share the same position.",
+      "autoRegister": "Points are recorded automatically when challenges, tournaments, leagues and americans finish.",
+      "liveRanking": "Check the live ranking and your history in the app."
+    }
   },
   "messages": {
     "noPlayers": "No players found at this level.",
     "loadingRankings": "Loading rankings...",
     "playerNotFound": "Player not found."
+  },
+  "profile": {
+    "personalInfo": "Personal Information",
+    "matchStats": "Match Statistics",
+    "activityHistory": "History & Activity",
+    "age": "Age",
+    "years": "years",
+    "level": "Level",
+    "dominantHand": "Dominant hand",
+    "courtPosition": "Court position",
+    "country": "Country",
+    "wins": "Wins",
+    "losses": "Losses",
+    "winRate": "Win %",
+    "matchesPlayed": "Matches played",
+    "setsWon": "Sets won",
+    "setsLost": "Sets lost",
+    "currentStreak": "Current streak",
+    "lastActivity": "Last activity",
+    "expressTournaments": "Express Tournaments",
+    "leagues": "Leagues",
+    "challenges": "Challenges",
+    "americans": "Americans",
+    "soloParticipations": "Solo participations",
+    "noActivityYet": "No activity recorded for this player yet."
   }
 }

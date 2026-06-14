@@ -18,6 +18,7 @@ export interface PlayerSocials {
   instagram?: string;
   facebook?: string;
   twitter?: string;
+  tiktok?: string;
 }
 
 export interface Player {
@@ -32,6 +33,36 @@ export interface Player {
   contact: PlayerContact;
   socials: PlayerSocials;
   tournamentResults: TournamentResult[];
+}
+
+export interface PlayerStatsSummary {
+  totalPartidos: number;
+  victorias: number;
+  derrotas: number;
+  empates: number;
+  pctVictorias: number;
+  setsFavor: number;
+  setsContra: number;
+  rachaActual: string | null;
+  ultimaActividad: string | null;
+  totalRetas: number;
+  totalTorneosExpress: number;
+  totalLigas: number;
+  totalAmericanos: number;
+  participacionesSolo: number;
+}
+
+export interface PlayerProfileDetail extends Player {
+  slug: string | null;
+  age: number | null;
+  birthDate: string | null;
+  club: string | null;
+  nivel: string | null;
+  manoDominante: string | null;
+  enCancha: string | null;
+  paisCodigo: string | null;
+  whatsapp: string | null;
+  stats: PlayerStatsSummary;
 }
 
 /**

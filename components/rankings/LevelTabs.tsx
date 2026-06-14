@@ -2,6 +2,7 @@
 
 import { Category } from "@/lib/types";
 import { useTranslation } from "@/lib/hooks/useTranslation";
+import { getCategoryTranslationKey } from "@/lib/categoryUtils";
 
 interface LevelTabsProps {
   selectedLevel: Category;
@@ -12,37 +13,36 @@ const levels: Category[] = ["Open", "1", "2", "3", "4", "5", "6"];
 
 export function LevelTabs({ selectedLevel, onLevelChange }: LevelTabsProps) {
   const { t } = useTranslation("rankings");
-  const { t: tCommon } = useTranslation("common");
 
   return (
     <>
-      {/* Desktop Tabs */}
-      <div className="hidden md:flex gap-2 border-b border-border">
-        {levels.map((level) => (
-          <button
-            key={level}
-            onClick={() => onLevelChange(level)}
-            className={`px-6 py-3 font-medium transition-colors relative ${
-              selectedLevel === level
-                ? "text-accent"
-                : "text-text-secondary hover:text-primary"
-            }`}
-          >
-            {level === "Open"
-              ? t("levels.open")
-              : `${tCommon("labels.level")} ${level}`}
-            {selectedLevel === level && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />
-            )}
-          </button>
-        ))}
+      {/* Desktop — centered category pills */}
+      <div className="hidden md:flex justify-center">
+        <div className="flex flex-wrap justify-center gap-2 max-w-4xl">
+          {levels.map((level) => {
+            const isSelected = selectedLevel === level;
+            return (
+              <button
+                key={level}
+                onClick={() => onLevelChange(level)}
+                className={`px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+                  isSelected
+                    ? "bg-accent/10 text-accent border border-accent/30"
+                    : "text-text-secondary hover:text-primary hover:bg-gray-50"
+                }`}
+              >
+                {t(getCategoryTranslationKey(level))}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Mobile Dropdown */}
+      {/* Mobile */}
       <div className="md:hidden">
         <label
           htmlFor="level-select"
-          className="block text-sm font-medium text-black mb-2"
+          className="block text-sm font-medium text-primary mb-2"
         >
           {t("labels.selectLevel")}
         </label>
@@ -50,13 +50,11 @@ export function LevelTabs({ selectedLevel, onLevelChange }: LevelTabsProps) {
           id="level-select"
           value={selectedLevel}
           onChange={(e) => onLevelChange(e.target.value as Category)}
-          className="w-full px-4 py-3 pr-12 bg-white border border-gray-300 rounded-full font-medium text-primary focus:outline-none focus:ring-2 focus:ring-accent"
+          className="w-full px-4 py-3 pr-12 bg-white border border-gray-200 rounded-full font-medium text-primary focus:outline-none focus:ring-2 focus:ring-accent"
         >
           {levels.map((level) => (
             <option key={level} value={level}>
-              {level === "Open"
-                ? t("levels.open")
-                : `${tCommon("labels.level")} ${level}`}
+              {t(getCategoryTranslationKey(level))}
             </option>
           ))}
         </select>

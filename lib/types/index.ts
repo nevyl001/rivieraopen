@@ -5,6 +5,8 @@ export type {
   Player,
   PlayerContact,
   PlayerSocials,
+  PlayerProfileDetail,
+  PlayerStatsSummary,
   TournamentResult,
 } from "./player";
 

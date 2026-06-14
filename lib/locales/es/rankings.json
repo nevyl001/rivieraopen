@@ -14,6 +14,7 @@
     "winLossRecord": "Récord de Victorias/Derrotas",
     "bestFinishes": "Mejores Resultados",
     "selectLevel": "Seleccionar Categoría",
+    "selectGender": "Seleccionar Rama",
     "showing": "Mostrando",
     "player": "jugador",
     "players": "jugadores",
@@ -23,16 +24,20 @@
     "rank": "Ranking",
     "pts": "pts"
   },
+  "genders": {
+    "varonil": "Varonil",
+    "femenil": "Femenil"
+  },
   "levels": {
     "open": "Open",
-    "1": "Primera",
-    "2": "Segunda",
-    "3": "Tercera",
-    "4": "Cuarta",
-    "5": "Quinta",
-    "6": "Sexta",
-    "openLevel": "Categoría Open",
-    "level": "Categoría"
+    "1": "1ra Fuerza",
+    "2": "2da Fuerza",
+    "3": "3ra Fuerza",
+    "4": "4ta Fuerza",
+    "5": "5ta Fuerza",
+    "6": "6ta Fuerza",
+    "openLevel": "Open",
+    "level": "Fuerza"
   },
   "placementIndicators": {
     "first": "1er Lugar",
@@ -42,17 +47,82 @@
     "semifinalist": "Semifinalista"
   },
   "pointSystem": {
-    "description": "Los jugadores ganan puntos basándose en su rendimiento en torneos. Mientras más torneos juegues y mejor termines, más alto será tu ranking.",
-    "firstPlace": "1er Lugar: 1000 puntos",
-    "secondPlace": "2do Lugar: 750 puntos",
-    "semiFinals": "Semifinales: 500 puntos",
-    "quarterFinals": "Cuartos de Final: 250 puntos",
-    "participation": "Participación: 100 puntos",
-    "updateInfo": "Los rankings se actualizan después de cada torneo. Los jugadores pueden avanzar a niveles superiores basándose en rendimiento consistente y umbrales de puntos."
+    "description": "Los jugadores acumulan puntos en torneos, ligas, americanos y retas. Mientras más participes y mejor rindas, más alto será tu ranking.",
+    "table": {
+      "concept": "Concepto",
+      "points": "Puntos"
+    },
+    "tournament": {
+      "title": "Torneo",
+      "subtitle": "El camino completo suma hasta 600 pts:",
+      "note": "Los conceptos se acumulan: quien gana el torneo suma participación + fases + podio.",
+      "participate": "Participar",
+      "groupStage": "Pasar fase de grupos",
+      "semiFinal": "Llegar a semifinal",
+      "final": "Llegar a la final",
+      "champion": "Campeón",
+      "runnerUp": "Subcampeón",
+      "semiFinalists": "Semifinalistas (3.º / 4.º)"
+    },
+    "league": {
+      "title": "Liga",
+      "firstRegistration": "Primera inscripción en la temporada",
+      "winRound": "Ganar una jornada",
+      "champion": "Campeón de liga",
+      "runnerUp": "Subcampeón",
+      "thirdPlace": "Tercer lugar"
+    },
+    "american": {
+      "title": "Americano",
+      "participate": "Participar",
+      "winDuel": "Cada victoria en duelo",
+      "champion": "Campeón",
+      "runnerUp": "Subcampeón",
+      "thirdPlace": "Tercer lugar"
+    },
+    "challenge": {
+      "title": "Reta (individual o por equipos)",
+      "participate": "Participar (4.º en adelante)",
+      "champion": "Campeón",
+      "runnerUp": "Subcampeón",
+      "thirdPlace": "Tercer lugar"
+    },
+    "rules": {
+      "title": "Reglas generales",
+      "noDeduction": "Solo sumas puntos; no se restan por perder.",
+      "tieBreak": "El ranking ordena por total de puntos; si hay empate, comparten posición.",
+      "autoRegister": "Los puntos se registran automáticamente al terminar retas, torneos, ligas y americanos.",
+      "liveRanking": "Consulta el ranking en vivo y tu historial en la app."
+    }
   },
   "messages": {
     "noPlayers": "No se encontraron jugadores en este nivel.",
     "loadingRankings": "Cargando rankings...",
     "playerNotFound": "Jugador no encontrado."
+  },
+  "profile": {
+    "personalInfo": "Información Personal",
+    "matchStats": "Estadísticas de Partidos",
+    "activityHistory": "Historial y Actividad",
+    "age": "Edad",
+    "years": "años",
+    "level": "Nivel",
+    "dominantHand": "Mano dominante",
+    "courtPosition": "Posición en cancha",
+    "country": "País",
+    "wins": "Victorias",
+    "losses": "Derrotas",
+    "winRate": "% Victorias",
+    "matchesPlayed": "Partidos jugados",
+    "setsWon": "Sets a favor",
+    "setsLost": "Sets en contra",
+    "currentStreak": "Racha actual",
+    "lastActivity": "Última actividad",
+    "expressTournaments": "Torneos Express",
+    "leagues": "Ligas",
+    "challenges": "Retas",
+    "americans": "Americanos",
+    "soloParticipations": "Participaciones individuales",
+    "noActivityYet": "Aún no hay actividad registrada para este jugador."
   }
 }
