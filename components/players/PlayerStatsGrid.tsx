@@ -37,12 +37,12 @@ export function PlayerStatsGrid({ player }: PlayerStatsGridProps) {
       icon: Target,
     },
     {
-      label: t("profile.setsWon"),
+      label: t("profile.gamesWon"),
       value: stats.setsFavor,
       icon: TrendingUp,
     },
     {
-      label: t("profile.setsLost"),
+      label: t("profile.gamesLost"),
       value: stats.setsContra,
       icon: TrendingUp,
     },

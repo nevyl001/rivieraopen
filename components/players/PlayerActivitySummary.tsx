@@ -7,7 +7,6 @@ import {
   Users,
   Zap,
   Flag,
-  UserRound,
   History,
 } from "lucide-react";
 import { useTranslation } from "@/lib/hooks/useTranslation";
@@ -40,11 +39,6 @@ export function PlayerActivitySummary({ player }: PlayerActivitySummaryProps) {
       label: t("profile.americans"),
       value: stats.totalAmericanos,
       icon: Users,
-    },
-    {
-      label: t("profile.soloParticipations"),
-      value: stats.participacionesSolo,
-      icon: UserRound,
     },
   ];
 

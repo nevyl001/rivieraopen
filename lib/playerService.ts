@@ -7,6 +7,14 @@ import {
 } from "@/lib/types";
 import { dbCategoryToUi } from "@/lib/categoryUtils";
 import { findCompetitionRank } from "@/lib/rankingUtils";
+import {
+  computePlayerMatchStats,
+  mergePlayerStats,
+} from "@/lib/playerMatchStatsService";
+import {
+  applyParticipacionesStats,
+  computeStatsFromParticipaciones,
+} from "@/lib/playerParticipacionesService";
 
 const DEFAULT_PHOTO = "/img/players/players-1.png";
 
@@ -35,6 +43,7 @@ interface JugadorStatsRow {
 
 interface RivieraJugadorRow {
   id: string;
+  legacy_player_id: string | null;
   nombre: string | null;
   slug: string | null;
   categoria: string | null;
@@ -207,6 +216,7 @@ export async function getJugadorPublico(
       .select(
         `
         id,
+        legacy_player_id,
         nombre,
         slug,
         categoria,
@@ -260,7 +270,27 @@ export async function getJugadorPublico(
     const points = extractPoints(row.jugador_stats);
     const rank = await computeRank(row.categoria, row.genero, row.id, points);
 
-    return mapRowToProfile(row, rank);
+    const baseProfile = mapRowToProfile(row, rank);
+
+    const [participacionesStats, computedStats] = await Promise.all([
+      computeStatsFromParticipaciones(row.id, RANKING_ORGANIZADOR_ID),
+      computePlayerMatchStats(row.legacy_player_id, RANKING_ORGANIZADOR_ID),
+    ]);
+
+    const statsFromPartidos = mergePlayerStats(
+      baseProfile.stats,
+      computedStats
+    );
+
+    const stats = applyParticipacionesStats(
+      statsFromPartidos,
+      participacionesStats
+    );
+
+    return {
+      ...baseProfile,
+      stats,
+    };
   } catch (err) {
     console.error(
       "getJugadorPublico:",
