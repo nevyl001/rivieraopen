@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Card, Badge } from "@/components/ui";
-import { CountryFlag } from "@/components/ui/CountryFlag";
+import { countryCodeToFlag } from "@/components/ui/CountryFlag";
 import { PlayerProfileDetail } from "@/lib/types";
 import {
   Trophy,
@@ -10,7 +10,6 @@ import {
   MapPin,
   User,
   Calendar,
-  Target,
   Flame,
 } from "lucide-react";
 import { useTranslation } from "@/lib/hooks/useTranslation";
@@ -28,7 +27,6 @@ function formatLabel(value: string | null | undefined): string | null {
 
 export function PlayerProfile({ player }: PlayerProfileProps) {
   const { t } = useTranslation("rankings");
-  const { t: tCommon } = useTranslation("common");
   const { formatNumber } = useTranslation();
 
   const fuerzaLabel = t(getCategoryTranslationKey(player.category));
@@ -56,35 +54,57 @@ export function PlayerProfile({ player }: PlayerProfileProps) {
     },
   ];
 
-  const detailItems = [
-    {
-      label: t("profile.age"),
-      value: player.age ? `${player.age} ${t("profile.years")}` : null,
-      icon: Calendar,
-    },
-    {
-      label: t("profile.force"),
-      value: fuerzaLabel,
-      icon: Target,
-    },
-    {
-      label: t("profile.dominantHand"),
-      value: formatLabel(player.manoDominante),
-      icon: User,
-    },
-    {
-      label: t("profile.courtPosition"),
-      value: formatLabel(player.enCancha),
-      icon: User,
-    },
-    {
-      label: tCommon("labels.club"),
-      value: player.club,
-      icon: MapPin,
-    },
-  ].filter((item) => item.value);
-
   const hasCountry = Boolean(player.paisCodigo?.trim());
+
+  const personalItems = [
+    player.age && {
+      key: "age",
+      label: t("profile.age"),
+      icon: Calendar,
+      content: (
+        <p className="font-medium text-primary">
+          {player.age} {t("profile.years")}
+        </p>
+      ),
+    },
+    player.manoDominante && {
+      key: "hand",
+      label: t("profile.dominantHand"),
+      icon: User,
+      content: (
+        <p className="font-medium text-primary">
+          {formatLabel(player.manoDominante)}
+        </p>
+      ),
+    },
+    player.enCancha && {
+      key: "position",
+      label: t("profile.courtPosition"),
+      icon: User,
+      content: (
+        <p className="font-medium text-primary">
+          {formatLabel(player.enCancha)}
+        </p>
+      ),
+    },
+    hasCountry && {
+      key: "country",
+      label: t("profile.country"),
+      icon: MapPin,
+      content: (
+        <span className="text-4xl leading-none" aria-hidden>
+          {countryCodeToFlag(player.paisCodigo!)}
+        </span>
+      ),
+    },
+  ].filter(Boolean) as Array<{
+    key: string;
+    label: string;
+    icon: typeof Calendar;
+    content: React.ReactNode;
+  }>;
+
+  const hasPersonalInfo = personalItems.length > 0;
 
   return (
     <div className="space-y-6">
@@ -196,36 +216,24 @@ export function PlayerProfile({ player }: PlayerProfileProps) {
         </div>
       </Card>
 
-      {/* Personal info — unchanged structure */}
-      {(detailItems.length > 0 || hasCountry) && (
+      {hasPersonalInfo && (
         <Card className="border border-gray-100 shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
           <h2 className="font-heading text-2xl font-semibold text-primary mb-4">
             {t("profile.personalInfo")}
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {detailItems.map((item) => (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {personalItems.map((item) => (
               <div
-                key={item.label}
+                key={item.key}
                 className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl"
               >
                 <item.icon size={18} className="text-accent mt-0.5 shrink-0" />
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm text-text-secondary">{item.label}</p>
-                  <p className="font-medium text-primary">{item.value}</p>
+                  {item.content}
                 </div>
               </div>
             ))}
-            {hasCountry && player.paisCodigo && (
-              <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
-                <MapPin size={18} className="text-accent mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm text-text-secondary mb-1">
-                    {t("profile.country")}
-                  </p>
-                  <CountryFlag code={player.paisCodigo} size="lg" />
-                </div>
-              </div>
-            )}
           </div>
         </Card>
       )}
