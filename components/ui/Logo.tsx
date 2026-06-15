@@ -19,7 +19,7 @@ export function Logo({
   if (variant === "badge") {
     return (
       <Image
-        src="/img/logo.png"
+        src="/img/logo.webp"
         alt="Riviera Open"
         width={width}
         height={height}

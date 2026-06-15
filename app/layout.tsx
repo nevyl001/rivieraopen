@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Stack_Sans_Headline } from "next/font/google";
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
 import "./globals.css";
 
 const inter = Inter({
   variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const stackSansHeadline = Stack_Sans_Headline({
+  variable: "--font-stack-sans-headline",
   subsets: ["latin"],
   display: "swap",
 });
@@ -78,19 +84,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Stack+Sans+Headline:wght@200..700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body className={`${inter.variable} antialiased`}>
+      <body
+        className={`${inter.variable} ${stackSansHeadline.variable} antialiased`}
+      >
         <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>

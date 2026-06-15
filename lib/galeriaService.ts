@@ -20,6 +20,19 @@ interface GaleriaEventoRow {
   created_at: string;
 }
 
+function optimizeCloudinaryUrl(url: string, width = 900): string {
+  if (!url.includes("res.cloudinary.com")) return url;
+
+  const uploadMarker = "/upload/";
+  const uploadIndex = url.indexOf(uploadMarker);
+  if (uploadIndex === -1) return url;
+
+  const afterUpload = url.slice(uploadIndex + uploadMarker.length);
+  if (/^(f_|w_|c_|q_|g_)/.test(afterUpload)) return url;
+
+  return `${url.slice(0, uploadIndex + uploadMarker.length)}f_auto,q_auto,w_${width}/${afterUpload}`;
+}
+
 function isValidImageUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
@@ -46,15 +59,18 @@ function normalizeFotos(fotos: unknown): string[] {
       }
       return null;
     })
-    .filter((url): url is string => Boolean(url && isValidImageUrl(url)));
+    .filter((url): url is string => Boolean(url && isValidImageUrl(url)))
+    .map((url) => optimizeCloudinaryUrl(url));
 }
 
 function resolvePortadaUrl(
   portada_url: string | null,
   fotos: string[]
 ): string | null {
-  if (portada_url && isValidImageUrl(portada_url)) return portada_url;
-  return fotos[0] ?? null;
+  if (portada_url && isValidImageUrl(portada_url)) {
+    return optimizeCloudinaryUrl(portada_url);
+  }
+  return fotos[0] ? optimizeCloudinaryUrl(fotos[0]) : null;
 }
 
 function mapRowToEvento(row: GaleriaEventoRow): GaleriaEvento {
