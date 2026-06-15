@@ -72,9 +72,9 @@ export function TournamentCard({ tournament }: TournamentCardProps) {
 
         {/* Tournament Details */}
         <div className="space-y-2 mb-4 flex-1">
-          <div className="flex items-start gap-2 text-sm text-text-secondary">
+          <div className="flex items-start gap-2 text-sm text-text-secondary min-h-[2.75rem]">
             <MapPin size={16} className="mt-0.5 shrink-0" />
-            <span>
+            <span className="line-clamp-2 leading-snug">
               {tournament.club}, {tournament.location}
             </span>
           </div>

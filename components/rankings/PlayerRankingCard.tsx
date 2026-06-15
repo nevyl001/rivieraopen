@@ -54,6 +54,11 @@ export function PlayerRankingCard({ player }: PlayerRankingCardProps) {
         <h3 className="font-heading text-base md:text-xl font-semibold text-primary truncate group-hover:text-accent transition-colors">
           {player.firstName} {player.lastName}
         </h3>
+        <PlayerSocialIcons
+          socials={player.socials}
+          size="sm"
+          className="mt-2 shrink-0"
+        />
         <div className="flex items-center gap-1.5 mt-0.5 text-xs md:text-sm text-text-secondary md:hidden">
           <Trophy size={12} className="text-accent shrink-0" />
           <span>
@@ -71,13 +76,6 @@ export function PlayerRankingCard({ player }: PlayerRankingCardProps) {
           {t("labels.pts")}
         </span>
       </div>
-
-      {/* Social */}
-      <PlayerSocialIcons
-        socials={player.socials}
-        size="sm"
-        className="shrink-0"
-      />
     </article>
   );
 }

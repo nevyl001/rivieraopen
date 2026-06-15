@@ -5,7 +5,6 @@ import { Container } from "@/components/ui";
 import { TournamentCard } from "@/components/tournaments/TournamentCard";
 import { Tournament } from "@/lib/types";
 import { useTranslation } from "@/lib/hooks/useTranslation";
-import { parseDateInput } from "@/lib/i18n/formatters";
 
 interface TournamentsPageClientProps {
   initialTournaments: Tournament[];
@@ -20,19 +19,9 @@ export function TournamentsPageClient({
   >("all");
 
   // Filter tournaments
-  const filteredTournaments = initialTournaments
-    .filter((t) => statusFilter === "all" || t.status === statusFilter)
-    .sort((a, b) => {
-      const dateA = parseDateInput(a.date).getTime();
-      const dateB = parseDateInput(b.date).getTime();
-
-      if (a.status === "upcoming" && b.status !== "upcoming") return -1;
-      if (a.status !== "upcoming" && b.status === "upcoming") return 1;
-      if (a.status === "in-progress" && b.status === "completed") return -1;
-      if (a.status === "completed" && b.status === "in-progress") return 1;
-
-      return dateA - dateB;
-    });
+  const filteredTournaments = initialTournaments.filter(
+    (t) => statusFilter === "all" || t.status === statusFilter,
+  );
 
   return (
     <div className="pt-32 pb-16 bg-gray-50">
@@ -127,9 +116,11 @@ export function TournamentsPageClient({
 
         {/* Tournament Grid */}
         {filteredTournaments.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex flex-wrap justify-center items-stretch gap-6">
             {filteredTournaments.map((tournament) => (
-              <TournamentCard key={tournament.id} tournament={tournament} />
+              <div key={tournament.id} className="w-full sm:w-80">
+                <TournamentCard tournament={tournament} />
+              </div>
             ))}
           </div>
         ) : (

@@ -98,7 +98,7 @@ export function UpcomingTournamentsClient({
           </AnimatedSection>
         </AnimatedSection>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="flex flex-wrap justify-center items-stretch gap-6 mb-8">
           {tournaments.map((tournament, index) => {
             const statusBadge = getStatusBadge(tournament);
 
@@ -106,12 +106,12 @@ export function UpcomingTournamentsClient({
             <AnimatedSection
               key={tournament.id}
               delay={400 + index * 150}
-              className="h-full"
+              className="flex h-full w-full sm:w-80"
             >
-              <Card hover className="flex flex-col h-full">
+              <Card hover className="flex flex-col h-full w-full">
                 {/* Date Badge */}
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="bg-primary text-white px-4 py-2 text-center min-w-[80px]">
+                <div className="flex items-center gap-2 mb-4 min-h-[52px]">
+                  <div className="bg-primary text-white px-4 py-2 text-center min-w-[80px] shrink-0">
                     <div className="text-2xl font-bold">
                       {parseDateInput(tournament.date).getDate()}
                     </div>
@@ -129,18 +129,18 @@ export function UpcomingTournamentsClient({
                 </div>
 
                 {/* Tournament Info */}
-                <h3 className="font-heading text-2xl font-semibold text-primary mb-3">
+                <h3 className="font-heading text-2xl font-semibold text-primary mb-3 line-clamp-2 min-h-[4rem] leading-tight">
                   {tournament.name}
                 </h3>
 
                 <div className="space-y-2 mb-4 flex-1">
-                  <div className="flex items-start gap-2 text-sm text-text-secondary">
+                  <div className="flex items-start gap-2 text-sm text-text-secondary min-h-[2.75rem]">
                     <MapPin size={16} className="mt-0.5 shrink-0" />
-                    <span>
+                    <span className="line-clamp-2 leading-snug">
                       {tournament.club}, {tournament.location}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-text-secondary">
+                  <div className="flex items-center gap-2 text-sm text-text-secondary min-h-[1.25rem]">
                     <Users size={16} className="shrink-0" />
                     <span>
                       {tCommon("labels.level")}{" "}
@@ -149,7 +149,7 @@ export function UpcomingTournamentsClient({
                         .join(", ")}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-text-secondary">
+                  <div className="flex items-center gap-2 text-sm text-text-secondary min-h-[1.25rem]">
                     <Calendar size={16} className="shrink-0" />
                     <span>{formatDate(tournament.date)}</span>
                   </div>
@@ -158,7 +158,7 @@ export function UpcomingTournamentsClient({
                 {/* View Details Link */}
                 <Link
                   href={`/tournaments/${tournament.id}`}
-                  className="text-accent hover:text-accent-hover font-medium text-sm transition-colors"
+                  className="mt-auto text-accent hover:text-accent-hover font-medium text-sm transition-colors"
                 >
                   {tCommon("buttons.viewDetails")} →
                 </Link>

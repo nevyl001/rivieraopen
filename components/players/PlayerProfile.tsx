@@ -3,10 +3,9 @@
 import Image from "next/image";
 import { countryCodeToFlag } from "@/components/ui/CountryFlag";
 import { PlayerProfileDetail } from "@/lib/types";
-import { Flame } from "lucide-react";
 import { useTranslation } from "@/lib/hooks/useTranslation";
 import { getCategoryTranslationKey } from "@/lib/categoryUtils";
-import { PlayerSocialIcons } from "@/components/rankings/PlayerSocialIcons";
+import { PlayerSocialIcons, playerHasSocials } from "@/components/rankings/PlayerSocialIcons";
 
 interface PlayerProfileProps {
   player: PlayerProfileDetail;
@@ -123,22 +122,16 @@ export function PlayerProfile({ player }: PlayerProfileProps) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-4">
-            {player.stats.rachaActual ? (
-              <span className="inline-flex items-center gap-2 rounded-full bg-[#1a1a1a] px-3 py-2 text-xs text-[#aaa]">
-                <Flame size={13} className="shrink-0 text-[#aaa]" />
-                <span>{player.stats.rachaActual}</span>
-              </span>
-            ) : (
-              <span />
-            )}
-            <PlayerSocialIcons
-              socials={player.socials}
-              size="sm"
-              tone="poster"
-              className="gap-2"
-            />
-          </div>
+          {playerHasSocials(player.socials) && (
+            <div className="flex items-center justify-start gap-4">
+              <PlayerSocialIcons
+                socials={player.socials}
+                size="sm"
+                tone="poster"
+                className="gap-2"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

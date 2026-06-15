@@ -92,8 +92,7 @@ export default function ContactPage() {
             {t("form.contactUs")}
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            ¿Tienes preguntas sobre torneos, registro o el circuito? Nos
-            encantaría escucharte.
+            {t("intro.description")}
           </p>
         </div>
 

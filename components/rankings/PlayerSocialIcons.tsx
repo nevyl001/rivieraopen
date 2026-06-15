@@ -1,14 +1,9 @@
 "use client";
 
-import { Instagram, Facebook } from "lucide-react";
+import { Facebook } from "lucide-react";
+import { InstagramIcon } from "@/components/ui/InstagramIcon";
 import { TikTokIcon } from "@/components/ui/TikTokIcon";
 import { PlayerSocials } from "@/lib/types";
-
-const DEFAULT_URLS = {
-  instagram: "https://www.instagram.com/",
-  facebook: "https://www.facebook.com/",
-  tiktok: "https://www.tiktok.com/",
-} as const;
 
 interface PlayerSocialIconsProps {
   socials: PlayerSocials;
@@ -23,6 +18,14 @@ const sizeMap = {
   lg: { button: "w-11 h-11", icon: 20 },
 } as const;
 
+export function playerHasSocials(socials: PlayerSocials): boolean {
+  return Boolean(
+    socials.instagram?.trim() ||
+      socials.facebook?.trim() ||
+      socials.tiktok?.trim(),
+  );
+}
+
 export function PlayerSocialIcons({
   socials,
   size = "md",
@@ -34,17 +37,15 @@ export function PlayerSocialIcons({
   const networks = [
     {
       key: "instagram" as const,
-      href: socials.instagram || DEFAULT_URLS.instagram,
-      hasPersonal: Boolean(socials.instagram),
+      href: socials.instagram,
       label: "Instagram",
       icon: (
-        <Instagram size={dimensions.icon} className="text-current" />
+        <InstagramIcon size={dimensions.icon} className="text-white" />
       ),
     },
     {
       key: "facebook" as const,
-      href: socials.facebook || DEFAULT_URLS.facebook,
-      hasPersonal: Boolean(socials.facebook),
+      href: socials.facebook,
       label: "Facebook",
       icon: (
         <Facebook size={dimensions.icon} className="text-current" />
@@ -52,12 +53,37 @@ export function PlayerSocialIcons({
     },
     {
       key: "tiktok" as const,
-      href: socials.tiktok || DEFAULT_URLS.tiktok,
-      hasPersonal: Boolean(socials.tiktok),
+      href: socials.tiktok,
       label: "TikTok",
       icon: <TikTokIcon size={dimensions.icon} className="text-current" />,
     },
-  ];
+  ].filter((network) => Boolean(network.href?.trim()));
+
+  const brandStyles: Record<
+    (typeof networks)[number]["key"],
+    { poster: string; default: string }
+  > = {
+    instagram: {
+      poster:
+        "border-0 bg-gradient-to-br from-[#833AB4] via-[#E1306C] to-[#F77737] text-white shadow-[0_2px_12px_rgba(225,48,108,0.35)] hover:opacity-90 hover:shadow-[0_4px_16px_rgba(225,48,108,0.45)]",
+      default:
+        "border-0 bg-gradient-to-br from-[#833AB4] via-[#E1306C] to-[#F77737] text-white shadow-sm hover:opacity-90",
+    },
+    facebook: {
+      poster: "text-[#1877F2] hover:text-[#4a9aff]",
+      default:
+        "border border-[#1877F2]/20 bg-[#1877F2]/10 text-[#1877F2] hover:border-[#1877F2] hover:bg-[#1877F2] hover:text-white",
+    },
+    tiktok: {
+      poster: "text-[#25F4EE] hover:text-[#FE2C55]",
+      default:
+        "border border-[#111]/10 bg-gray-50 text-[#111] hover:border-[#111] hover:bg-[#111] hover:text-[#25F4EE]",
+    },
+  };
+
+  if (networks.length === 0) {
+    return null;
+  }
 
   return (
     <div className={`flex items-center gap-1.5 ${className}`}>
@@ -71,14 +97,8 @@ export function PlayerSocialIcons({
           aria-label={network.label}
           className={`${dimensions.button} inline-flex items-center justify-center rounded-full transition-all duration-200 ${
             tone === "poster"
-              ? "text-[#555] hover:text-[#aaa]"
-              : network.hasPersonal
-                ? size === "lg"
-                  ? "border border-primary/15 bg-gray-50 text-primary hover:border-primary hover:bg-primary hover:text-white"
-                  : "border border-gray-200 text-text-secondary hover:border-accent hover:text-accent hover:bg-accent/5"
-                : size === "lg"
-                  ? "border border-gray-100 bg-white text-gray-300 hover:border-gray-200 hover:text-text-secondary"
-                  : "border border-gray-100 text-gray-300 hover:border-gray-200 hover:text-text-secondary"
+              ? brandStyles[network.key].poster
+              : brandStyles[network.key].default
           }`}
         >
           {network.icon}
