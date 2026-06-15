@@ -49,16 +49,17 @@ export function PlayerRankingCard({ player }: PlayerRankingCardProps) {
         />
       </div>
 
-      {/* Name */}
       <div className="flex-1 min-w-0">
-        <h3 className="font-heading text-base md:text-xl font-semibold text-primary truncate group-hover:text-accent transition-colors">
-          {player.firstName} {player.lastName}
-        </h3>
-        <PlayerSocialIcons
-          socials={player.socials}
-          size="sm"
-          className="mt-2 shrink-0"
-        />
+        <div className="flex items-center gap-2 min-w-0">
+          <h3 className="font-heading text-base md:text-xl font-semibold text-primary truncate group-hover:text-accent transition-colors min-w-0 flex-1">
+            {player.firstName} {player.lastName}
+          </h3>
+          <PlayerSocialIcons
+            socials={player.socials}
+            size="sm"
+            className="shrink-0"
+          />
+        </div>
         <div className="flex items-center gap-1.5 mt-0.5 text-xs md:text-sm text-text-secondary md:hidden">
           <Trophy size={12} className="text-accent shrink-0" />
           <span>
