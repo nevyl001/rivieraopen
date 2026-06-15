@@ -29,7 +29,7 @@ export function UpcomingTournamentsClient({
   ): { variant: "default" | "success" | "warning" | "error"; label: string } => {
     if (tournament.status === "completed") {
       return {
-        variant: "default",
+        variant: "error",
         label: tCommon("status.completed"),
       };
     }

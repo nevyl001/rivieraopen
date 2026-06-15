@@ -26,7 +26,7 @@ export function TournamentCard({ tournament }: TournamentCardProps) {
       case "in-progress":
         return "warning";
       case "completed":
-        return "default";
+        return "error";
       default:
         return "default";
     }

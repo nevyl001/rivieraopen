@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Container } from "@/components/ui";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { useTranslation } from "@/lib/hooks/useTranslation";
@@ -7,9 +8,9 @@ import { sponsors } from "@/lib/data/mock/sponsors";
 
 export function FeaturedSponsors() {
   const { t } = useTranslation("home");
+  const sponsor = sponsors[0];
 
-  // Get first 6 sponsors for featured section
-  const featuredSponsors = sponsors.slice(0, 6);
+  if (!sponsor) return null;
 
   return (
     <section className="py-24 md:py-32 bg-surface">
@@ -27,24 +28,24 @@ export function FeaturedSponsors() {
           </AnimatedSection>
         </AnimatedSection>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 mb-12">
-          {featuredSponsors.map((sponsor, index) => (
-            <AnimatedSection key={sponsor.id} delay={400 + index * 100}>
-              <a
-                href={sponsor.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center p-6 hover:bg-white/5 transition-all duration-300 group cursor-pointer"
-                aria-label={`Visit ${sponsor.name} website`}
-              >
-                <img
-                  src={`/img/sponsors/sponsors-${index + 1}.png`}
-                  alt={sponsor.name}
-                  className="max-w-full max-h-16 object-contain group-hover:scale-110 transition-transform duration-300"
-                />
-              </a>
-            </AnimatedSection>
-          ))}
+        <div className="flex justify-center">
+          <AnimatedSection delay={400}>
+            <a
+              href={sponsor.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center justify-center transition-transform duration-300 hover:scale-105"
+              aria-label={`Visitar sitio web de ${sponsor.name}`}
+            >
+              <Image
+                src={sponsor.logo}
+                alt={sponsor.name}
+                width={500}
+                height={500}
+                className="h-28 w-auto max-w-[280px] object-contain sm:h-32 sm:max-w-[320px] md:h-40 md:max-w-[360px]"
+              />
+            </a>
+          </AnimatedSection>
         </div>
       </Container>
     </section>

@@ -1,4 +1,5 @@
 import RepositoryFactory from "@/lib/data/repositories/repository-factory";
+import { parseDateInput } from "@/lib/i18n/formatters";
 import { UpcomingTournamentsClient } from "./UpcomingTournamentsClient";
 
 export async function UpcomingTournamentsServer() {
@@ -9,7 +10,8 @@ export async function UpcomingTournamentsServer() {
 
     const featuredTournaments = [...allTournaments]
       .sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+        (a, b) =>
+          parseDateInput(a.date).getTime() - parseDateInput(b.date).getTime(),
       )
       .slice(0, 4);
 

@@ -85,7 +85,7 @@ export function TournamentDetailClient({
       case "in-progress":
         return "warning";
       case "completed":
-        return "default";
+        return "error";
       default:
         return "default";
     }

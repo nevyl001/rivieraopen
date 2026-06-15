@@ -5,6 +5,7 @@ import { Container } from "@/components/ui";
 import { TournamentCard } from "@/components/tournaments/TournamentCard";
 import { Tournament } from "@/lib/types";
 import { useTranslation } from "@/lib/hooks/useTranslation";
+import { parseDateInput } from "@/lib/i18n/formatters";
 
 interface TournamentsPageClientProps {
   initialTournaments: Tournament[];
@@ -22,16 +23,15 @@ export function TournamentsPageClient({
   const filteredTournaments = initialTournaments
     .filter((t) => statusFilter === "all" || t.status === statusFilter)
     .sort((a, b) => {
-      // Sort by date: upcoming first, then by date
-      const dateA = new Date(a.date).getTime();
-      const dateB = new Date(b.date).getTime();
+      const dateA = parseDateInput(a.date).getTime();
+      const dateB = parseDateInput(b.date).getTime();
 
       if (a.status === "upcoming" && b.status !== "upcoming") return -1;
       if (a.status !== "upcoming" && b.status === "upcoming") return 1;
       if (a.status === "in-progress" && b.status === "completed") return -1;
       if (a.status === "completed" && b.status === "in-progress") return 1;
 
-      return dateB - dateA;
+      return dateA - dateB;
     });
 
   return (
