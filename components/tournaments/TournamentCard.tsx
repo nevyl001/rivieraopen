@@ -5,6 +5,7 @@ import { Card, Badge } from "@/components/ui";
 import { Tournament } from "@/lib/types";
 import { Calendar, MapPin, Trophy } from "lucide-react";
 import { useTranslation } from "@/lib/hooks/useTranslation";
+import { parseDateInput } from "@/lib/i18n/formatters";
 
 interface TournamentCardProps {
   tournament: Tournament;
@@ -51,10 +52,10 @@ export function TournamentCard({ tournament }: TournamentCardProps) {
         <div className="flex items-start justify-between mb-4">
           <div className="bg-accent text-white px-4 py-2 rounded-lg text-center min-w-[80px]">
             <div className="text-2xl font-bold">
-              {new Date(tournament.date).getDate()}
+              {parseDateInput(tournament.date).getDate()}
             </div>
             <div className="text-xs uppercase">
-              {new Date(tournament.date).toLocaleDateString("es", {
+              {parseDateInput(tournament.date).toLocaleDateString("es", {
                 month: "short",
               })}
             </div>

@@ -5,12 +5,12 @@
     "description": "Una experiencia exclusiva de pádel dentro y fuera de la cancha.",
     "cta": {
       "viewRankings": "Ver Rankings",
-      "upcomingTournaments": "Próximos Torneos"
+      "upcomingTournaments": "Torneos"
     }
   },
   "sections": {
-    "upcomingTournaments": "Próximos Torneos",
-    "upcomingTournamentsDescription": "Regístrate ahora para nuestros próximos torneos y compite con los mejores jugadores de tu nivel.",
+    "upcomingTournaments": "Torneos",
+    "upcomingTournamentsDescription": "Consulta el historial de torneos del circuito Riviera Open y los próximos eventos.",
     "featuredPlayers": "Jugadores Destacados",
     "featuredPlayersDescription": "Conoce a los mejores jugadores del circuito en todos los niveles.",
     "gallery": "Galería",

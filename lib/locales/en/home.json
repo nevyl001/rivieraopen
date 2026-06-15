@@ -5,12 +5,12 @@
     "description": "An exclusive padel experience in CDMX, on and off the court.",
     "cta": {
       "viewRankings": "View Rankings",
-      "upcomingTournaments": "Upcoming Tournaments"
+      "upcomingTournaments": "Tournaments"
     }
   },
   "sections": {
-    "upcomingTournaments": "Upcoming Tournaments",
-    "upcomingTournamentsDescription": "Register now for our upcoming tournaments and compete with the best players at your level.",
+    "upcomingTournaments": "Tournaments",
+    "upcomingTournamentsDescription": "Browse the Riviera Open tournament history and upcoming events.",
     "featuredPlayers": "Featured Players",
     "featuredPlayersDescription": "Meet the top players in the circuit across all levels.",
     "gallery": "Gallery",

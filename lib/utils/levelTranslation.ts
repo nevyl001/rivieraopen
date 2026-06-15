@@ -7,7 +7,7 @@ export function translateLevel(category: Category): string {
     "2": "Segunda",
     "3": "Tercera",
     "4": "Cuarta",
-    "5": "Quinta",
+    "5": "5ta Fuerza",
     "6": "Sexta",
   };
 

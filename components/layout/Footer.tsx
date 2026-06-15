@@ -3,8 +3,15 @@
 import Link from "next/link";
 import { Instagram, Facebook, Mail, Phone, MapPin } from "lucide-react";
 import { TikTokIcon } from "@/components/ui/TikTokIcon";
+import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { useTranslation } from "@/lib/hooks/useTranslation";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import {
+  CONTACT_EMAIL,
+  CONTACT_PHONE_DISPLAY,
+  CONTACT_PHONE_TEL,
+  CONTACT_WHATSAPP_URL,
+} from "@/lib/constants/contact";
 
 export function Footer() {
   const { t } = useTranslation("common");
@@ -66,19 +73,30 @@ export function Footer() {
               <li className="flex items-start gap-2 text-gray-300 text-sm">
                 <Mail size={16} className="mt-0.5 shrink-0" />
                 <a
-                  href="mailto:info@rivieraopen.com"
+                  href={`mailto:${CONTACT_EMAIL}`}
                   className="hover:opacity-70 transition-opacity"
                 >
-                  info@rivieraopen.com
+                  {CONTACT_EMAIL}
                 </a>
               </li>
               <li className="flex items-start gap-2 text-gray-300 text-sm">
                 <Phone size={16} className="mt-0.5 shrink-0" />
                 <a
-                  href="tel:+525519540472"
+                  href={`tel:${CONTACT_PHONE_TEL}`}
                   className="hover:opacity-70 transition-opacity"
                 >
-                  +52 (55) 1954-0472
+                  {CONTACT_PHONE_DISPLAY}
+                </a>
+              </li>
+              <li className="flex items-start gap-2 text-gray-300 text-sm">
+                <WhatsAppIcon size={16} className="mt-0.5 shrink-0" />
+                <a
+                  href={CONTACT_WHATSAPP_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:opacity-70 transition-opacity"
+                >
+                  WhatsApp
                 </a>
               </li>
               <li className="flex items-start gap-2 text-gray-300 text-sm">

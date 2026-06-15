@@ -19,7 +19,8 @@
     "secondPlace": "2do Lugar",
     "showing": "Mostrando",
     "tournament": "torneo",
-    "tournaments": "torneos"
+    "tournaments": "torneos",
+    "category": "Categoría"
   },
   "status": {
     "registrationOpen": "Registro Abierto",
@@ -34,7 +35,7 @@
     "2": "Segunda",
     "3": "Tercera",
     "4": "Cuarta",
-    "5": "Quinta",
+    "5": "5ta Fuerza",
     "6": "Sexta"
   },
   "messages": {

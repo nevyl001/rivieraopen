@@ -7,11 +7,13 @@ export async function UpcomingTournamentsServer() {
       await RepositoryFactory.getTournamentRepository();
     const allTournaments = await tournamentRepository.getAll();
 
-    const upcomingTournaments = allTournaments
-      .filter((t) => t.status === "upcoming")
+    const featuredTournaments = [...allTournaments]
+      .sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      )
       .slice(0, 4);
 
-    return <UpcomingTournamentsClient tournaments={upcomingTournaments} />;
+    return <UpcomingTournamentsClient tournaments={featuredTournaments} />;
   } catch (error) {
     console.error("UpcomingTournamentsServer:", error);
     return <UpcomingTournamentsClient tournaments={[]} />;

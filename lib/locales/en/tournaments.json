@@ -19,7 +19,8 @@
     "secondPlace": "2nd Place",
     "showing": "Showing",
     "tournament": "tournament",
-    "tournaments": "tournaments"
+    "tournaments": "tournaments",
+    "category": "Category"
   },
   "status": {
     "registrationOpen": "Registration Open",
@@ -34,7 +35,7 @@
     "2": "Second",
     "3": "Third",
     "4": "Fourth",
-    "5": "Fifth",
+    "5": "5th Level",
     "6": "Sixth"
   },
   "messages": {

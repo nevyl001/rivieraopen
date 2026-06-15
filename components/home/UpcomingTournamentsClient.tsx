@@ -6,6 +6,7 @@ import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { Calendar, MapPin, Users } from "lucide-react";
 import { useTranslation } from "@/lib/hooks/useTranslation";
 import { translateLevel } from "@/lib/utils/levelTranslation";
+import { parseDateInput } from "@/lib/i18n/formatters";
 import { Tournament } from "@/lib/types";
 
 interface UpcomingTournamentsClientProps {
@@ -21,6 +22,29 @@ export function UpcomingTournamentsClient({
 
   const formatDate = (dateString: string) => {
     return formatShortDate(dateString);
+  };
+
+  const getStatusBadge = (
+    tournament: Tournament,
+  ): { variant: "default" | "success" | "warning" | "error"; label: string } => {
+    if (tournament.status === "completed") {
+      return {
+        variant: "default",
+        label: tCommon("status.completed"),
+      };
+    }
+    if (tournament.status === "in-progress") {
+      return {
+        variant: "warning",
+        label: tCommon("status.inProgress"),
+      };
+    }
+    return {
+      variant: tournament.registrationOpen ? "success" : "warning",
+      label: tournament.registrationOpen
+        ? tCommon("status.registrationOpen")
+        : tCommon("status.registrationClosed"),
+    };
   };
 
   // If no tournaments, show empty state
@@ -43,7 +67,7 @@ export function UpcomingTournamentsClient({
 
           <div className="text-center py-16">
             <p className="text-text-secondary text-lg">
-              No upcoming tournaments at the moment. Check back soon!
+              Aún no hay torneos publicados. ¡Vuelve pronto!
             </p>
           </div>
 
@@ -75,7 +99,10 @@ export function UpcomingTournamentsClient({
         </AnimatedSection>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {tournaments.map((tournament, index) => (
+          {tournaments.map((tournament, index) => {
+            const statusBadge = getStatusBadge(tournament);
+
+            return (
             <AnimatedSection
               key={tournament.id}
               delay={400 + index * 150}
@@ -86,23 +113,17 @@ export function UpcomingTournamentsClient({
                 <div className="flex items-center gap-2 mb-4">
                   <div className="bg-primary text-white px-4 py-2 text-center min-w-[80px]">
                     <div className="text-2xl font-bold">
-                      {new Date(tournament.date).getDate()}
+                      {parseDateInput(tournament.date).getDate()}
                     </div>
                     <div className="text-xs uppercase">
-                      {new Date(tournament.date).toLocaleDateString("es", {
+                      {parseDateInput(tournament.date).toLocaleDateString("es", {
                         month: "short",
                       })}
                     </div>
                   </div>
                   <div className="flex-1">
-                    <Badge
-                      variant={
-                        tournament.registrationOpen ? "success" : "warning"
-                      }
-                    >
-                      {tournament.registrationOpen
-                        ? tCommon("status.registrationOpen")
-                        : tCommon("status.registrationClosed")}
+                    <Badge variant={statusBadge.variant}>
+                      {statusBadge.label}
                     </Badge>
                   </div>
                 </div>
@@ -143,7 +164,8 @@ export function UpcomingTournamentsClient({
                 </Link>
               </Card>
             </AnimatedSection>
-          ))}
+            );
+          })}
         </div>
 
         {/* View All Link */}

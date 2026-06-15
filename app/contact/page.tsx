@@ -4,7 +4,14 @@ import { useState } from "react";
 import { Container, Card, Button } from "@/components/ui";
 import { Mail, Phone, MapPin, Instagram, Facebook } from "lucide-react";
 import { TikTokIcon } from "@/components/ui/TikTokIcon";
+import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { useTranslation } from "@/lib/hooks/useTranslation";
+import {
+  CONTACT_EMAIL,
+  CONTACT_PHONE_DISPLAY,
+  CONTACT_PHONE_TEL,
+  CONTACT_WHATSAPP_URL,
+} from "@/lib/constants/contact";
 
 export default function ContactPage() {
   const { t } = useTranslation("contact");
@@ -13,10 +20,11 @@ export default function ContactPage() {
     name: "",
     email: "",
     message: "",
+    website: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"success" | "error" | null>(
-    null
+    null,
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,16 +32,28 @@ export default function ContactPage() {
     setIsSubmitting(true);
     setSubmitStatus(null);
 
-    // Simulate form submission
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Request failed");
+      }
+
       setSubmitStatus("success");
-      setFormData({ name: "", email: "", message: "" });
-    }, 1000);
+      setFormData({ name: "", email: "", message: "", website: "" });
+    } catch {
+      setSubmitStatus("error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setFormData({
       ...formData,
@@ -44,7 +64,6 @@ export default function ContactPage() {
   return (
     <div className="pt-32 pb-16 bg-gray-50">
       <Container>
-        {/* Page Header */}
         <div className="text-center mb-12">
           <h1 className="font-heading text-5xl font-bold text-black mb-4">
             {t("form.contactUs")}
@@ -56,7 +75,6 @@ export default function ContactPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Contact Information */}
           <div className="space-y-6">
             <Card>
               <h2 className="font-heading text-2xl font-semibold text-black mb-6">
@@ -72,10 +90,10 @@ export default function ContactPage() {
                       {t("form.email")}
                     </p>
                     <a
-                      href="mailto:info@rivieraopen.com"
+                      href={`mailto:${CONTACT_EMAIL}`}
                       className="text-text-secondary hover:text-accent transition-colors"
                     >
-                      info@rivieraopen.com
+                      {CONTACT_EMAIL}
                     </a>
                   </div>
                 </div>
@@ -89,10 +107,29 @@ export default function ContactPage() {
                       {t("form.phone")}
                     </p>
                     <a
-                      href="tel:+525519540472"
+                      href={`tel:${CONTACT_PHONE_TEL}`}
                       className="text-text-secondary hover:text-accent transition-colors"
                     >
-                      +52 (55) 1954-0472
+                      {CONTACT_PHONE_DISPLAY}
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="bg-accent/10 p-3 rounded-lg shrink-0">
+                    <WhatsAppIcon size={24} className="text-accent" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-black mb-1">
+                      {t("form.whatsapp")}
+                    </p>
+                    <a
+                      href={CONTACT_WHATSAPP_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-text-secondary hover:text-accent transition-colors"
+                    >
+                      {CONTACT_PHONE_DISPLAY}
                     </a>
                   </div>
                 </div>
@@ -167,12 +204,22 @@ export default function ContactPage() {
             </Card>
           </div>
 
-          {/* Contact Form */}
           <Card>
             <h2 className="font-heading text-2xl font-semibold text-black mb-6">
               Envíanos un Mensaje
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="text"
+                name="website"
+                value={formData.website}
+                onChange={handleChange}
+                tabIndex={-1}
+                autoComplete="off"
+                className="hidden"
+                aria-hidden
+              />
+
               <div>
                 <label
                   htmlFor="name"

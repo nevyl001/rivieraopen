@@ -16,7 +16,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useTranslation } from "@/lib/hooks/useTranslation";
-import { Tournament, Player } from "@/lib/types";
+import { getCategoryTranslationKey } from "@/lib/categoryUtils";
+import { Tournament, Player, Category } from "@/lib/types";
 
 interface TournamentDetailClientProps {
   tournament: Tournament;
@@ -28,6 +29,7 @@ export function TournamentDetailClient({
   participants,
 }: TournamentDetailClientProps) {
   const { t } = useTranslation("tournaments");
+  const { t: tRankings } = useTranslation("rankings");
   const { t: tCommon } = useTranslation("common");
   const { formatDate } = useTranslation();
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(
@@ -102,6 +104,9 @@ export function TournamentDetailClient({
     }
   };
 
+  const formatCategoryLabel = (category: Category) =>
+    tRankings(getCategoryTranslationKey(category));
+
   return (
     <div className="pt-32 pb-16 bg-gray-50">
       <Container>
@@ -164,12 +169,13 @@ export function TournamentDetailClient({
                   <Users size={24} className="text-accent" />
                 </div>
                 <div>
-                  <p className="text-sm text-text-secondary">Categorías</p>
-                  <p className="font-semibold text-black">
-                    {tournament.categories.map((c) => c.category).join(", ")}
-                  </p>
                   <p className="text-sm text-text-secondary">
-                    {tournament.genre === "Open" ? "Abierto" : "Femenino"}
+                    {t("labels.category")}
+                  </p>
+                  <p className="font-semibold text-black">
+                    {tournament.categories
+                      .map((c) => formatCategoryLabel(c.category))
+                      .join(", ")}
                   </p>
                 </div>
               </div>
@@ -205,7 +211,7 @@ export function TournamentDetailClient({
                   category.results && (
                     <div key={category.category} className="mb-6 last:mb-0">
                       <h3 className="font-heading text-xl font-semibold text-black mb-4">
-                        Categoría {category.category}
+                        {formatCategoryLabel(category.category)}
                       </h3>
                       <div className="space-y-4">
                         {/* First Place */}

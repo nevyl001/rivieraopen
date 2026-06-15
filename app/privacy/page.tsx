@@ -36,7 +36,7 @@ export default function PrivacyPage() {
             </h2>
             <p className="text-gray-700 leading-relaxed mb-6">
               El responsable del tratamiento de datos es Riviera Open
-              ("nosotros"). Contacto: info@rivieraopen.com
+              ("nosotros"). Contacto: rivieraopen@gmail.com
             </p>
 
             <h2 className="font-heading text-2xl font-semibold text-black mt-8 mb-4">
@@ -143,7 +143,7 @@ export default function PrivacyPage() {
               Al participar en eventos de Riviera Open, es posible que se tomen
               fotografías y videos para fines informativos y promocionales del
               circuito (sitio y redes sociales). Si deseas solicitar la remoción
-              de una foto donde apareces, contáctanos en info@rivieraopen.com
+              de una foto donde apareces, contáctanos en rivieraopen@gmail.com
               con la liga o captura del contenido y haremos lo razonable para
               atender tu solicitud.
             </p>
@@ -246,7 +246,7 @@ export default function PrivacyPage() {
               <li>Oposición o limitación al tratamiento.</li>
             </ul>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Para ejercerlos, escríbenos a info@rivieraopen.com con:
+              Para ejercerlos, escríbenos a rivieraopen@gmail.com con:
             </p>
             <ul className="list-disc list-inside space-y-2 text-gray-700 mb-6">
               <li>Tu nombre completo,</li>
@@ -279,10 +279,10 @@ export default function PrivacyPage() {
             <p className="text-gray-700 leading-relaxed mb-6">
               Para dudas o solicitudes relacionadas con privacidad:{" "}
               <a
-                href="mailto:info@rivieraopen.com"
+                href="mailto:rivieraopen@gmail.com"
                 className="text-accent hover:opacity-70 transition-opacity"
               >
-                info@rivieraopen.com
+                rivieraopen@gmail.com
               </a>
             </p>
           </div>

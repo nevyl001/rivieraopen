@@ -1,12 +1,24 @@
 import { SupportedLocale, getLocaleConfig } from "./config";
 
+export function parseDateInput(date: Date | string): Date {
+  if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return new Date(
+      Number(date.slice(0, 4)),
+      Number(date.slice(5, 7)) - 1,
+      Number(date.slice(8, 10)),
+    );
+  }
+
+  return typeof date === "string" ? new Date(date) : date;
+}
+
 // Date formatter
 export function formatDate(
   date: Date | string,
   locale: SupportedLocale,
   options?: Intl.DateTimeFormatOptions
 ): string {
-  const dateObj = typeof date === "string" ? new Date(date) : date;
+  const dateObj = parseDateInput(date);
   const config = getLocaleConfig(locale);
   const formatOptions = options || config.dateFormat;
 
@@ -62,7 +74,7 @@ export function formatRelativeTime(
   locale: SupportedLocale,
   baseDate: Date = new Date()
 ): string {
-  const targetDate = typeof date === "string" ? new Date(date) : date;
+  const targetDate = parseDateInput(date);
   const diffInMs = targetDate.getTime() - baseDate.getTime();
   const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 

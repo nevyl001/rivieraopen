@@ -5,6 +5,7 @@
     "name": "Nombre",
     "email": "Email",
     "phone": "Teléfono",
+    "whatsapp": "WhatsApp",
     "subject": "Asunto",
     "message": "Mensaje",
     "send": "Enviar",

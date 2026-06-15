@@ -105,10 +105,10 @@ export default function TermsPage() {
               Si deseas solicitar la corrección de un dato público o la remoción
               de una imagen, contáctanos en{" "}
               <a
-                href="mailto:info@rivieraopen.com"
+                href="mailto:rivieraopen@gmail.com"
                 className="text-accent hover:opacity-70 transition-opacity"
               >
-                info@rivieraopen.com
+                rivieraopen@gmail.com
               </a>
               .
             </p>
@@ -298,10 +298,10 @@ export default function TermsPage() {
             <p className="text-gray-700 leading-relaxed mb-6">
               Para dudas sobre estos Términos o el Sitio:{" "}
               <a
-                href="mailto:info@rivieraopen.com"
+                href="mailto:rivieraopen@gmail.com"
                 className="text-accent hover:opacity-70 transition-opacity"
               >
-                info@rivieraopen.com
+                rivieraopen@gmail.com
               </a>
             </p>
           </div>
