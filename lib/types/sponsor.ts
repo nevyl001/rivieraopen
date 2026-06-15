@@ -7,4 +7,5 @@ export interface Sponsor {
   website: string;
   tier?: SponsorTier;
   description?: string;
+  logoClassName?: string;
 }
