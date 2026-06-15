@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Container, Card, Button } from "@/components/ui";
-import { Mail, Phone, MapPin, Instagram, Facebook } from "lucide-react";
+import { Mail, Phone, MapPin, Instagram, Facebook, Loader2 } from "lucide-react";
 import { TikTokIcon } from "@/components/ui/TikTokIcon";
 import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { useTranslation } from "@/lib/hooks/useTranslation";
@@ -26,27 +26,50 @@ export default function ContactPage() {
   const [submitStatus, setSubmitStatus] = useState<"success" | "error" | null>(
     null,
   );
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitStatus(null);
+    setErrorMessage("");
+
+    if (formData.website.trim()) {
+      setSubmitStatus("success");
+      setFormData({ name: "", email: "", message: "", website: "" });
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          nombre: formData.name,
+          email: formData.email,
+          mensaje: formData.message,
+        }),
       });
 
+      const data = (await response.json()) as {
+        success?: boolean;
+        error?: string;
+      };
+
       if (!response.ok) {
-        throw new Error("Request failed");
+        throw new Error(data.error || "Error al enviar el mensaje");
       }
 
       setSubmitStatus("success");
       setFormData({ name: "", email: "", message: "", website: "" });
-    } catch {
+    } catch (error) {
       setSubmitStatus("error");
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Error al enviar el mensaje. Por favor intenta nuevamente.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -234,7 +257,7 @@ export default function ContactPage() {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-black bg-white placeholder:text-gray-400"
                   placeholder={t("placeholders.enterName")}
                 />
               </div>
@@ -253,7 +276,7 @@ export default function ContactPage() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-black bg-white placeholder:text-gray-400"
                   placeholder={t("placeholders.enterEmail")}
                 />
               </div>
@@ -272,20 +295,20 @@ export default function ContactPage() {
                   onChange={handleChange}
                   required
                   rows={6}
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent resize-none text-black bg-white placeholder:text-gray-400"
                   placeholder={t("placeholders.enterMessage")}
                 />
               </div>
 
               {submitStatus === "success" && (
                 <div className="p-4 bg-success/10 text-success rounded-lg">
-                  {t("success.thankYou")}! {t("success.willRespond")}.
+                  ¡Mensaje enviado! Te contactaremos pronto.
                 </div>
               )}
 
               {submitStatus === "error" && (
                 <div className="p-4 bg-error/10 text-error rounded-lg">
-                  {t("error.sendFailed")}. {t("error.tryAgain")}.
+                  {errorMessage}
                 </div>
               )}
 
@@ -295,7 +318,14 @@ export default function ContactPage() {
                 disabled={isSubmitting}
                 className="w-full"
               >
-                {isSubmitting ? t("form.sending") : t("form.send")}
+                {isSubmitting ? (
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <Loader2 size={20} className="animate-spin" />
+                    {t("form.sending")}
+                  </span>
+                ) : (
+                  t("form.send")
+                )}
               </Button>
             </form>
           </Card>
