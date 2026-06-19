@@ -1,13 +1,23 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { Check, Share2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Check, Copy, Share2 } from "lucide-react";
 import { useTranslation } from "@/lib/hooks/useTranslation";
 
 interface ShareProfileButtonProps {
   playerId: string;
   playerName: string;
   rank: number | null;
+}
+
+function prefersNativeShare(): boolean {
+  if (typeof window === "undefined") return false;
+
+  const hasShare = typeof navigator.share === "function";
+  const isMobileViewport = window.matchMedia("(max-width: 768px)").matches;
+  const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
+
+  return hasShare && (isMobileViewport || isCoarsePointer);
 }
 
 export function ShareProfileButton({
@@ -17,28 +27,15 @@ export function ShareProfileButton({
 }: ShareProfileButtonProps) {
   const { t } = useTranslation("rankings");
   const [copied, setCopied] = useState(false);
+  const [useNativeShare, setUseNativeShare] = useState(false);
+
+  useEffect(() => {
+    setUseNativeShare(prefersNativeShare());
+  }, []);
 
   const rankLabel = rank ? `#${rank}` : "—";
 
-  const handleShare = useCallback(async () => {
-    const url = `${window.location.origin}/players/${playerId}`;
-    const text = t("profile.shareText", { name: playerName, rank: rankLabel });
-
-    if (typeof navigator.share === "function") {
-      try {
-        await navigator.share({
-          title: `Riviera Open — ${playerName}`,
-          text,
-          url,
-        });
-        return;
-      } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") {
-          return;
-        }
-      }
-    }
-
+  const copyLink = useCallback(async (url: string) => {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
@@ -46,7 +43,31 @@ export function ShareProfileButton({
     } catch {
       window.prompt(t("profile.shareFallback"), url);
     }
-  }, [playerId, playerName, rankLabel, t]);
+  }, [t]);
+
+  const handleShare = useCallback(async () => {
+    const url = `${window.location.origin}/players/${playerId}`;
+
+    if (!useNativeShare) {
+      await copyLink(url);
+      return;
+    }
+
+    const text = t("profile.shareText", { name: playerName, rank: rankLabel });
+
+    try {
+      await navigator.share({
+        title: `Riviera Open — ${playerName}`,
+        text,
+        url,
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+      await copyLink(url);
+    }
+  }, [copyLink, playerId, playerName, rankLabel, t, useNativeShare]);
 
   return (
     <button
@@ -61,8 +82,14 @@ export function ShareProfileButton({
         </>
       ) : (
         <>
-          <Share2 size={18} className="shrink-0" />
-          {t("profile.shareProfile")}
+          {useNativeShare ? (
+            <Share2 size={18} className="shrink-0" />
+          ) : (
+            <Copy size={18} className="shrink-0" />
+          )}
+          {useNativeShare
+            ? t("profile.shareProfile")
+            : t("profile.copyProfileLink")}
         </>
       )}
     </button>

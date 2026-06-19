@@ -126,6 +126,7 @@
     "soloParticipations": "Participaciones individuales",
     "noActivityYet": "Aún no hay actividad registrada para este jugador.",
     "shareProfile": "Compartir mi perfil",
+    "copyProfileLink": "Copiar enlace de mi perfil",
     "linkCopied": "¡Enlace copiado!",
     "shareText": "Mira mi perfil en Riviera Open — {{name}}, Ranking {{rank}}",
     "shareFallback": "Copia este enlace para compartir tu perfil:"

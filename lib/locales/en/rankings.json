@@ -126,6 +126,7 @@
     "soloParticipations": "Solo participations",
     "noActivityYet": "No activity recorded for this player yet.",
     "shareProfile": "Share my profile",
+    "copyProfileLink": "Copy my profile link",
     "linkCopied": "Link copied!",
     "shareText": "Check out my Riviera Open profile — {{name}}, Rank {{rank}}",
     "shareFallback": "Copy this link to share your profile:"
