@@ -6,6 +6,7 @@ import { PlayerProfileDetail } from "@/lib/types";
 import { useTranslation } from "@/lib/hooks/useTranslation";
 import { getCategoryTranslationKey } from "@/lib/categoryUtils";
 import { PlayerSocialIcons, playerHasSocials } from "@/components/rankings/PlayerSocialIcons";
+import { ShareProfileButton } from "@/components/players/ShareProfileButton";
 
 interface PlayerProfileProps {
   player: PlayerProfileDetail;
@@ -121,6 +122,12 @@ export function PlayerProfile({ player }: PlayerProfileProps) {
               ))}
             </div>
           </div>
+
+          <ShareProfileButton
+            playerId={player.id}
+            playerName={playerName}
+            rank={player.rank}
+          />
 
           {playerHasSocials(player.socials) && (
             <div className="flex items-center justify-start gap-4">
