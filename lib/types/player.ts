@@ -52,6 +52,18 @@ export interface PlayerStatsSummary {
   participacionesSolo: number;
 }
 
+export interface SeasonTimelinePoint {
+  date: string;
+  wins: number;
+  losses: number;
+  balance: number;
+}
+
+export interface PlayerSeasonTimeline {
+  season: number;
+  points: SeasonTimelinePoint[];
+}
+
 export interface PlayerProfileDetail extends Player {
   slug: string | null;
   age: number | null;
@@ -63,6 +75,7 @@ export interface PlayerProfileDetail extends Player {
   paisCodigo: string | null;
   whatsapp: string | null;
   stats: PlayerStatsSummary;
+  seasonTimeline?: PlayerSeasonTimeline;
 }
 
 /**

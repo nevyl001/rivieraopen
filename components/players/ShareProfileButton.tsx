@@ -10,14 +10,13 @@ interface ShareProfileButtonProps {
   rank: number | null;
 }
 
-function prefersNativeShare(): boolean {
-  if (typeof window === "undefined") return false;
+/** Web Share solo en celular; Mac/PC siempre copian el enlace. */
+function shouldUseNativeShare(): boolean {
+  if (typeof navigator === "undefined") return false;
+  if (typeof navigator.share !== "function") return false;
 
-  const hasShare = typeof navigator.share === "function";
-  const isMobileViewport = window.matchMedia("(max-width: 768px)").matches;
-  const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
-
-  return hasShare && (isMobileViewport || isCoarsePointer);
+  const ua = navigator.userAgent;
+  return /iPhone|iPod|Android.*Mobile|Windows Phone/i.test(ua);
 }
 
 export function ShareProfileButton({
@@ -30,7 +29,7 @@ export function ShareProfileButton({
   const [useNativeShare, setUseNativeShare] = useState(false);
 
   useEffect(() => {
-    setUseNativeShare(prefersNativeShare());
+    setUseNativeShare(shouldUseNativeShare());
   }, []);
 
   const rankLabel = rank ? `#${rank}` : "—";
@@ -48,7 +47,7 @@ export function ShareProfileButton({
   const handleShare = useCallback(async () => {
     const url = `${window.location.origin}/players/${playerId}`;
 
-    if (!useNativeShare) {
+    if (!shouldUseNativeShare()) {
       await copyLink(url);
       return;
     }
@@ -67,7 +66,7 @@ export function ShareProfileButton({
       }
       await copyLink(url);
     }
-  }, [copyLink, playerId, playerName, rankLabel, t, useNativeShare]);
+  }, [copyLink, playerId, playerName, rankLabel, t]);
 
   return (
     <button

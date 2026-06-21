@@ -129,6 +129,10 @@
     "copyProfileLink": "Copy my profile link",
     "linkCopied": "Link copied!",
     "shareText": "Check out my Riviera Open profile — {{name}}, Rank {{rank}}",
-    "shareFallback": "Copy this link to share your profile:"
+    "shareFallback": "Copy this link to share your profile:",
+    "seasonTitle": "Season {{year}}",
+    "seasonWins": "Wins",
+    "seasonLosses": "Losses",
+    "seasonNoData": "No matches recorded in the {{year}} season."
   }
 }

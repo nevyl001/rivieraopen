@@ -7,6 +7,8 @@ export type {
   PlayerSocials,
   PlayerProfileDetail,
   PlayerStatsSummary,
+  PlayerSeasonTimeline,
+  SeasonTimelinePoint,
   TournamentResult,
 } from "./player";
 

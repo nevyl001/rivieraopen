@@ -4,6 +4,7 @@ import { Container } from "@/components/ui";
 import { PlayerProfile, PlayerPersonalInfo } from "@/components/players/PlayerProfile";
 import { PlayerStatsGrid } from "@/components/players/PlayerStatsGrid";
 import { PlayerActivitySummary } from "@/components/players/PlayerActivitySummary";
+import { PlayerSeasonChart } from "@/components/players/PlayerSeasonChart";
 import { getJugadorPublico } from "@/lib/playerService";
 import { ArrowLeft } from "lucide-react";
 import { Metadata } from "next";
@@ -73,8 +74,10 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           Volver a Rankings
         </Link>
 
-        <div className="space-y-2">
+        <div className="space-y-6">
           <PlayerProfile player={player} />
+
+          <PlayerSeasonChart timeline={player.seasonTimeline ?? { season: 2026, points: [] }} />
 
           <div
             className={`grid grid-cols-1 gap-6 border-t border-[#222] pt-6 ${

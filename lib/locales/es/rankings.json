@@ -129,6 +129,10 @@
     "copyProfileLink": "Copiar enlace de mi perfil",
     "linkCopied": "¡Enlace copiado!",
     "shareText": "Mira mi perfil en Riviera Open — {{name}}, Ranking {{rank}}",
-    "shareFallback": "Copia este enlace para compartir tu perfil:"
+    "shareFallback": "Copia este enlace para compartir tu perfil:",
+    "seasonTitle": "Temporada {{year}}",
+    "seasonWins": "Ganados",
+    "seasonLosses": "Perdidos",
+    "seasonNoData": "Sin partidos registrados en la temporada {{year}}."
   }
 }
