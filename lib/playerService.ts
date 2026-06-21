@@ -16,6 +16,8 @@ import {
   computeStatsFromParticipaciones,
 } from "@/lib/playerParticipacionesService";
 import { computePlayerSeasonTimeline } from "@/lib/playerSeasonTimelineService";
+import { getPlayerHistoryEvents } from "@/lib/playerHistoryService";
+import { getPlayerRivals } from "@/lib/playerRivalsService";
 
 const DEFAULT_PHOTO = "/img/players/players-1.png";
 
@@ -273,11 +275,19 @@ export async function getJugadorPublico(
 
     const baseProfile = mapRowToProfile(row, rank);
 
-    const [participacionesStats, computedStats, seasonTimeline] =
+    const [participacionesStats, computedStats, seasonTimeline, historyEvents, rivals] =
       await Promise.all([
         computeStatsFromParticipaciones(row.id, RANKING_ORGANIZADOR_ID),
         computePlayerMatchStats(row.legacy_player_id, RANKING_ORGANIZADOR_ID),
         computePlayerSeasonTimeline(row.id, row.legacy_player_id),
+        getPlayerHistoryEvents(row.id, row.legacy_player_id),
+        getPlayerRivals(
+          row.id,
+          row.legacy_player_id,
+          row.categoria,
+          row.genero,
+          points
+        ),
       ]);
 
     const statsFromPartidos = mergePlayerStats(
@@ -294,6 +304,8 @@ export async function getJugadorPublico(
       ...baseProfile,
       stats,
       seasonTimeline,
+      historyEvents,
+      rivals,
     };
   } catch (err) {
     console.error(

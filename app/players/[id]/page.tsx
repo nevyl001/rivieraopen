@@ -3,7 +3,8 @@ import Link from "next/link";
 import { Container } from "@/components/ui";
 import { PlayerProfile, PlayerPersonalInfo } from "@/components/players/PlayerProfile";
 import { PlayerStatsGrid } from "@/components/players/PlayerStatsGrid";
-import { PlayerActivitySummary } from "@/components/players/PlayerActivitySummary";
+import { PlayerHistorySection } from "@/components/players/PlayerHistorySection";
+import { PlayerRivalsSection } from "@/components/players/PlayerRivalsSection";
 import { PlayerSeasonChart } from "@/components/players/PlayerSeasonChart";
 import { getJugadorPublico } from "@/lib/playerService";
 import { ArrowLeft } from "lucide-react";
@@ -90,7 +91,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             </div>
           </div>
 
-          <PlayerActivitySummary player={player} />
+          <PlayerHistorySection events={player.historyEvents ?? []} />
+
+          <PlayerRivalsSection rivals={player.rivals ?? []} />
         </div>
       </Container>
     </div>

@@ -133,6 +133,26 @@
     "seasonTitle": "Season {{year}}",
     "seasonWins": "Wins",
     "seasonLosses": "Losses",
-    "seasonNoData": "No matches recorded in the {{year}} season."
+    "seasonNoData": "No matches recorded in the {{year}} season.",
+    "history": {
+      "firstPlace": "1st place",
+      "secondPlace": "2nd place",
+      "thirdPlace": "3rd place",
+      "vs": "vs",
+      "noMatchDetail": "No match details available for this event.",
+      "recordSummary": "{{wins}} wins · {{losses}} losses",
+      "noMatchDetailShort": "Per-match breakdown not available."
+    },
+    "rivals": {
+      "title": "Circuit rivals",
+      "subtitle": "W = matches won against them · L = matches lost against them",
+      "tabAll": "All",
+      "tabFaced": "Faced",
+      "tabPending": "Pending",
+      "noDuelYet": "No duel yet",
+      "nextTournament": "Will they meet in the next tournament?",
+      "h2hLabel": "Head-to-head",
+      "h2hScore": "{{wins}}W · {{losses}}L"
+    }
   }
 }

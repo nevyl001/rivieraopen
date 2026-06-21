@@ -12,6 +12,12 @@ export type {
   TournamentResult,
 } from "./player";
 
+export type {
+  PlayerHistoryEvent,
+  PlayerHistoryMatch,
+  PlayerRival,
+} from "./playerHistory";
+
 // Tournament types
 export type {
   Tournament,

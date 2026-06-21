@@ -133,6 +133,26 @@
     "seasonTitle": "Temporada {{year}}",
     "seasonWins": "Ganados",
     "seasonLosses": "Perdidos",
-    "seasonNoData": "Sin partidos registrados en la temporada {{year}}."
+    "seasonNoData": "Sin partidos registrados en la temporada {{year}}.",
+    "history": {
+      "firstPlace": "1° lugar",
+      "secondPlace": "2° lugar",
+      "thirdPlace": "3° lugar",
+      "vs": "vs",
+      "noMatchDetail": "Sin detalle de partidos para este evento.",
+      "recordSummary": "{{wins}} victorias · {{losses}} derrotas",
+      "noMatchDetailShort": "Detalle por partido no disponible."
+    },
+    "rivals": {
+      "title": "Rivales del circuito",
+      "subtitle": "G = partidos ganados contra él · P = partidos perdidos contra él",
+      "tabAll": "Todos",
+      "tabFaced": "Enfrentados",
+      "tabPending": "Pendientes",
+      "noDuelYet": "Sin duelo aún",
+      "nextTournament": "¿Se verán en el próximo torneo?",
+      "h2hLabel": "Cara a cara",
+      "h2hScore": "{{wins}}G · {{losses}}P"
+    }
   }
 }

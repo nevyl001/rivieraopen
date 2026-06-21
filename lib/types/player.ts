@@ -1,3 +1,5 @@
+import type { PlayerHistoryEvent, PlayerRival } from "./playerHistory";
+
 export type Category = "Open" | "1" | "2" | "3" | "4" | "5" | "6";
 export type Gender = "Male" | "Female";
 
@@ -76,6 +78,8 @@ export interface PlayerProfileDetail extends Player {
   whatsapp: string | null;
   stats: PlayerStatsSummary;
   seasonTimeline?: PlayerSeasonTimeline;
+  historyEvents?: PlayerHistoryEvent[];
+  rivals?: PlayerRival[];
 }
 
 /**
