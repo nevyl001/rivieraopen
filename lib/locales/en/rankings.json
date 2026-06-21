@@ -145,7 +145,7 @@
     },
     "rivals": {
       "title": "Circuit rivals",
-      "subtitle": "W = matches won against them · L = matches lost against them",
+      "subtitle": "W = matches won against the rival · L = matches lost against the rival",
       "tabAll": "All",
       "tabFaced": "Faced",
       "tabPending": "Pending",

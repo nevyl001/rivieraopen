@@ -1,6 +1,9 @@
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { getCompetitionRankAtIndex } from "@/lib/rankingUtils";
-import { PlayerRival } from "@/lib/types/playerHistory";
+import {
+  PlayerHistoryEvent,
+  PlayerRival,
+} from "@/lib/types/playerHistory";
 
 const DEFAULT_PHOTO = "/img/players/players-1.png";
 
@@ -18,6 +21,7 @@ interface JugadorRow {
   nombre: string | null;
   foto_url: string | null;
   legacy_player_id?: string | null;
+  categoria?: string | null;
   genero: string | null;
   jugador_stats: { puntos_totales: number | null } | { puntos_totales: number | null }[] | null;
 }
@@ -88,6 +92,58 @@ function updateH2H(
   map.set(rivalId, current);
 }
 
+function normalizePlayerName(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function parseOpponentNames(label: string): string[] {
+  return label
+    .split("/")
+    .map((name) => name.trim())
+    .filter(Boolean);
+}
+
+async function buildNameToJugadorMap(): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  const supabase = getSupabaseClient();
+  if (!supabase) return map;
+
+  const { data } = await supabase
+    .from("riviera_jugadores")
+    .select("id, nombre")
+    .eq("organizador_id", RANKING_ORGANIZADOR_ID)
+    .eq("visible_publico", true);
+
+  for (const row of data ?? []) {
+    const nombre = (row.nombre as string | null)?.trim();
+    if (!nombre) continue;
+    map.set(normalizePlayerName(nombre), row.id as string);
+  }
+
+  return map;
+}
+
+function applyHistoryToHeadToHead(
+  h2h: Map<string, H2HRecord>,
+  historyEvents: PlayerHistoryEvent[],
+  jugadorId: string,
+  nameToJugador: Map<string, string>
+): void {
+  for (const event of historyEvents) {
+    const matchDate = event.fecha;
+
+    for (const partido of event.partidos) {
+      for (const opponentName of parseOpponentNames(partido.opponentLabel)) {
+        const rivalJugadorId = nameToJugador.get(
+          normalizePlayerName(opponentName)
+        );
+        if (!rivalJugadorId || rivalJugadorId === jugadorId) continue;
+        updateH2H(h2h, rivalJugadorId, partido.won, matchDate);
+      }
+    }
+  }
+}
+
 async function buildLegacyToJugadorMap(): Promise<Map<string, string>> {
   const supabase = getSupabaseClient();
   if (!supabase) return new Map();
@@ -110,13 +166,19 @@ async function buildLegacyToJugadorMap(): Promise<Map<string, string>> {
 async function computeHeadToHead(
   jugadorId: string,
   legacyPlayerId: string | null | undefined,
-  organizadorId: string
+  organizadorId: string,
+  historyEvents: PlayerHistoryEvent[]
 ): Promise<Map<string, H2HRecord>> {
   const h2h = new Map<string, H2HRecord>();
   const supabase = getSupabaseClient();
   if (!supabase || !legacyPlayerId?.trim()) return h2h;
 
   const legacyToJugador = await buildLegacyToJugadorMap();
+  const nameToJugador = await buildNameToJugadorMap();
+
+  if (historyEvents.length) {
+    applyHistoryToHeadToHead(h2h, historyEvents, jugadorId, nameToJugador);
+  }
 
   const rivalIdsFromPareja = (
     pareja: ParejaEmbed | null,
@@ -137,7 +199,7 @@ async function computeHeadToHead(
     .select("id")
     .eq("organizador_id", organizadorId);
 
-  if (torneos?.length) {
+  if (torneos?.length && !historyEvents.length) {
     const torneoIds = torneos.map((row) => row.id as string);
     const { data: grupos } = await supabase
       .from("torneo_express_grupos")
@@ -305,6 +367,29 @@ async function getCategoryRankMap(
   return map;
 }
 
+async function buildRivalRankLookup(
+  rivals: JugadorRow[]
+): Promise<Map<string, { rank: number; points: number }>> {
+  const lookup = new Map<string, { rank: number; points: number }>();
+  const seen = new Set<string>();
+
+  for (const rival of rivals) {
+    const key = `${rival.categoria ?? ""}|${rival.genero ?? ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const rankMap = await getCategoryRankMap(
+      rival.categoria ?? null,
+      rival.genero ?? null
+    );
+    for (const [id, info] of rankMap) {
+      lookup.set(id, info);
+    }
+  }
+
+  return lookup;
+}
+
 async function getSimilarRankRivals(
   jugadorId: string,
   categoria: string | null,
@@ -365,7 +450,8 @@ export async function getPlayerRivals(
   categoria: string | null,
   genero: string | null,
   playerPoints: number,
-  organizadorId: string = RANKING_ORGANIZADOR_ID
+  organizadorId: string = RANKING_ORGANIZADOR_ID,
+  historyEvents: PlayerHistoryEvent[] = []
 ): Promise<PlayerRival[]> {
   const supabase = getSupabaseClient();
   if (!supabase) return [];
@@ -373,7 +459,8 @@ export async function getPlayerRivals(
   const h2hMap = await computeHeadToHead(
     jugadorId,
     legacyPlayerId,
-    organizadorId
+    organizadorId,
+    historyEvents
   );
 
   const rankMap = await getCategoryRankMap(categoria, genero);
@@ -387,14 +474,14 @@ export async function getPlayerRivals(
       .in("id", facedIds)
       .eq("visible_publico", true);
 
-    const rows = ((data ?? []) as JugadorRow[]).filter((row) =>
-      matchesGenderFilter(row.genero, genero)
-    );
+    const rows = (data ?? []) as JugadorRow[];
+    const rivalRankLookup = await buildRivalRankLookup(rows);
 
     for (const row of rows) {
       const record = h2hMap.get(row.id);
       if (!record) continue;
-      const rankInfo = rankMap.get(row.id);
+      const rankInfo =
+        rivalRankLookup.get(row.id) ?? rankMap.get(row.id);
 
       facedRivals.push({
         id: row.id,
@@ -416,10 +503,10 @@ export async function getPlayerRivals(
     });
   }
 
-  const result = facedRivals.slice(0, 5);
-  const usedIds = new Set([jugadorId, ...result.map((r) => r.id)]);
+  const result = [...facedRivals];
+  const usedIds = new Set([jugadorId, ...result.map((rival) => rival.id)]);
 
-  if (result.length < 5) {
+  if (result.length < 8) {
     const similar = await getSimilarRankRivals(
       jugadorId,
       categoria,
@@ -430,12 +517,12 @@ export async function getPlayerRivals(
     );
 
     for (const rival of similar) {
-      if (result.length >= 5) break;
+      if (result.filter((entry) => !entry.hasFaced).length >= 3) break;
       if (usedIds.has(rival.id)) continue;
       result.push(rival);
       usedIds.add(rival.id);
     }
   }
 
-  return result.slice(0, 5);
+  return result;
 }

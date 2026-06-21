@@ -145,7 +145,7 @@
     },
     "rivals": {
       "title": "Rivales del circuito",
-      "subtitle": "G = partidos ganados contra él · P = partidos perdidos contra él",
+      "subtitle": "G = partidos ganados contra el rival · P = partidos perdidos contra el rival",
       "tabAll": "Todos",
       "tabFaced": "Enfrentados",
       "tabPending": "Pendientes",

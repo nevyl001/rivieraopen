@@ -275,20 +275,23 @@ export async function getJugadorPublico(
 
     const baseProfile = mapRowToProfile(row, rank);
 
-    const [participacionesStats, computedStats, seasonTimeline, historyEvents, rivals] =
+    const [participacionesStats, computedStats, seasonTimeline, historyEvents] =
       await Promise.all([
         computeStatsFromParticipaciones(row.id, RANKING_ORGANIZADOR_ID),
         computePlayerMatchStats(row.legacy_player_id, RANKING_ORGANIZADOR_ID),
         computePlayerSeasonTimeline(row.id, row.legacy_player_id),
         getPlayerHistoryEvents(row.id, row.legacy_player_id),
-        getPlayerRivals(
-          row.id,
-          row.legacy_player_id,
-          row.categoria,
-          row.genero,
-          points
-        ),
       ]);
+
+    const rivals = await getPlayerRivals(
+      row.id,
+      row.legacy_player_id,
+      row.categoria,
+      row.genero,
+      points,
+      RANKING_ORGANIZADOR_ID,
+      historyEvents
+    );
 
     const statsFromPartidos = mergePlayerStats(
       baseProfile.stats,
