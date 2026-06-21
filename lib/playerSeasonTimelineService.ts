@@ -1,4 +1,6 @@
 import { getSupabaseClient } from "@/lib/supabaseClient";
+import { getPlayerHistoryEvents } from "@/lib/playerHistoryService";
+import { PlayerHistoryEvent } from "@/lib/types/playerHistory";
 import { PlayerSeasonTimeline, SeasonTimelinePoint } from "@/lib/types";
 
 const RANKING_ORGANIZADOR_ID =
@@ -120,6 +122,72 @@ function buildCumulativePoints(
   }
 
   return points;
+}
+
+interface MatchResult {
+  date: string;
+  won: boolean;
+}
+
+function expandAggregatedEvent(event: TimelineEvent): MatchResult[] {
+  const matches: MatchResult[] = [];
+  for (let i = 0; i < event.wins; i++) {
+    matches.push({ date: event.date, won: true });
+  }
+  for (let i = 0; i < event.losses; i++) {
+    matches.push({ date: event.date, won: false });
+  }
+  return matches;
+}
+
+function buildCumulativePointsFromMatches(
+  matches: MatchResult[],
+  season: number
+): SeasonTimelinePoint[] {
+  const sorted = [...matches].sort((a, b) => a.date.localeCompare(b.date));
+  if (!sorted.length) return [];
+
+  let wins = 0;
+  let losses = 0;
+  const points: SeasonTimelinePoint[] = [
+    {
+      date: `${season}-01-01`,
+      wins: 0,
+      losses: 0,
+      balance: 0,
+    },
+  ];
+
+  for (const match of sorted) {
+    if (match.won) wins += 1;
+    else losses += 1;
+
+    points.push({
+      date: match.date,
+      wins,
+      losses,
+      balance: wins - losses,
+    });
+  }
+
+  return points;
+}
+
+function matchesFromHistoryEvents(
+  historyEvents: PlayerHistoryEvent[],
+  season: number
+): MatchResult[] {
+  const matches: MatchResult[] = [];
+
+  for (const event of historyEvents) {
+    for (const partido of event.partidos) {
+      const date = (partido.sortDate || event.fecha || "").slice(0, 10);
+      if (!isInSeason(date, season)) continue;
+      matches.push({ date, won: partido.won });
+    }
+  }
+
+  return matches;
 }
 
 async function eventsFromParticipaciones(
@@ -347,8 +415,21 @@ export async function computePlayerSeasonTimeline(
   jugadorId: string,
   legacyPlayerId: string | null | undefined,
   season: number = CURRENT_SEASON,
-  organizadorId: string = RANKING_ORGANIZADOR_ID
+  organizadorId: string = RANKING_ORGANIZADOR_ID,
+  historyEvents?: PlayerHistoryEvent[]
 ): Promise<PlayerSeasonTimeline> {
+  const history =
+    historyEvents ??
+    (await getPlayerHistoryEvents(jugadorId, legacyPlayerId, organizadorId));
+
+  const historyMatches = matchesFromHistoryEvents(history, season);
+  if (historyMatches.length > 0) {
+    return {
+      season,
+      points: buildCumulativePointsFromMatches(historyMatches, season),
+    };
+  }
+
   const participacionEvents = await eventsFromParticipaciones(
     jugadorId,
     organizadorId,
@@ -375,8 +456,13 @@ export async function computePlayerSeasonTimeline(
     events = [];
   }
 
+  const fallbackMatches = events.flatMap(expandAggregatedEvent);
+
   return {
     season,
-    points: buildCumulativePoints(events, season),
+    points:
+      fallbackMatches.length > 0
+        ? buildCumulativePointsFromMatches(fallbackMatches, season)
+        : buildCumulativePoints(events, season),
   };
 }

@@ -16,8 +16,8 @@ function buildChartGeometry(points: PlayerSeasonTimeline["points"]) {
   if (points.length < 2) return null;
 
   const balances = points.map((point) => point.balance);
-  const minBalance = Math.min(...balances, 0);
-  const maxBalance = Math.max(...balances, 1);
+  const minBalance = Math.min(...balances);
+  const maxBalance = Math.max(...balances);
   const range = maxBalance - minBalance || 1;
 
   const innerWidth = CHART_WIDTH - PADDING * 2;

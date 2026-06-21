@@ -503,26 +503,5 @@ export async function getPlayerRivals(
     });
   }
 
-  const result = [...facedRivals];
-  const usedIds = new Set([jugadorId, ...result.map((rival) => rival.id)]);
-
-  if (result.length < 8) {
-    const similar = await getSimilarRankRivals(
-      jugadorId,
-      categoria,
-      genero,
-      playerPoints,
-      usedIds,
-      rankMap
-    );
-
-    for (const rival of similar) {
-      if (result.filter((entry) => !entry.hasFaced).length >= 3) break;
-      if (usedIds.has(rival.id)) continue;
-      result.push(rival);
-      usedIds.add(rival.id);
-    }
-  }
-
-  return result;
+  return facedRivals;
 }
