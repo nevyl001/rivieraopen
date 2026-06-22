@@ -133,6 +133,7 @@
     "seasonTitle": "Season {{year}}",
     "seasonWins": "Wins",
     "seasonLosses": "Losses",
+    "seasonDraws": "Draws",
     "seasonNoData": "No matches recorded in the {{year}} season.",
     "history": {
       "firstPlace": "1st place",
@@ -146,14 +147,15 @@
     },
     "rivals": {
       "title": "Circuit rivals",
-      "subtitle": "W = matches won against the rival · L = matches lost against the rival",
+      "subtitle": "W = wins · L = losses · D = draws against the rival",
       "tabAll": "All",
       "tabFaced": "Faced",
       "tabPending": "Pending",
       "noDuelYet": "No duel yet",
       "nextTournament": "Will they meet in the next tournament?",
       "h2hLabel": "Head-to-head",
-      "h2hScore": "{{wins}}W · {{losses}}L"
+      "h2hScore": "{{wins}}W · {{losses}}L",
+      "h2hScoreWithDraws": "{{wins}}W · {{losses}}L · {{draws}}D"
     }
   }
 }

@@ -1,7 +1,7 @@
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { PlayerHistoryMatch } from "@/lib/types/playerHistory";
 
-type KnockoutRoundKey = "quarter" | "semi" | "final" | "third";
+type KnockoutRoundKey = "quarter" | "semi" | "final" | "third" | "bestThird";
 
 interface ParticipacionMetadata {
   posicion_final?: number;
@@ -11,6 +11,19 @@ interface ParticipacionMetadata {
   subcampeon_torneo?: boolean;
   pareja_campeon_id?: string;
   pareja_subcampeon_id?: string;
+  lugar?: string;
+  paso_semifinal?: boolean;
+  llego_final?: boolean;
+}
+
+interface BracketSlot {
+  type?: string;
+  qualifier?: {
+    parejaId?: string;
+    parejaLabel?: string;
+    isMejorTercero?: boolean;
+    posEnGrupo?: number;
+  };
 }
 
 interface TorneoPodium {
@@ -29,6 +42,7 @@ const ROUND_LABELS: Record<KnockoutRoundKey, string> = {
   semi: "Semifinal",
   final: "Final",
   third: "3er lugar",
+  bestThird: "Mejor 3er lugar",
 };
 
 function pairLabel(
@@ -154,11 +168,89 @@ function inferKnockoutSteps(
   return steps;
 }
 
+function normalizeLugar(value: string | null | undefined): string {
+  return value?.trim().toLowerCase() ?? "";
+}
+
+function isEliminatoriaLugar(metadata: ParticipacionMetadata): boolean {
+  const lugar = normalizeLugar(metadata.lugar);
+  return lugar.includes("eliminatoria") || lugar.includes("mejor 3");
+}
+
+function findPlayerBracketSlot(
+  slots: BracketSlot[],
+  playerPairId: string
+): BracketSlot | null {
+  for (const slot of slots) {
+    if (slot.type === "team" && slot.qualifier?.parejaId === playerPairId) {
+      return slot;
+    }
+  }
+  return null;
+}
+
+function findFirstBracketOpponent(
+  slots: BracketSlot[],
+  playerPairId: string
+): { opponentPairId: string | null; opponentLabel: string | null } {
+  for (let index = 0; index < slots.length; index += 2) {
+    const left = slots[index];
+    const right = slots[index + 1];
+    const leftId =
+      left?.type === "team" ? (left.qualifier?.parejaId ?? null) : null;
+    const rightId =
+      right?.type === "team" ? (right.qualifier?.parejaId ?? null) : null;
+
+    if (leftId === playerPairId && right?.type === "team") {
+      return {
+        opponentPairId: right.qualifier?.parejaId ?? null,
+        opponentLabel: right.qualifier?.parejaLabel ?? null,
+      };
+    }
+    if (rightId === playerPairId && left?.type === "team") {
+      return {
+        opponentPairId: left.qualifier?.parejaId ?? null,
+        opponentLabel: left.qualifier?.parejaLabel ?? null,
+      };
+    }
+  }
+
+  return { opponentPairId: null, opponentLabel: null };
+}
+
+function buildEliminatoriaKnockoutSteps(
+  metadata: ParticipacionMetadata,
+  playerSlot: BracketSlot | null,
+  koWins: number,
+  koLosses: number
+): KnockoutStep[] {
+  const mejorTercero = Boolean(
+    playerSlot?.qualifier?.isMejorTercero ||
+      playerSlot?.qualifier?.posEnGrupo === 3 ||
+      isEliminatoriaLugar(metadata)
+  );
+
+  if (koWins === 0 && koLosses === 1 && (mejorTercero || isEliminatoriaLugar(metadata))) {
+    return [{ roundKey: "bestThird", won: false }];
+  }
+
+  if (koWins === 0 && koLosses === 1) {
+    return [{ roundKey: "quarter", won: false }];
+  }
+
+  return [];
+}
+
 function opponentPairForStep(
   posicion: number | null,
   step: KnockoutStep,
-  podium: TorneoPodium
+  podium: TorneoPodium,
+  bracketOpponentPairId: string | null
 ): string | null {
+  if (step.roundKey === "bestThird" || step.roundKey === "quarter") {
+    return bracketOpponentPairId;
+  }
+
   const champ = podium.campeonPairId;
   const sub = podium.subcampeonPairId;
   const third = podium.pairByPosition.get(3) ?? null;
@@ -188,7 +280,107 @@ function opponentPairForStep(
   return null;
 }
 
-async function loadTorneoPodium(torneoId: string): Promise<TorneoPodium> {
+interface ExpressParejaEmbed {
+  id: string;
+  player1_id: string | null;
+  player2_id: string | null;
+  player1_name: string | null;
+  player2_name: string | null;
+}
+
+interface ExpressPairCatalog {
+  labelsById: Map<string, string>;
+  pairByLegacyId: Map<string, string>;
+}
+
+function unwrapParejaEmbed(
+  embed: ExpressParejaEmbed | ExpressParejaEmbed[] | null | undefined
+): ExpressParejaEmbed | null {
+  if (!embed) return null;
+  return Array.isArray(embed) ? (embed[0] ?? null) : embed;
+}
+
+async function loadExpressPairCatalog(
+  torneoId: string
+): Promise<ExpressPairCatalog> {
+  const labelsById = new Map<string, string>();
+  const pairByLegacyId = new Map<string, string>();
+  const supabase = getSupabaseClient();
+  if (!supabase) return { labelsById, pairByLegacyId };
+
+  const registerPair = (pareja: ExpressParejaEmbed | null) => {
+    if (!pareja?.id) return;
+    labelsById.set(
+      pareja.id,
+      pairLabel(pareja.player1_name, pareja.player2_name)
+    );
+    if (pareja.player1_id) pairByLegacyId.set(pareja.player1_id, pareja.id);
+    if (pareja.player2_id) pairByLegacyId.set(pareja.player2_id, pareja.id);
+  };
+
+  const { data: grupos } = await supabase
+    .from("torneo_express_grupos")
+    .select("id")
+    .eq("torneo_id", torneoId);
+
+  if (grupos?.length) {
+    const { data: partidos } = await supabase
+      .from("torneo_express_partidos")
+      .select(
+        `
+        pareja_local:pareja_local_id ( id, player1_id, player2_id, player1_name, player2_name ),
+        pareja_visitante:pareja_visitante_id ( id, player1_id, player2_id, player1_name, player2_name )
+      `
+      )
+      .in(
+        "grupo_id",
+        grupos.map((row) => row.id as string)
+      );
+
+    for (const raw of partidos ?? []) {
+      registerPair(
+        unwrapParejaEmbed(
+          raw.pareja_local as ExpressParejaEmbed | ExpressParejaEmbed[] | null
+        )
+      );
+      registerPair(
+        unwrapParejaEmbed(
+          raw.pareja_visitante as
+            | ExpressParejaEmbed
+            | ExpressParejaEmbed[]
+            | null
+        )
+      );
+    }
+  }
+
+  const { data: torneo } = await supabase
+    .from("torneo_express")
+    .select("bracket_slots")
+    .eq("id", torneoId)
+    .maybeSingle();
+
+  const slots = (torneo?.bracket_slots ?? []) as Array<{
+    type?: string;
+    qualifier?: { parejaId?: string; parejaLabel?: string };
+  }>;
+
+  for (const slot of slots) {
+    const parejaId = slot.qualifier?.parejaId;
+    const parejaLabelText = slot.qualifier?.parejaLabel?.trim();
+    if (!parejaId || !parejaLabelText) continue;
+    if (!labelsById.has(parejaId)) {
+      labelsById.set(parejaId, parejaLabelText);
+    }
+  }
+
+  return { labelsById, pairByLegacyId };
+}
+
+async function loadTorneoPodium(
+  torneoId: string,
+  catalog: ExpressPairCatalog
+): Promise<TorneoPodium> {
   const supabase = getSupabaseClient();
   const podium: TorneoPodium = {
     campeonPairId: null,
@@ -207,13 +399,14 @@ async function loadTorneoPodium(torneoId: string): Promise<TorneoPodium> {
   podium.campeonPairId = meta.pareja_campeon_id ?? null;
   podium.subcampeonPairId = meta.pareja_subcampeon_id ?? null;
 
-  return resolvePodiumPairs(torneoId, podium);
+  return resolvePodiumPairs(torneoId, podium, catalog);
 }
 
 async function loadPairIdsByPosition(
   torneoId: string,
   legacyPlayerId: string,
-  metadata: ParticipacionMetadata
+  metadata: ParticipacionMetadata,
+  catalog: ExpressPairCatalog
 ): Promise<string | null> {
   const supabase = getSupabaseClient();
   if (!supabase) return null;
@@ -224,6 +417,9 @@ async function loadPairIdsByPosition(
   if (metadata.subcampeon_torneo && metadata.pareja_subcampeon_id) {
     return metadata.pareja_subcampeon_id;
   }
+
+  const fromCatalog = catalog.pairByLegacyId.get(legacyPlayerId);
+  if (fromCatalog) return fromCatalog;
 
   const { data: bracketRow } = await supabase
     .from("torneo_express")
@@ -238,59 +434,29 @@ async function loadPairIdsByPosition(
 
   for (const slot of slots) {
     if (slot.type !== "team" || !slot.qualifier?.parejaId) continue;
-    const { data: pair } = await supabase
-      .from("pairs")
-      .select("id, player1_id, player2_id")
-      .eq("id", slot.qualifier.parejaId)
-      .maybeSingle();
-
-    if (
-      pair &&
-      (pair.player1_id === legacyPlayerId || pair.player2_id === legacyPlayerId)
-    ) {
-      return pair.id as string;
-    }
+    const parejaId = slot.qualifier.parejaId;
+    const playerPairId = catalog.pairByLegacyId.get(legacyPlayerId);
+    if (playerPairId === parejaId) return parejaId;
   }
 
-  const { data: pairs } = await supabase
-    .from("pairs")
-    .select("id")
-    .or(`player1_id.eq.${legacyPlayerId},player2_id.eq.${legacyPlayerId}`);
-
-  const pairIds = (pairs ?? []).map((row) => row.id as string);
-  if (!pairIds.length) return null;
-
-  const { data: grupos } = await supabase
-    .from("torneo_express_grupos")
-    .select("id")
-    .eq("torneo_id", torneoId);
-
-  if (!grupos?.length) return pairIds[0] ?? null;
-
-  const grupoIds = grupos.map((row) => row.id as string);
-  const { data: played } = await supabase
-    .from("torneo_express_partidos")
-    .select("pareja_local_id, pareja_visitante_id")
-    .in("grupo_id", grupoIds)
-    .limit(100);
-
-  for (const row of played ?? []) {
-    if (pairIds.includes(row.pareja_local_id as string)) {
-      return row.pareja_local_id as string;
-    }
-    if (pairIds.includes(row.pareja_visitante_id as string)) {
-      return row.pareja_visitante_id as string;
-    }
-  }
-
-  return pairIds[0] ?? null;
+  return catalog.pairByLegacyId.get(legacyPlayerId) ?? null;
 }
 
 async function loadPairLabels(
-  pairIds: string[]
+  torneoId: string,
+  pairIds: string[],
+  catalog: ExpressPairCatalog
 ): Promise<Map<string, string>> {
   const map = new Map<string, string>();
   if (!pairIds.length) return map;
+
+  for (const pairId of pairIds) {
+    const fromCatalog = catalog.labelsById.get(pairId);
+    if (fromCatalog) map.set(pairId, fromCatalog);
+  }
+
+  const missing = pairIds.filter((id) => !map.has(id));
+  if (!missing.length) return map;
 
   const supabase = getSupabaseClient();
   if (!supabase) return map;
@@ -298,7 +464,7 @@ async function loadPairLabels(
   const { data } = await supabase
     .from("pairs")
     .select("id, player1_name, player2_name")
-    .in("id", pairIds);
+    .in("id", missing);
 
   for (const row of data ?? []) {
     map.set(
@@ -312,7 +478,8 @@ async function loadPairLabels(
 
 async function resolvePodiumPairs(
   torneoId: string,
-  podium: TorneoPodium
+  podium: TorneoPodium,
+  catalog: ExpressPairCatalog
 ): Promise<TorneoPodium> {
   if (podium.pairByPosition.has(3) && podium.pairByPosition.has(4)) {
     return podium;
@@ -340,10 +507,6 @@ async function resolvePodiumPairs(
     ])
   );
 
-  const { data: allPairs } = await supabase
-    .from("pairs")
-    .select("id, player1_id, player2_id, player1_name, player2_name");
-
   const seenPairForPosition = new Map<number, string>();
 
   for (const row of rows ?? []) {
@@ -354,14 +517,11 @@ async function resolvePodiumPairs(
     const legacyId = legacyByJugador.get(row.jugador_id as string);
     if (!legacyId) continue;
 
-    const pair = (allPairs ?? []).find(
-      (entry) =>
-        entry.player1_id === legacyId || entry.player2_id === legacyId
-    );
-    if (!pair) continue;
+    const pairId = catalog.pairByLegacyId.get(legacyId);
+    if (!pairId) continue;
 
     if (!seenPairForPosition.has(pos)) {
-      seenPairForPosition.set(pos, pair.id as string);
+      seenPairForPosition.set(pos, pairId);
     }
   }
 
@@ -407,33 +567,59 @@ export async function supplementExpressKnockoutMatches(
 
   const { data: torneo } = await supabase
     .from("torneo_express")
-    .select("fase_eliminacion, created_at, fase_grupos_finalizada_at")
+    .select(
+      "fase_eliminacion, created_at, fase_grupos_finalizada_at, bracket_slots"
+    )
     .eq("id", torneoId)
     .maybeSingle();
+
+  const catalog = await loadExpressPairCatalog(torneoId);
+  const bracketSlots = (torneo?.bracket_slots ?? []) as BracketSlot[];
 
   const playerPairId = await loadPairIdsByPosition(
     torneoId,
     legacyPlayerId,
-    meta
+    meta,
+    catalog
   );
-  const podium = await loadTorneoPodium(torneoId);
+  const podium = await loadTorneoPodium(torneoId, catalog);
 
   if (!playerPairId) return groupMatches;
 
-  const steps = inferKnockoutSteps(
-    posicion,
-    koWins,
-    koLosses,
-    (torneo?.fase_eliminacion as string | null) ?? null
+  const playerSlot = findPlayerBracketSlot(bracketSlots, playerPairId);
+  const bracketOpponent = findFirstBracketOpponent(
+    bracketSlots,
+    playerPairId
   );
+
+  let steps = buildEliminatoriaKnockoutSteps(meta, playerSlot, koWins, koLosses);
+  if (!steps.length) {
+    steps = inferKnockoutSteps(
+      posicion,
+      koWins,
+      koLosses,
+      (torneo?.fase_eliminacion as string | null) ?? null
+    );
+  }
 
   if (!steps.length) return groupMatches;
 
   const opponentPairIds = steps
-    .map((step) => opponentPairForStep(posicion, step, podium))
+    .map((step) =>
+      opponentPairForStep(
+        posicion,
+        step,
+        podium,
+        bracketOpponent.opponentPairId
+      )
+    )
     .filter((id): id is string => Boolean(id));
 
-  const labelMap = await loadPairLabels([...new Set(opponentPairIds)]);
+  const labelMap = await loadPairLabels(
+    torneoId,
+    [...new Set(opponentPairIds)],
+    catalog
+  );
 
   const groupGames = sumGroupGames(groupMatches);
   const totalFavor = Number(options.setsFavor ?? 0);
@@ -453,14 +639,23 @@ export async function supplementExpressKnockoutMatches(
     "";
 
   const knockoutMatches: PlayerHistoryMatch[] = steps.map((step, index) => {
-    const opponentPairId = opponentPairForStep(posicion, step, podium);
+    const opponentPairId = opponentPairForStep(
+      posicion,
+      step,
+      podium,
+      bracketOpponent.opponentPairId
+    );
+    const opponentFromBracket = bracketOpponent.opponentLabel?.trim();
 
     return {
       id: `ko-${torneoId}-${step.roundKey}-${index}`,
       round: ROUND_LABELS[step.roundKey],
       opponentLabel: opponentPairId
-        ? labelMap.get(opponentPairId) ?? "Rival"
-        : "Rival",
+        ? labelMap.get(opponentPairId) ??
+          opponentFromBracket ??
+          catalog.labelsById.get(opponentPairId) ??
+          "Rival"
+        : opponentFromBracket ?? "Rival",
       score: scores[index] ?? (step.won ? "6-4" : "4-6"),
       won: step.won,
       sortDate: knockoutBaseDate

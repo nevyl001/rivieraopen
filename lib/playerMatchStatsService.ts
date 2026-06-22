@@ -292,28 +292,42 @@ async function computeFromRetasMatches(
     if (!inPair1 && !inPair2) continue;
 
     const isPair1 = inPair1;
-    const myScore = isPair1
-      ? Number(raw.pair1_score ?? 0)
-      : Number(raw.pair2_score ?? 0);
-    const oppScore = isPair1
-      ? Number(raw.pair2_score ?? 0)
-      : Number(raw.pair1_score ?? 0);
+    const gameRows = unwrapGames(raw.games);
 
     let victorias = 0;
     let derrotas = 0;
     let empates = 0;
 
-    if (myScore > oppScore) {
-      victorias = 1;
-    } else if (oppScore > myScore) {
-      derrotas = 1;
+    if (gameRows.length) {
+      let myGames = 0;
+      let oppGames = 0;
+      for (const game of gameRows) {
+        myGames += isPair1
+          ? Number(game.pair1_games ?? 0)
+          : Number(game.pair2_games ?? 0);
+        oppGames += isPair1
+          ? Number(game.pair2_games ?? 0)
+          : Number(game.pair1_games ?? 0);
+      }
+      if (myGames > oppGames) victorias = 1;
+      else if (oppGames > myGames) derrotas = 1;
+      else empates = 1;
     } else {
-      empates = 1;
+      const myScore = isPair1
+        ? Number(raw.pair1_score ?? 0)
+        : Number(raw.pair2_score ?? 0);
+      const oppScore = isPair1
+        ? Number(raw.pair2_score ?? 0)
+        : Number(raw.pair1_score ?? 0);
+
+      if (myScore > oppScore) victorias = 1;
+      else if (oppScore > myScore) derrotas = 1;
+      else if (myScore > 0 || oppScore > 0) empates = 1;
     }
 
     let gamesFavor = 0;
     let gamesContra = 0;
-    for (const game of unwrapGames(raw.games)) {
+    for (const game of gameRows) {
       gamesFavor += isPair1
         ? Number(game.pair1_games ?? 0)
         : Number(game.pair2_games ?? 0);

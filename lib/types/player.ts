@@ -58,6 +58,7 @@ export interface SeasonTimelinePoint {
   date: string;
   wins: number;
   losses: number;
+  draws: number;
   balance: number;
 }
 

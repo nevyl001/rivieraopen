@@ -39,6 +39,7 @@ export interface PlayerRival {
   rank: number;
   wins: number;
   losses: number;
+  draws: number;
   hasFaced: boolean;
   lastMatchDate: string | null;
 }

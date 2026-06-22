@@ -30,6 +30,7 @@ interface H2HRecord {
   rivalJugadorId: string;
   wins: number;
   losses: number;
+  draws: number;
   lastMatchDate: string | null;
 }
 
@@ -72,18 +73,20 @@ function extractPoints(
 function updateH2H(
   map: Map<string, H2HRecord>,
   rivalId: string,
-  won: boolean,
+  outcome: "win" | "loss" | "draw",
   matchDate: string | null
 ) {
   const current = map.get(rivalId) ?? {
     rivalJugadorId: rivalId,
     wins: 0,
     losses: 0,
+    draws: 0,
     lastMatchDate: null,
   };
 
-  if (won) current.wins += 1;
-  else current.losses += 1;
+  if (outcome === "win") current.wins += 1;
+  else if (outcome === "loss") current.losses += 1;
+  else current.draws += 1;
 
   if (matchDate && (!current.lastMatchDate || matchDate > current.lastMatchDate)) {
     current.lastMatchDate = matchDate;
@@ -138,7 +141,12 @@ function applyHistoryToHeadToHead(
           normalizePlayerName(opponentName)
         );
         if (!rivalJugadorId || rivalJugadorId === jugadorId) continue;
-        updateH2H(h2h, rivalJugadorId, partido.won, matchDate);
+        const outcome: "win" | "loss" | "draw" = partido.isDraw
+          ? "draw"
+          : partido.won
+            ? "win"
+            : "loss";
+        updateH2H(h2h, rivalJugadorId, outcome, matchDate);
       }
     }
   }
@@ -173,16 +181,17 @@ async function computeHeadToHead(
   const supabase = getSupabaseClient();
   if (!supabase || !legacyPlayerId?.trim()) return h2h;
 
-  const legacyToJugador = await buildLegacyToJugadorMap();
-  const nameToJugador = await buildNameToJugadorMap();
-
   if (historyEvents.length) {
+    const nameToJugador = await buildNameToJugadorMap();
     applyHistoryToHeadToHead(h2h, historyEvents, jugadorId, nameToJugador);
+    return h2h;
   }
+
+  const legacyToJugador = await buildLegacyToJugadorMap();
 
   const rivalIdsFromPareja = (
     pareja: ParejaEmbed | null,
-    won: boolean,
+    outcome: "win" | "loss" | "draw",
     matchDate: string | null
   ) => {
     if (!pareja) return;
@@ -190,7 +199,7 @@ async function computeHeadToHead(
       if (!legacyId || legacyId === legacyPlayerId) continue;
       const rivalJugadorId = legacyToJugador.get(legacyId);
       if (!rivalJugadorId || rivalJugadorId === jugadorId) continue;
-      updateH2H(h2h, rivalJugadorId, won, matchDate);
+      updateH2H(h2h, rivalJugadorId, outcome, matchDate);
     }
   };
 
@@ -199,7 +208,7 @@ async function computeHeadToHead(
     .select("id")
     .eq("organizador_id", organizadorId);
 
-  if (torneos?.length && !historyEvents.length) {
+  if (torneos?.length) {
     const torneoIds = torneos.map((row) => row.id as string);
     const { data: grupos } = await supabase
       .from("torneo_express_grupos")
@@ -240,7 +249,7 @@ async function computeHeadToHead(
         const oppPareja = inLocal ? visit : local;
         const won = Boolean(raw.ganador_id && raw.ganador_id === myParejaId);
         const matchDate = (raw.created_at as string | null)?.slice(0, 10) ?? null;
-        rivalIdsFromPareja(oppPareja, won, matchDate);
+        rivalIdsFromPareja(oppPareja, won ? "win" : "loss", matchDate);
       }
     }
   }
@@ -263,7 +272,9 @@ async function computeHeadToHead(
       const tournamentIds = orgTournaments.map((row) => row.id as string);
       const { data: matches } = await supabase
         .from("matches")
-        .select("id, pair1_id, pair2_id, pair1_score, pair2_score, created_at")
+        .select(
+          "id, pair1_id, pair2_id, pair1_score, pair2_score, created_at, games ( pair1_games, pair2_games )"
+        )
         .in("tournament_id", tournamentIds)
         .eq("status", "finished")
         .or(`pair1_id.in.(${pairFilter}),pair2_id.in.(${pairFilter})`);
@@ -306,26 +317,49 @@ async function computeHeadToHead(
         if (!inPair1 && !inPair2) continue;
 
         const isPair1 = inPair1;
-        const myScore = isPair1
-          ? Number(raw.pair1_score ?? 0)
-          : Number(raw.pair2_score ?? 0);
-        const oppScore = isPair1
-          ? Number(raw.pair2_score ?? 0)
-          : Number(raw.pair1_score ?? 0);
-        if (myScore === oppScore) continue;
+        const gameRows = Array.isArray(raw.games)
+          ? raw.games
+          : raw.games
+            ? [raw.games]
+            : [];
+
+        let outcome: "win" | "loss" | "draw";
+        if (gameRows.length) {
+          let myGames = 0;
+          let oppGames = 0;
+          for (const game of gameRows) {
+            myGames += isPair1
+              ? Number(game.pair1_games ?? 0)
+              : Number(game.pair2_games ?? 0);
+            oppGames += isPair1
+              ? Number(game.pair2_games ?? 0)
+              : Number(game.pair1_games ?? 0);
+          }
+          outcome =
+            myGames > oppGames ? "win" : myGames < oppGames ? "loss" : "draw";
+        } else {
+          const myScore = isPair1
+            ? Number(raw.pair1_score ?? 0)
+            : Number(raw.pair2_score ?? 0);
+          const oppScore = isPair1
+            ? Number(raw.pair2_score ?? 0)
+            : Number(raw.pair1_score ?? 0);
+          if (myScore === 0 && oppScore === 0) continue;
+          outcome =
+            myScore > oppScore ? "win" : myScore < oppScore ? "loss" : "draw";
+        }
 
         const oppPairId = isPair1
           ? (raw.pair2_id as string)
           : (raw.pair1_id as string);
         const oppLegacyIds = pairIdToLegacy.get(oppPairId) ?? [];
-        const won = myScore > oppScore;
         const matchDate = (raw.created_at as string | null)?.slice(0, 10) ?? null;
 
         for (const legacyId of oppLegacyIds) {
           if (legacyId === legacyPlayerId) continue;
           const rivalJugadorId = legacyToJugador.get(legacyId);
           if (!rivalJugadorId || rivalJugadorId === jugadorId) continue;
-          updateH2H(h2h, rivalJugadorId, won, matchDate);
+          updateH2H(h2h, rivalJugadorId, outcome, matchDate);
         }
       }
     }
@@ -438,6 +472,7 @@ async function getSimilarRankRivals(
       rank: rankInfo?.rank ?? 0,
       wins: 0,
       losses: 0,
+      draws: 0,
       hasFaced: false,
       lastMatchDate: null,
     };
@@ -491,6 +526,7 @@ export async function getPlayerRivals(
         rank: rankInfo?.rank ?? 0,
         wins: record.wins,
         losses: record.losses,
+        draws: record.draws,
         hasFaced: true,
         lastMatchDate: record.lastMatchDate,
       });

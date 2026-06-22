@@ -15,6 +15,8 @@ function RivalCard({ rival }: { rival: PlayerRival }) {
 
   const h2hAdvantage = rival.wins > rival.losses;
   const h2hDisadvantage = rival.losses > rival.wins;
+  const h2hNeutral =
+    rival.wins === rival.losses && (rival.draws > 0 || rival.wins === 0);
 
   return (
     <Link
@@ -48,13 +50,21 @@ function RivalCard({ rival }: { rival: PlayerRival }) {
               ? "bg-[#0d2e20] text-[#1D9E75]"
               : h2hDisadvantage
                 ? "bg-[#2e1010] text-[#E85D5D]"
-                : "bg-[#1a1a1a] text-[#aaa]"
+                : h2hNeutral
+                  ? "bg-[#2a2410] text-[#D4A72C]"
+                  : "bg-[#1a1a1a] text-[#aaa]"
           }`}
         >
-          {t("profile.rivals.h2hScore", {
-            wins: String(rival.wins),
-            losses: String(rival.losses),
-          })}
+          {rival.draws > 0
+            ? t("profile.rivals.h2hScoreWithDraws", {
+                wins: String(rival.wins),
+                losses: String(rival.losses),
+                draws: String(rival.draws),
+              })
+            : t("profile.rivals.h2hScore", {
+                wins: String(rival.wins),
+                losses: String(rival.losses),
+              })}
         </span>
       </div>
     </Link>

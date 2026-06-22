@@ -75,6 +75,17 @@ export function PlayerSeasonChart({ timeline }: PlayerSeasonChartProps) {
                 {lastPoint.losses}
               </span>
             </span>
+            {lastPoint.draws > 0 && (
+              <>
+                <span className="text-[#444]">·</span>
+                <span className="text-[#888]">
+                  {t("profile.seasonDraws")}{" "}
+                  <span className="font-medium tabular-nums text-white">
+                    {lastPoint.draws}
+                  </span>
+                </span>
+              </>
+            )}
           </div>
         )}
       </div>

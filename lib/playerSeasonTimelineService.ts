@@ -111,11 +111,13 @@ function buildCumulativePoints(
 
   let wins = 0;
   let losses = 0;
+  let draws = 0;
   const points: SeasonTimelinePoint[] = [
     {
       date: `${season}-01-01`,
       wins: 0,
       losses: 0,
+      draws: 0,
       balance: 0,
     },
   ];
@@ -127,6 +129,7 @@ function buildCumulativePoints(
       date: event.date,
       wins,
       losses,
+      draws,
       balance: wins - losses,
     });
   }
@@ -160,18 +163,20 @@ function buildCumulativePointsFromMatches(
 
   let wins = 0;
   let losses = 0;
+  let draws = 0;
   const points: SeasonTimelinePoint[] = [
     {
       date: `${season}-01-01`,
       wins: 0,
       losses: 0,
+      draws: 0,
       balance: 0,
     },
   ];
 
   for (const match of sorted) {
     if (match.draw) {
-      // Empate: no mueve el balance acumulado.
+      draws += 1;
     } else if (match.won) {
       wins += 1;
     } else {
@@ -182,6 +187,7 @@ function buildCumulativePointsFromMatches(
       date: match.date,
       wins,
       losses,
+      draws,
       balance: wins - losses,
     });
   }
