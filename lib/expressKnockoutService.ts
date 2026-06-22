@@ -661,20 +661,18 @@ function eliminatoriaRoundLabel(
 ): string {
   if (ronda === 90) return "3er lugar";
   if (ronda === 91) return "Mejor 3er lugar";
+  if (ronda === 2) return "Semifinal";
+  if (ronda === 3) return "Final";
 
-  const fase = (faseEliminacion ?? "semifinal").toLowerCase();
-  const hasQuarters =
-    fase.includes("cuarto") ||
-    fase.includes("quarter") ||
-    fase.includes("octav");
-
-  if (hasQuarters) {
-    if (ronda === 1) return "Cuartos de final";
-    if (ronda === 2) return "Semifinal";
-    if (ronda === 3) return "Final";
-  } else {
-    if (ronda === 1) return "Semifinal";
-    if (ronda === 2) return "Final";
+  if (ronda === 1) {
+    const fase = (faseEliminacion ?? "semifinal").toLowerCase();
+    const startsAtSemifinal =
+      (fase.includes("semi") || fase.includes("semifinal")) &&
+      !fase.includes("cuarto") &&
+      !fase.includes("quarter") &&
+      !fase.includes("octav");
+    if (startsAtSemifinal) return "Mejor 3er lugar";
+    return "Cuartos de final";
   }
 
   return `Eliminatoria · Ronda ${ronda}`;
