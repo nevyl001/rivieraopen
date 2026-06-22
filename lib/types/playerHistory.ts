@@ -4,6 +4,7 @@ export type PlayerEventType =
   | "reta"
   | "americano"
   | "duelo"
+  | "duelo_2v2"
   | string;
 
 export interface PlayerHistoryMatch {

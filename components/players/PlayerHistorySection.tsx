@@ -29,6 +29,7 @@ function eventIcon(tipo: string) {
     case "americano":
       return Users;
     case "duelo":
+    case "duelo_2v2":
     case "2vs2":
       return Swords;
     default:
@@ -52,6 +53,12 @@ function HistoryEventCard({ event }: { event: PlayerHistoryEvent }) {
   const Icon = eventIcon(event.tipoEvento);
   const placement = placementLabel(event.posicionFinal, t);
   const hasMatches = event.partidos.length > 0;
+  const recordTotal =
+    (event.partidosGanados ?? 0) +
+    (event.partidosPerdidos ?? 0) +
+    (event.partidosEmpatados ?? 0);
+  const hasRecord = recordTotal > 0;
+  const canExpand = hasMatches || hasRecord;
   const allResultsUnknown =
     hasMatches && event.partidos.every((partido) => partido.score === "—");
 
@@ -59,8 +66,11 @@ function HistoryEventCard({ event }: { event: PlayerHistoryEvent }) {
     <div className="overflow-hidden rounded-[10px] border border-[#1f1f1f] bg-[#111]">
       <button
         type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-start gap-3 px-4 py-4 text-left transition-colors hover:bg-[#151515]"
+        onClick={() => canExpand && setOpen((prev) => !prev)}
+        disabled={!canExpand}
+        className={`flex w-full items-start gap-3 px-4 py-4 text-left transition-colors ${
+          canExpand ? "hover:bg-[#151515]" : "cursor-default"
+        }`}
       >
         <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#0a0a0a] text-[#8E9AAB]">
           <Icon size={18} />
@@ -92,15 +102,18 @@ function HistoryEventCard({ event }: { event: PlayerHistoryEvent }) {
               +{event.puntosGanados} pts
             </span>
           )}
+          {canExpand && (
           <ChevronDown
             size={18}
             className={`text-[#555] transition-transform duration-300 ${
               open ? "rotate-180" : ""
             }`}
           />
+          )}
         </div>
       </button>
 
+      {canExpand && (
       <div
         className="overflow-hidden transition-[max-height] duration-300 ease-in-out"
         style={{ maxHeight: open ? "800px" : "0px" }}
@@ -151,9 +164,7 @@ function HistoryEventCard({ event }: { event: PlayerHistoryEvent }) {
                 </p>
               )}
             </div>
-          ) : event.partidosGanados != null ||
-            event.partidosPerdidos != null ||
-            event.partidosEmpatados != null ? (
+          ) : hasRecord ? (
             <div className="rounded-lg bg-[#0a0a0a] px-3 py-3 text-center">
               <p className="text-sm text-[#ccc]">
                 {t("profile.history.recordSummary", {
@@ -166,6 +177,7 @@ function HistoryEventCard({ event }: { event: PlayerHistoryEvent }) {
           ) : null}
         </div>
       </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,8 @@
 import { getSupabaseClient } from "@/lib/supabaseClient";
-import { labelRetaRondasForPartidos, RetaRoundLabelMetadata } from "@/lib/retaRoundLabel";
+import {
+  extractPartidosDetalle,
+  partidosDetalleToPlayerHistory,
+} from "@/lib/partidosDetalleService";
 import {
   RetaPartidoArchivado,
   RetaPartidoResultado,
@@ -64,65 +67,11 @@ function outcomeFromGames(
   return "draw";
 }
 
-function extractArchivedRows(
-  metadata: RetaParticipacionMetadataWithArchive | null | undefined
-): RetaPartidoArchivado[] {
-  if (!metadata) return [];
-  const raw = metadata.partidos_detalle;
-  if (!Array.isArray(raw) || !raw.length) return [];
-
-  return raw
-    .map((row) => ({
-      id: typeof row.id === "string" ? row.id : undefined,
-      ronda: Number(row.ronda ?? 0),
-      rival: String(row.rival ?? "Rival").trim() || "Rival",
-      games_favor: Number(row.games_favor ?? 0),
-      games_contra: Number(row.games_contra ?? 0),
-      resultado:
-        row.resultado === "win" || row.resultado === "loss" || row.resultado === "draw"
-          ? row.resultado
-          : outcomeFromGames(
-              Number(row.games_favor ?? 0),
-              Number(row.games_contra ?? 0)
-            ),
-      fecha: typeof row.fecha === "string" ? row.fecha : undefined,
-    }))
-    .filter((row) => row.ronda > 0);
-}
-
-export function archivedMatchesToPlayerHistory(
-  archived: RetaPartidoArchivado[],
-  metadata: RetaParticipacionMetadataWithArchive,
-  eventDate: string | null
-): PlayerHistoryMatch[] {
-  if (!archived.length) return [];
-
-  const sorted = [...archived].sort(
-    (a, b) => a.ronda - b.ronda || (a.fecha ?? "").localeCompare(b.fecha ?? "")
-  );
-
-  const labels = labelRetaRondasForPartidos(
-    sorted.map((row) => ({ ronda: row.ronda, fecha: row.fecha })),
-    metadata as RetaRoundLabelMetadata
-  );
-
-  return sorted.map((row, index) => ({
-    id: row.id ?? `archived-${row.ronda}-${index}`,
-    round: labels[index],
-    opponentLabel: row.rival,
-    score: `${row.games_favor}-${row.games_contra}`,
-    won: row.resultado === "win",
-    isDraw: row.resultado === "draw",
-    sortDate: row.fecha ?? eventDate ?? "",
-  }));
-}
-
 export function parseArchivedMatchesFromMetadata(
   metadata: RetaParticipacionMetadataWithArchive | null | undefined,
   eventDate: string | null
 ): PlayerHistoryMatch[] {
-  const rows = extractArchivedRows(metadata);
-  return archivedMatchesToPlayerHistory(rows, metadata ?? {}, eventDate);
+  return partidosDetalleToPlayerHistory(metadata, eventDate);
 }
 
 /** Construye el snapshot desde matches/games (para reta_cierre o backfill). */
@@ -288,7 +237,7 @@ export async function archiveRetaResults(
     const jugadorId = participacion.jugador_id as string;
     const metadata = (participacion.metadata ?? {}) as Record<string, unknown>;
 
-    const existing = extractArchivedRows(
+    const existing = extractPartidosDetalle(
       metadata as RetaParticipacionMetadataWithArchive
     );
     if (existing.length && !options.force) {

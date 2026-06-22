@@ -11,6 +11,7 @@ interface ParticipacionMetadata {
   partidos_ganados?: number;
   partidos_perdidos?: number;
   partidos_empatados?: number;
+  partidos_jugados?: number;
   formato?: string;
   total_participantes?: number;
   modalidad?: string;
@@ -72,12 +73,8 @@ function inferSoloPartidos(metadata: ParticipacionMetadata | null): number {
     Number(metadata.partidos_empatados ?? 0);
   if (recorded > 0) return recorded;
 
-  if (
-    metadata.formato === "round_robin" &&
-    Number(metadata.total_participantes ?? 0) > 1
-  ) {
-    return Number(metadata.total_participantes) - 1;
-  }
+  const played = Number(metadata.partidos_jugados ?? 0);
+  if (played > 0) return played;
 
   return 0;
 }

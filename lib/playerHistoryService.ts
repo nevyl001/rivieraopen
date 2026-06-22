@@ -1,10 +1,11 @@
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { dbCategoryToUi } from "@/lib/categoryUtils";
+import { fetchRetaMatchesForEvent } from "@/lib/retaHistoryService";
+import { partidosDetalleToPlayerHistory } from "@/lib/partidosDetalleService";
 import {
   fetchExpressEliminatoriaMatches,
   supplementExpressKnockoutMatches,
 } from "@/lib/expressKnockoutService";
-import { fetchRetaMatchesForEvent } from "@/lib/retaHistoryService";
 import {
   PlayerHistoryEvent,
   PlayerHistoryMatch,
@@ -125,60 +126,6 @@ function resolveEventName(
     meta.modalidad_label?.trim() ||
     row.tipo_evento.replace(/_/g, " ")
   );
-}
-
-function buildMatchesFromMetadataTotals(
-  row: ParticipacionRow,
-  prefix: string
-): PlayerHistoryMatch[] {
-  const meta = row.metadata ?? {};
-  const wins = Number(meta.partidos_ganados ?? 0);
-  const losses = Number(meta.partidos_perdidos ?? 0);
-  const draws = Number(meta.partidos_empatados ?? 0);
-  const total = wins + losses + draws;
-  if (total <= 0) return [];
-
-  const favor = Number(row.sets_favor ?? 0);
-  const against = Number(row.sets_contra ?? 0);
-  const sequence: Array<boolean | null> = [];
-  for (let i = 0; i < wins; i++) sequence.push(true);
-  for (let i = 0; i < losses; i++) sequence.push(false);
-  for (let i = 0; i < draws; i++) sequence.push(null);
-
-  let favorLeft = favor;
-  let againstLeft = against;
-
-  return sequence.map((result, index) => {
-    const isLast = index === sequence.length - 1;
-    let score = "—";
-
-    if (favor > 0 || against > 0) {
-      if (isLast) {
-        score = `${Math.max(0, favorLeft)}-${Math.max(0, againstLeft)}`;
-      } else if (result === null) {
-        const games = Math.max(1, Math.min(favorLeft, againstLeft, 6));
-        score = `${games}-${games}`;
-        favorLeft -= games;
-        againstLeft -= games;
-      } else {
-        const myGames = result ? 6 : 4;
-        const oppGames = result ? 4 : 6;
-        score = `${myGames}-${oppGames}`;
-        favorLeft -= myGames;
-        againstLeft -= oppGames;
-      }
-    }
-
-    return {
-      id: `${prefix}-${index}`,
-      round: `Partido ${index + 1}`,
-      opponentLabel: "Rival",
-      score,
-      won: result === true,
-      isDraw: result === null,
-      sortDate: row.fecha ?? "",
-    };
-  });
 }
 
 function resolveRoundLabel(
@@ -488,13 +435,15 @@ async function buildEventsFromParticipaciones(
       );
     } else if (
       row.tipo_evento === "americano" ||
-      row.tipo_evento === "liga"
+      row.tipo_evento === "liga" ||
+      row.tipo_evento === "duelo_2v2" ||
+      row.tipo_evento === "duelo"
     ) {
-      partidos = buildMatchesFromMetadataTotals(row, row.tipo_evento);
+      partidos = partidosDetalleToPlayerHistory(meta, row.fecha);
     }
 
     const posicionFinal =
-      row.tipo_evento === "reta"
+      row.tipo_evento === "reta" || row.tipo_evento === "duelo_2v2"
         ? typeof meta.posicion === "number"
           ? meta.posicion
           : null
@@ -502,6 +451,11 @@ async function buildEventsFromParticipaciones(
           (typeof meta.posicion === "number" ? meta.posicion : null);
     const puntosGanados =
       Number(meta.puntos_evento ?? meta.puntos_ganados ?? 0) || 0;
+
+    const wins = Number(meta.partidos_ganados ?? 0);
+    const losses = Number(meta.partidos_perdidos ?? 0);
+    const draws = Number(meta.partidos_empatados ?? 0);
+    const hasRecordTotals = wins + losses + draws > 0;
 
     events.push({
       id: row.id,
@@ -516,18 +470,9 @@ async function buildEventsFromParticipaciones(
       posicionFinal:
         typeof posicionFinal === "number" ? posicionFinal : null,
       puntosGanados,
-      partidosGanados:
-        typeof meta.partidos_ganados === "number"
-          ? meta.partidos_ganados
-          : null,
-      partidosPerdidos:
-        typeof meta.partidos_perdidos === "number"
-          ? meta.partidos_perdidos
-          : null,
-      partidosEmpatados:
-        typeof meta.partidos_empatados === "number"
-          ? meta.partidos_empatados
-          : null,
+      partidosGanados: hasRecordTotals ? wins : null,
+      partidosPerdidos: hasRecordTotals ? losses : null,
+      partidosEmpatados: hasRecordTotals ? draws : null,
       partidos,
     });
   }

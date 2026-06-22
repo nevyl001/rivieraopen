@@ -1,10 +1,13 @@
 import { getSupabaseClient } from "@/lib/supabaseClient";
-import { parseArchivedMatchesFromMetadata } from "@/lib/retaArchiveService";
-import { RetaParticipacionMetadataWithArchive } from "@/lib/types/retaArchive";
+import {
+  canUsePartidosDetalle,
+  partidosDetalleToPlayerHistory,
+} from "@/lib/partidosDetalleService";
 import {
   labelRetaRondasForPartidos,
   RetaRoundLabelMetadata,
 } from "@/lib/retaRoundLabel";
+import { RetaParticipacionMetadataWithArchive } from "@/lib/types/retaArchive";
 import { PlayerHistoryMatch } from "@/lib/types/playerHistory";
 
 interface RetaParticipacionMetadata extends RetaParticipacionMetadataWithArchive {
@@ -94,13 +97,6 @@ function formatMatchGameScores(
       return `${my}-${opp}`;
     })
     .join(", ");
-}
-
-function hasPartidosDetalle(metadata: RetaParticipacionMetadata): boolean {
-  return (
-    Array.isArray(metadata.partidos_detalle) &&
-    metadata.partidos_detalle.length > 0
-  );
 }
 
 async function fetchRetaMatchesFromDb(
@@ -231,12 +227,16 @@ export async function fetchRetaMatchesForEvent(
 ): Promise<PlayerHistoryMatch[]> {
   if (!legacyPlayerId.trim()) return [];
 
+  if (canUsePartidosDetalle(metadata)) {
+    return partidosDetalleToPlayerHistory(metadata, eventDate);
+  }
+
   const fromDb = await fetchRetaMatchesFromDb(retaId, legacyPlayerId, metadata);
   if (fromDb.length) return fromDb;
 
-  if (metadata.subtipo !== "reta_cierre" && !hasPartidosDetalle(metadata)) {
-    return [];
+  if (metadata.subtipo === "reta_cierre") {
+    return partidosDetalleToPlayerHistory(metadata, eventDate);
   }
 
-  return parseArchivedMatchesFromMetadata(metadata, eventDate);
+  return [];
 }
