@@ -140,8 +140,9 @@
       "thirdPlace": "3° lugar",
       "vs": "vs",
       "noMatchDetail": "Sin detalle de partidos para este evento.",
-      "recordSummary": "{{wins}} victorias · {{losses}} derrotas",
-      "noMatchDetailShort": "Detalle por partido no disponible."
+      "recordSummary": "{{wins}} victorias · {{losses}} derrotas · {{draws}} empates",
+      "noMatchDetailShort": "Detalle por partido no disponible.",
+      "matchResultsNotSaved": "Enfrentamientos registrados; resultados individuales no guardados en esta reta."
     },
     "rivals": {
       "title": "Rivales del circuito",

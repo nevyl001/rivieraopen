@@ -29,6 +29,16 @@ interface ParejaEmbed {
   player2_id: string | null;
 }
 
+interface GameRow {
+  pair1_games: number | null;
+  pair2_games: number | null;
+}
+
+function unwrapGames(games: GameRow | GameRow[] | null | undefined): GameRow[] {
+  if (!games) return [];
+  return Array.isArray(games) ? games : [games];
+}
+
 interface TimelineEvent {
   date: string;
   wins: number;
@@ -127,6 +137,7 @@ function buildCumulativePoints(
 interface MatchResult {
   date: string;
   won: boolean;
+  draw?: boolean;
 }
 
 function expandAggregatedEvent(event: TimelineEvent): MatchResult[] {
@@ -159,8 +170,13 @@ function buildCumulativePointsFromMatches(
   ];
 
   for (const match of sorted) {
-    if (match.won) wins += 1;
-    else losses += 1;
+    if (match.draw) {
+      // Empate: no mueve el balance acumulado.
+    } else if (match.won) {
+      wins += 1;
+    } else {
+      losses += 1;
+    }
 
     points.push({
       date: match.date,
@@ -183,7 +199,7 @@ function matchesFromHistoryEvents(
     for (const partido of event.partidos) {
       const date = (partido.sortDate || event.fecha || "").slice(0, 10);
       if (!isInSeason(date, season)) continue;
-      matches.push({ date, won: partido.won });
+      matches.push({ date, won: partido.won, draw: partido.isDraw });
     }
   }
 
@@ -356,6 +372,7 @@ async function eventsFromRetasMatches(
       pair1_score,
       pair2_score,
       created_at,
+      games ( pair1_games, pair2_games ),
       torneo:tournament_id ( user_id )
     `
     )
@@ -388,19 +405,39 @@ async function eventsFromRetasMatches(
     if (!inPair1 && !inPair2) continue;
 
     const isPair1 = inPair1;
-    const myScore = isPair1
-      ? Number(raw.pair1_score ?? 0)
-      : Number(raw.pair2_score ?? 0);
-    const oppScore = isPair1
-      ? Number(raw.pair2_score ?? 0)
-      : Number(raw.pair1_score ?? 0);
+    const gameRows = unwrapGames(
+      (raw as { games?: GameRow | GameRow[] | null }).games
+    );
 
     let wins = 0;
     let losses = 0;
 
-    if (myScore > oppScore) wins = 1;
-    else if (oppScore > myScore) losses = 1;
-    else continue;
+    if (gameRows.length) {
+      let myGames = 0;
+      let oppGames = 0;
+      for (const game of gameRows) {
+        myGames += isPair1
+          ? Number(game.pair1_games ?? 0)
+          : Number(game.pair2_games ?? 0);
+        oppGames += isPair1
+          ? Number(game.pair2_games ?? 0)
+          : Number(game.pair1_games ?? 0);
+      }
+      if (myGames > oppGames) wins = 1;
+      else if (oppGames > myGames) losses = 1;
+      else continue;
+    } else {
+      const myScore = isPair1
+        ? Number(raw.pair1_score ?? 0)
+        : Number(raw.pair2_score ?? 0);
+      const oppScore = isPair1
+        ? Number(raw.pair2_score ?? 0)
+        : Number(raw.pair1_score ?? 0);
+
+      if (myScore > oppScore) wins = 1;
+      else if (oppScore > myScore) losses = 1;
+      else continue;
+    }
 
     events.push({ date: date!, wins, losses });
   }

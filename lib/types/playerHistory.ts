@@ -12,6 +12,7 @@ export interface PlayerHistoryMatch {
   opponentLabel: string;
   score: string;
   won: boolean;
+  isDraw?: boolean;
   sortDate: string;
 }
 
@@ -26,6 +27,7 @@ export interface PlayerHistoryEvent {
   puntosGanados: number;
   partidosGanados: number | null;
   partidosPerdidos: number | null;
+  partidosEmpatados: number | null;
   partidos: PlayerHistoryMatch[];
 }
 

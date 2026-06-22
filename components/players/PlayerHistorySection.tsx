@@ -52,6 +52,8 @@ function HistoryEventCard({ event }: { event: PlayerHistoryEvent }) {
   const Icon = eventIcon(event.tipoEvento);
   const placement = placementLabel(event.posicionFinal, t);
   const hasMatches = event.partidos.length > 0;
+  const allResultsUnknown =
+    hasMatches && event.partidos.every((partido) => partido.score === "—");
 
   return (
     <div className="overflow-hidden rounded-[10px] border border-[#1f1f1f] bg-[#111]">
@@ -124,22 +126,40 @@ function HistoryEventCard({ event }: { event: PlayerHistoryEvent }) {
                   </div>
                   <span
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-                      partido.won
-                        ? "bg-[#0d2e20] text-[#1D9E75]"
-                        : "bg-[#2e1010] text-[#E85D5D]"
+                      partido.isDraw
+                        ? "bg-[#2a2410] text-[#D4A72C]"
+                        : partido.won
+                          ? "bg-[#0d2e20] text-[#1D9E75]"
+                          : partido.score === "—"
+                            ? "bg-[#1a1a1a] text-[#666]"
+                            : "bg-[#2e1010] text-[#E85D5D]"
                     }`}
                   >
-                    {partido.won ? "G" : "P"}
+                    {partido.isDraw
+                      ? "E"
+                      : partido.score === "—"
+                        ? "·"
+                        : partido.won
+                          ? "G"
+                          : "P"}
                   </span>
                 </div>
               ))}
+              {allResultsUnknown && (
+                <p className="pt-1 text-center text-xs text-[#555]">
+                  {t("profile.history.matchResultsNotSaved")}
+                </p>
+              )}
             </div>
-          ) : event.partidosGanados != null || event.partidosPerdidos != null ? (
+          ) : event.partidosGanados != null ||
+            event.partidosPerdidos != null ||
+            event.partidosEmpatados != null ? (
             <div className="rounded-lg bg-[#0a0a0a] px-3 py-3 text-center">
               <p className="text-sm text-[#ccc]">
                 {t("profile.history.recordSummary", {
                   wins: event.partidosGanados ?? 0,
                   losses: event.partidosPerdidos ?? 0,
+                  draws: event.partidosEmpatados ?? 0,
                 })}
               </p>
               <p className="mt-1 text-xs text-[#555]">

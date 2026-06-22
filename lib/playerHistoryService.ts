@@ -1,6 +1,7 @@
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { dbCategoryToUi } from "@/lib/categoryUtils";
 import { supplementExpressKnockoutMatches } from "@/lib/expressKnockoutService";
+import { fetchRetaMatchesForEvent } from "@/lib/retaHistoryService";
 import {
   PlayerHistoryEvent,
   PlayerHistoryMatch,
@@ -15,23 +16,29 @@ interface ParticipacionMetadata {
   organizador_id?: string;
   evento_nombre?: string;
   torneo_nombre?: string;
+  reta_nombre?: string;
   nombre?: string;
   categoria?: string;
   posicion_final?: number;
+  posicion?: number;
   puntos_ganados?: number;
   puntos_evento?: number;
   partidos_ganados?: number;
   partidos_perdidos?: number;
+  partidos_empatados?: number;
+  partidos_jugados?: number;
   campeon_torneo?: boolean;
   subcampeon_torneo?: boolean;
   pareja_campeon_id?: string;
   pareja_subcampeon_id?: string;
+  modalidad_label?: string;
 }
 
 interface ParticipacionRow {
   id: string;
   tipo_evento: string;
   evento_id: string;
+  evento_nombre?: string | null;
   fecha: string | null;
   sets_favor?: number | null;
   sets_contra?: number | null;
@@ -107,11 +114,68 @@ function resolveEventName(
   if (torneo?.nombre?.trim()) return torneo.nombre.trim();
   const meta = row.metadata ?? {};
   return (
+    meta.reta_nombre?.trim() ||
+    row.evento_nombre?.trim() ||
     meta.evento_nombre?.trim() ||
     meta.torneo_nombre?.trim() ||
     meta.nombre?.trim() ||
+    meta.modalidad_label?.trim() ||
     row.tipo_evento.replace(/_/g, " ")
   );
+}
+
+function buildMatchesFromMetadataTotals(
+  row: ParticipacionRow,
+  prefix: string
+): PlayerHistoryMatch[] {
+  const meta = row.metadata ?? {};
+  const wins = Number(meta.partidos_ganados ?? 0);
+  const losses = Number(meta.partidos_perdidos ?? 0);
+  const draws = Number(meta.partidos_empatados ?? 0);
+  const total = wins + losses + draws;
+  if (total <= 0) return [];
+
+  const favor = Number(row.sets_favor ?? 0);
+  const against = Number(row.sets_contra ?? 0);
+  const sequence: Array<boolean | null> = [];
+  for (let i = 0; i < wins; i++) sequence.push(true);
+  for (let i = 0; i < losses; i++) sequence.push(false);
+  for (let i = 0; i < draws; i++) sequence.push(null);
+
+  let favorLeft = favor;
+  let againstLeft = against;
+
+  return sequence.map((result, index) => {
+    const isLast = index === sequence.length - 1;
+    let score = "—";
+
+    if (favor > 0 || against > 0) {
+      if (isLast) {
+        score = `${Math.max(0, favorLeft)}-${Math.max(0, againstLeft)}`;
+      } else if (result === null) {
+        const games = Math.max(1, Math.min(favorLeft, againstLeft, 6));
+        score = `${games}-${games}`;
+        favorLeft -= games;
+        againstLeft -= games;
+      } else {
+        const myGames = result ? 6 : 4;
+        const oppGames = result ? 4 : 6;
+        score = `${myGames}-${oppGames}`;
+        favorLeft -= myGames;
+        againstLeft -= oppGames;
+      }
+    }
+
+    return {
+      id: `${prefix}-${index}`,
+      round: `Partido ${index + 1}`,
+      opponentLabel: "Rival",
+      score,
+      won: result === true,
+      isDraw: result === null,
+      sortDate: row.fecha ?? "",
+    };
+  });
 }
 
 function resolveRoundLabel(
@@ -317,7 +381,7 @@ export async function getPlayerHistoryEvents(
   const { data, error } = await supabase
     .from("jugador_participaciones")
     .select(
-      "id, tipo_evento, evento_id, fecha, pareja_con, sets_favor, sets_contra, metadata"
+      "id, tipo_evento, evento_id, evento_nombre, fecha, pareja_con, sets_favor, sets_contra, metadata"
     )
     .eq("jugador_id", jugadorId)
     .order("fecha", { ascending: false });
@@ -402,9 +466,25 @@ async function buildEventsFromParticipaciones(
           torneoCreatedAt: torneo?.created_at ?? null,
         }
       );
+    } else if (row.tipo_evento === "reta" && legacyPlayerId) {
+      partidos = await fetchRetaMatchesForEvent(
+        row.evento_id,
+        legacyPlayerId,
+        meta,
+        row.sets_favor ?? null,
+        row.sets_contra ?? null,
+        row.fecha
+      );
+    } else if (
+      row.tipo_evento === "americano" ||
+      row.tipo_evento === "liga"
+    ) {
+      partidos = buildMatchesFromMetadataTotals(row, row.tipo_evento);
     }
 
-    const posicionFinal = meta.posicion_final ?? null;
+    const posicionFinal =
+      meta.posicion_final ??
+      (typeof meta.posicion === "number" ? meta.posicion : null);
     const puntosGanados =
       Number(meta.puntos_evento ?? meta.puntos_ganados ?? 0) || 0;
 
@@ -428,6 +508,10 @@ async function buildEventsFromParticipaciones(
       partidosPerdidos:
         typeof meta.partidos_perdidos === "number"
           ? meta.partidos_perdidos
+          : null,
+      partidosEmpatados:
+        typeof meta.partidos_empatados === "number"
+          ? meta.partidos_empatados
           : null,
       partidos,
     });
@@ -476,6 +560,7 @@ async function buildEventsFromExpressPartidos(
       puntosGanados: 0,
       partidosGanados: null,
       partidosPerdidos: null,
+      partidosEmpatados: null,
       partidos,
     });
   }
