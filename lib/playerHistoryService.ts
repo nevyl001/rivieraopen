@@ -1,6 +1,9 @@
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { dbCategoryToUi } from "@/lib/categoryUtils";
-import { supplementExpressKnockoutMatches } from "@/lib/expressKnockoutService";
+import {
+  fetchExpressEliminatoriaMatches,
+  supplementExpressKnockoutMatches,
+} from "@/lib/expressKnockoutService";
 import { fetchRetaMatchesForEvent } from "@/lib/retaHistoryService";
 import {
   PlayerHistoryEvent,
@@ -455,17 +458,25 @@ async function buildEventsFromParticipaciones(
         row.evento_id,
         legacyPlayerId
       );
-      partidos = await supplementExpressKnockoutMatches(
+      const eliminatoriaMatches = await fetchExpressEliminatoriaMatches(
         row.evento_id,
         legacyPlayerId,
-        groupMatches,
-        {
-          metadata: meta,
-          setsFavor: row.sets_favor ?? null,
-          setsContra: row.sets_contra ?? null,
-          torneoCreatedAt: torneo?.created_at ?? null,
-        }
+        meta
       );
+      partidos =
+        eliminatoriaMatches !== null
+          ? [...groupMatches, ...eliminatoriaMatches]
+          : await supplementExpressKnockoutMatches(
+              row.evento_id,
+              legacyPlayerId,
+              groupMatches,
+              {
+                metadata: meta,
+                setsFavor: row.sets_favor ?? null,
+                setsContra: row.sets_contra ?? null,
+                torneoCreatedAt: torneo?.created_at ?? null,
+              }
+            );
     } else if (row.tipo_evento === "reta" && legacyPlayerId) {
       partidos = await fetchRetaMatchesForEvent(
         row.evento_id,

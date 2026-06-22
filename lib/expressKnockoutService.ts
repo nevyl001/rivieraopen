@@ -55,6 +55,14 @@ function pairLabel(
   return names.length ? names.join(" / ") : "Rival";
 }
 
+function parseSetScore(score: string): { favor: number; against: number } {
+  const [myPts, oppPts] = score.split("-").map((value) => Number(value));
+  return {
+    favor: Number.isFinite(myPts) ? myPts : 0,
+    against: Number.isFinite(oppPts) ? oppPts : 0,
+  };
+}
+
 function sumGroupGames(matches: PlayerHistoryMatch[]): {
   favor: number;
   against: number;
@@ -62,47 +70,129 @@ function sumGroupGames(matches: PlayerHistoryMatch[]): {
   let favor = 0;
   let against = 0;
   for (const match of matches) {
-    const [myPts, oppPts] = match.score.split("-").map((value) => Number(value));
-    if (Number.isFinite(myPts)) favor += myPts;
-    if (Number.isFinite(oppPts)) against += oppPts;
+    for (const setScore of match.score.split(",")) {
+      const games = parseSetScore(setScore.trim());
+      favor += games.favor;
+      against += games.against;
+    }
   }
   return { favor, against };
 }
 
-function splitKnockoutScores(
-  remainingFavor: number,
-  remainingAgainst: number,
-  results: boolean[]
-): string[] {
-  if (!results.length) return [];
-
-  let favorLeft = Math.max(0, remainingFavor);
-  let againstLeft = Math.max(0, remainingAgainst);
-  const scores: string[] = [];
-
-  for (let index = 0; index < results.length; index++) {
-    const isLast = index === results.length - 1;
-    const won = results[index];
-
-    if (isLast) {
-      scores.push(`${favorLeft}-${againstLeft}`);
-      break;
-    }
-
-    let myGames = won ? 6 : 4;
-    let oppGames = won ? 4 : 6;
-
-    if (favorLeft - myGames < 0 || againstLeft - oppGames < 0) {
-      myGames = Math.max(1, Math.min(favorLeft, won ? favorLeft : 4));
-      oppGames = Math.max(1, Math.min(againstLeft, won ? 4 : againstLeft));
-    }
-
-    scores.push(`${myGames}-${oppGames}`);
-    favorLeft -= myGames;
-    againstLeft -= oppGames;
+function getSetTemplatesForStep(step: KnockoutStep): string[] {
+  if (step.roundKey === "quarter" || step.roundKey === "bestThird") {
+    return step.won ? ["6-4"] : ["4-6"];
   }
 
-  return scores;
+  if (step.roundKey === "third") {
+    return step.won ? ["6-3"] : ["3-6"];
+  }
+
+  if (step.roundKey === "semi") {
+    if (step.won) return ["6-3"];
+    return ["4-6"];
+  }
+
+  if (step.roundKey === "final") {
+    return step.won ? ["6-3", "6-0"] : ["3-6", "0-6"];
+  }
+
+  return [step.won ? "6-4" : "4-6"];
+}
+
+function sumTemplateGames(templates: string[]): { favor: number; against: number } {
+  return templates.reduce(
+    (totals, setScore) => {
+      const games = parseSetScore(setScore);
+      return {
+        favor: totals.favor + games.favor,
+        against: totals.against + games.against,
+      };
+    },
+    { favor: 0, against: 0 }
+  );
+}
+
+function isPlausibleSetScore(favor: number, against: number): boolean {
+  const high = Math.max(favor, against);
+  const low = Math.min(favor, against);
+  if (high < 6 || low < 0) return false;
+  if (high === 6 && low <= 4) return true;
+  if (high === 7 && low >= 5) return true;
+  return false;
+}
+
+function fitTemplatesToBudget(
+  templates: string[],
+  favorBudget: number,
+  againstBudget: number
+): string[] {
+  if (!templates.length) return templates;
+
+  const templateTotals = sumTemplateGames(templates);
+  if (
+    templateTotals.favor === favorBudget &&
+    templateTotals.against === againstBudget
+  ) {
+    return templates;
+  }
+
+  if (templates.length === 1) {
+    if (isPlausibleSetScore(favorBudget, againstBudget)) {
+      return [`${favorBudget}-${againstBudget}`];
+    }
+    return templates;
+  }
+
+  const last = templates[templates.length - 1];
+  const prefix = templates.slice(0, -1);
+  const prefixTotals = sumTemplateGames(prefix);
+  const lastFavor = favorBudget - prefixTotals.favor;
+  const lastAgainst = againstBudget - prefixTotals.against;
+
+  if (isPlausibleSetScore(lastFavor, lastAgainst)) {
+    return [...prefix, `${lastFavor}-${lastAgainst}`];
+  }
+
+  return templates.length > 1 ? templates : [last];
+}
+
+function buildKnockoutMatchScores(
+  steps: KnockoutStep[],
+  remainingFavor: number,
+  remainingAgainst: number
+): string[] {
+  let favorLeft = Math.max(0, remainingFavor);
+  let againstLeft = Math.max(0, remainingAgainst);
+
+  return steps.map((step, index) => {
+    const templates = getSetTemplatesForStep(step);
+    const templateTotals = sumTemplateGames(templates);
+    const isLast = index === steps.length - 1;
+    const isSingleSet = templates.length === 1;
+
+    let matchSets = templates;
+    if (isSingleSet) {
+      matchSets = fitTemplatesToBudget(templates, favorLeft, againstLeft);
+    } else if (isLast) {
+      matchSets = templates;
+    } else if (
+      favorLeft >= templateTotals.favor &&
+      againstLeft >= templateTotals.against
+    ) {
+      matchSets = fitTemplatesToBudget(
+        templates,
+        templateTotals.favor,
+        templateTotals.against
+      );
+    }
+
+    const matchTotals = sumTemplateGames(matchSets);
+    favorLeft = Math.max(0, favorLeft - matchTotals.favor);
+    againstLeft = Math.max(0, againstLeft - matchTotals.against);
+
+    return matchSets.join(", ");
+  });
 }
 
 function inferKnockoutSteps(
@@ -126,21 +216,32 @@ function inferKnockoutSteps(
     return steps.slice(Math.max(0, steps.length - koWins));
   }
 
-  if (posicion === 2 && koWins === 1 && koLosses === 1) {
-    return [
-      { roundKey: "semi", won: true },
-      { roundKey: "final", won: false },
-    ];
+  if (posicion === 2 && koLosses === 1) {
+    const steps: KnockoutStep[] = [];
+    if (startsAtQuarters) {
+      steps.push({ roundKey: "quarter", won: true });
+    }
+    steps.push({ roundKey: "semi", won: true }, { roundKey: "final", won: false });
+    return steps;
   }
 
-  if (posicion === 3 && koWins === 2 && koLosses === 1) {
-    return [
-      { roundKey: "semi", won: false },
-      { roundKey: "third", won: true },
-    ];
+  if (posicion === 3 && koLosses === 1) {
+    const steps: KnockoutStep[] = [];
+    if (startsAtQuarters) {
+      steps.push({ roundKey: "quarter", won: true });
+    }
+    steps.push({ roundKey: "semi", won: false }, { roundKey: "third", won: true });
+    return steps;
   }
 
   if (posicion === 4 && koWins === 1 && koLosses === 2) {
+    if (startsAtQuarters) {
+      return [
+        { roundKey: "quarter", won: true },
+        { roundKey: "semi", won: false },
+        { roundKey: "third", won: false },
+      ];
+    }
     return [
       { roundKey: "semi", won: false },
       { roundKey: "third", won: false },
@@ -271,10 +372,10 @@ function opponentPairForStep(
   }
 
   if (step.roundKey === "semi") {
-    if (posicion === 1) return fourth;
-    if (posicion === 2) return third;
-    if (posicion === 3) return sub;
-    if (posicion === 4) return champ;
+    if (posicion === 1) return third;
+    if (posicion === 2) return fourth;
+    if (posicion === 3) return champ;
+    if (posicion === 4) return sub;
   }
 
   return null;
@@ -532,6 +633,178 @@ async function resolvePodiumPairs(
   return podium;
 }
 
+interface EliminatoriaSetScore {
+  local: number;
+  visitante: number;
+}
+
+interface EliminatoriaPartidoRow {
+  id: string;
+  torneo_id: string;
+  ronda: number;
+  orden: number;
+  pareja_local_id: string | null;
+  pareja_visitante_id: string | null;
+  puntos_local: number | null;
+  puntos_visitante: number | null;
+  ganador_id: string | null;
+  estado: string;
+  es_bye: boolean;
+  created_at: string | null;
+  programado_en: string | null;
+  sets_resultado: EliminatoriaSetScore[] | null;
+}
+
+function eliminatoriaRoundLabel(
+  ronda: number,
+  faseEliminacion: string | null
+): string {
+  if (ronda === 90) return "3er lugar";
+  if (ronda === 91) return "Mejor 3er lugar";
+
+  const fase = (faseEliminacion ?? "semifinal").toLowerCase();
+  const hasQuarters =
+    fase.includes("cuarto") ||
+    fase.includes("quarter") ||
+    fase.includes("octav");
+
+  if (hasQuarters) {
+    if (ronda === 1) return "Cuartos de final";
+    if (ronda === 2) return "Semifinal";
+    if (ronda === 3) return "Final";
+  } else {
+    if (ronda === 1) return "Semifinal";
+    if (ronda === 2) return "Final";
+  }
+
+  return `Eliminatoria · Ronda ${ronda}`;
+}
+
+function eliminatoriaSortKey(ronda: number, orden: number): number {
+  const roundOrder = ronda === 90 ? 3.5 : ronda === 91 ? 0.5 : ronda;
+  return roundOrder * 100 + orden;
+}
+
+function formatEliminatoriaScore(
+  row: EliminatoriaPartidoRow,
+  isLocal: boolean
+): string {
+  const sets = row.sets_resultado;
+  if (sets?.length) {
+    return sets
+      .map((set) => {
+        const my = isLocal ? set.local : set.visitante;
+        const opp = isLocal ? set.visitante : set.local;
+        return `${my}-${opp}`;
+      })
+      .join(", ");
+  }
+
+  const my = isLocal
+    ? Number(row.puntos_local ?? 0)
+    : Number(row.puntos_visitante ?? 0);
+  const opp = isLocal
+    ? Number(row.puntos_visitante ?? 0)
+    : Number(row.puntos_local ?? 0);
+  return `${my}-${opp}`;
+}
+
+/**
+ * Lee partidos reales de eliminatoria desde torneo_express_eliminatoria_partidos.
+ * Devuelve null si el torneo no tiene filas en esa tabla (fallback a reconstrucción).
+ */
+export async function fetchExpressEliminatoriaMatches(
+  torneoId: string,
+  legacyPlayerId: string,
+  metadata: ParticipacionMetadata
+): Promise<PlayerHistoryMatch[] | null> {
+  const supabase = getSupabaseClient();
+  if (!supabase) return null;
+
+  const { data: rows, error } = await supabase
+    .from("torneo_express_eliminatoria_partidos")
+    .select(
+      "id, torneo_id, ronda, orden, pareja_local_id, pareja_visitante_id, puntos_local, puntos_visitante, ganador_id, estado, es_bye, created_at, programado_en, sets_resultado"
+    )
+    .eq("torneo_id", torneoId)
+    .eq("estado", "jugado");
+
+  if (error) {
+    console.error("fetchExpressEliminatoriaMatches:", error.message);
+    return null;
+  }
+  if (!rows?.length) return null;
+
+  const catalog = await loadExpressPairCatalog(torneoId);
+  const playerPairId = await loadPairIdsByPosition(
+    torneoId,
+    legacyPlayerId,
+    metadata,
+    catalog
+  );
+  if (!playerPairId) return null;
+
+  const { data: torneo } = await supabase
+    .from("torneo_express")
+    .select("fase_eliminacion")
+    .eq("id", torneoId)
+    .maybeSingle();
+
+  const faseEliminacion = (torneo?.fase_eliminacion as string | null) ?? null;
+
+  const playerRows = (rows as EliminatoriaPartidoRow[]).filter((row) => {
+    if (row.es_bye) return false;
+    return (
+      row.pareja_local_id === playerPairId ||
+      row.pareja_visitante_id === playerPairId
+    );
+  });
+
+  if (!playerRows.length) return [];
+
+  const opponentIds = [
+    ...new Set(
+      playerRows
+        .map((row) => {
+          const isLocal = row.pareja_local_id === playerPairId;
+          return isLocal ? row.pareja_visitante_id : row.pareja_local_id;
+        })
+        .filter((id): id is string => Boolean(id))
+    ),
+  ];
+
+  const labelMap = await loadPairLabels(torneoId, opponentIds, catalog);
+
+  const matches = playerRows
+    .map((row) => {
+      const isLocal = row.pareja_local_id === playerPairId;
+      const opponentPairId = isLocal
+        ? row.pareja_visitante_id
+        : row.pareja_local_id;
+
+      return {
+        id: row.id,
+        round: eliminatoriaRoundLabel(row.ronda, faseEliminacion),
+        opponentLabel: opponentPairId
+          ? labelMap.get(opponentPairId) ??
+            catalog.labelsById.get(opponentPairId) ??
+            "Rival"
+          : "Rival",
+        score: formatEliminatoriaScore(row, isLocal),
+        won: Boolean(row.ganador_id && row.ganador_id === playerPairId),
+        sortDate:
+          row.programado_en ??
+          row.created_at ??
+          "",
+        sortKey: eliminatoriaSortKey(row.ronda, row.orden),
+      };
+    })
+    .sort((a, b) => a.sortKey - b.sortKey)
+    .map(({ sortKey: _sortKey, ...match }) => match);
+
+  return matches;
+}
+
 export async function supplementExpressKnockoutMatches(
   torneoId: string,
   legacyPlayerId: string,
@@ -626,10 +899,10 @@ export async function supplementExpressKnockoutMatches(
   const totalAgainst = Number(options.setsContra ?? 0);
   const remainingFavor = Math.max(0, totalFavor - groupGames.favor);
   const remainingAgainst = Math.max(0, totalAgainst - groupGames.against);
-  const scores = splitKnockoutScores(
+  const scores = buildKnockoutMatchScores(
+    steps,
     remainingFavor,
-    remainingAgainst,
-    steps.map((step) => step.won)
+    remainingAgainst
   );
 
   const knockoutBaseDate =
