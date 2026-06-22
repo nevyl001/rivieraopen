@@ -494,8 +494,12 @@ async function buildEventsFromParticipaciones(
     }
 
     const posicionFinal =
-      meta.posicion_final ??
-      (typeof meta.posicion === "number" ? meta.posicion : null);
+      row.tipo_evento === "reta"
+        ? typeof meta.posicion === "number"
+          ? meta.posicion
+          : null
+        : meta.posicion_final ??
+          (typeof meta.posicion === "number" ? meta.posicion : null);
     const puntosGanados =
       Number(meta.puntos_evento ?? meta.puntos_ganados ?? 0) || 0;
 

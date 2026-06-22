@@ -162,15 +162,8 @@ function HistoryEventCard({ event }: { event: PlayerHistoryEvent }) {
                   draws: event.partidosEmpatados ?? 0,
                 })}
               </p>
-              <p className="mt-1 text-xs text-[#555]">
-                {t("profile.history.noMatchDetailShort")}
-              </p>
             </div>
-          ) : (
-            <p className="py-3 text-center text-xs text-[#555]">
-              {t("profile.history.noMatchDetail")}
-            </p>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
