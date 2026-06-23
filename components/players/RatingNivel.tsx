@@ -56,6 +56,8 @@ export function RatingNivel({
   const badge = fiabilidadBadge(fiabilidad, partidosJugados);
   const ratingLabel = rating.toFixed(2);
   const fiabPct = Math.round(fiabilidad * 100);
+  const tienePartidosRating =
+    partidosJugados > 0 || historial.length > 0;
 
   const evolutionPoints = useMemo(() => {
     if (historial.length === 0) return [];
@@ -107,10 +109,10 @@ export function RatingNivel({
       </div>
 
       <p className="mb-3 text-[0.78rem] text-white/55">
-        {partidosJugados === 0
+        {!tienePartidosRating
           ? "Nivel base 3.00 · aún sin partidos de rating"
-          : `Fiabilidad del nivel: ${fiabPct}% · ${partidosJugados} partido${
-              partidosJugados === 1 ? "" : "s"
+          : `Fiabilidad del nivel: ${fiabPct}% · ${partidosJugados || historial.length} partido${
+              (partidosJugados || historial.length) === 1 ? "" : "s"
             }`}
       </p>
 
@@ -131,11 +133,11 @@ export function RatingNivel({
             points={evolutionSvg.polyline}
           />
         </svg>
-      ) : (
+      ) : !tienePartidosRating ? (
         <p className="mb-3.5 text-[0.8rem] italic leading-snug text-white/42">
           Juega tu primer partido competitivo para empezar a mover tu nivel
         </p>
-      )}
+      ) : null}
 
       {historial.length > 0 ? (
         <div>
