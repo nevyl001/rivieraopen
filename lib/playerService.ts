@@ -18,6 +18,10 @@ import {
 import { computePlayerSeasonTimeline } from "@/lib/playerSeasonTimelineService";
 import { getPlayerHistoryEvents } from "@/lib/playerHistoryService";
 import { getPlayerRivals } from "@/lib/playerRivalsService";
+import {
+  normalizePlayerRatingFields,
+  obtenerHistorialRatingPublic,
+} from "@/lib/playerRatingService";
 
 const DEFAULT_PHOTO = "/img/players/players-1.png";
 
@@ -65,7 +69,108 @@ interface RivieraJugadorRow {
   mano_dominante: string | null;
   en_cancha: string | null;
   pais_codigo: string | null;
+  rating?: number | null;
+  rating_partidos?: number | null;
+  rating_fiabilidad?: number | null;
   jugador_stats: JugadorStatsRow | JugadorStatsRow[] | null;
+}
+
+const JUGADOR_SELECT_BASE = `
+        id,
+        legacy_player_id,
+        nombre,
+        slug,
+        categoria,
+        foto_url,
+        genero,
+        instagram_url,
+        facebook_url,
+        tiktok_url,
+        email,
+        telefono,
+        whatsapp,
+        edad,
+        fecha_nacimiento,
+        club,
+        nivel,
+        mano_dominante,
+        en_cancha,
+        pais_codigo,
+        jugador_stats (
+          total_partidos,
+          victorias,
+          derrotas,
+          empates,
+          participaciones_solo,
+          pct_victorias,
+          total_retas,
+          total_torneos_express,
+          total_ligas,
+          total_americanos,
+          sets_favor_total,
+          sets_contra_total,
+          racha_actual,
+          ultima_actividad,
+          puntos_totales
+        )
+      `;
+
+const JUGADOR_SELECT_WITH_RATING = `
+        id,
+        legacy_player_id,
+        nombre,
+        slug,
+        categoria,
+        foto_url,
+        genero,
+        instagram_url,
+        facebook_url,
+        tiktok_url,
+        email,
+        telefono,
+        whatsapp,
+        edad,
+        fecha_nacimiento,
+        club,
+        nivel,
+        mano_dominante,
+        en_cancha,
+        pais_codigo,
+        rating,
+        rating_partidos,
+        rating_fiabilidad,
+        jugador_stats (
+          total_partidos,
+          victorias,
+          derrotas,
+          empates,
+          participaciones_solo,
+          pct_victorias,
+          total_retas,
+          total_torneos_express,
+          total_ligas,
+          total_americanos,
+          sets_favor_total,
+          sets_contra_total,
+          racha_actual,
+          ultima_actividad,
+          puntos_totales
+        )
+      `;
+
+let jugadorRatingColsInDb: boolean | null = null;
+
+function isMissingRatingColumnError(
+  error: { code?: string; message?: string } | null
+): boolean {
+  if (!error) return false;
+  const message = (error.message ?? "").toLowerCase();
+  return (
+    error.code === "PGRST204" ||
+    message.includes("rating") ||
+    message.includes("rating_partidos") ||
+    message.includes("rating_fiabilidad")
+  );
 }
 
 function splitNombre(nombre: string | null): { firstName: string; lastName: string } {
@@ -171,6 +276,7 @@ function mapRowToProfile(
   const { firstName, lastName } = splitNombre(row.nombre);
   const stats = extractStats(row.jugador_stats);
   const points = extractPoints(row.jugador_stats);
+  const ratingFields = normalizePlayerRatingFields(row);
 
   return {
     id: String(row.id),
@@ -201,6 +307,7 @@ function mapRowToProfile(
     paisCodigo: row.pais_codigo,
     whatsapp: row.whatsapp,
     stats,
+    ...ratingFields,
   };
 }
 
@@ -214,53 +321,39 @@ export async function getJugadorPublico(
     const supabase = getSupabaseClient();
     if (!supabase) return null;
 
-    const { data, error } = await supabase
+    const selectCols =
+      jugadorRatingColsInDb === false
+        ? JUGADOR_SELECT_BASE
+        : JUGADOR_SELECT_WITH_RATING;
+
+    let data: RivieraJugadorRow | null = null;
+    let error: { code?: string; message?: string } | null = null;
+
+    const primary = await supabase
       .from("riviera_jugadores")
-      .select(
-        `
-        id,
-        legacy_player_id,
-        nombre,
-        slug,
-        categoria,
-        foto_url,
-        genero,
-        instagram_url,
-        facebook_url,
-        tiktok_url,
-        email,
-        telefono,
-        whatsapp,
-        edad,
-        fecha_nacimiento,
-        club,
-        nivel,
-        mano_dominante,
-        en_cancha,
-        pais_codigo,
-        jugador_stats (
-          total_partidos,
-          victorias,
-          derrotas,
-          empates,
-          participaciones_solo,
-          pct_victorias,
-          total_retas,
-          total_torneos_express,
-          total_ligas,
-          total_americanos,
-          sets_favor_total,
-          sets_contra_total,
-          racha_actual,
-          ultima_actividad,
-          puntos_totales
-        )
-      `
-      )
+      .select(selectCols)
       .eq("id", id)
       .eq("organizador_id", RANKING_ORGANIZADOR_ID)
       .eq("visible_publico", true)
       .maybeSingle();
+
+    data = (primary.data as RivieraJugadorRow | null) ?? null;
+    error = primary.error;
+
+    if (error && isMissingRatingColumnError(error)) {
+      jugadorRatingColsInDb = false;
+      const fallback = await supabase
+        .from("riviera_jugadores")
+        .select(JUGADOR_SELECT_BASE)
+        .eq("id", id)
+        .eq("organizador_id", RANKING_ORGANIZADOR_ID)
+        .eq("visible_publico", true)
+        .maybeSingle();
+      data = (fallback.data as RivieraJugadorRow | null) ?? null;
+      error = fallback.error;
+    } else if (!error) {
+      jugadorRatingColsInDb = true;
+    }
 
     if (error) {
       console.error("getJugadorPublico:", error.message);
@@ -269,17 +362,18 @@ export async function getJugadorPublico(
 
     if (!data) return null;
 
-    const row = data as RivieraJugadorRow;
+    const row = data;
     const points = extractPoints(row.jugador_stats);
     const rank = await computeRank(row.categoria, row.genero, row.id, points);
 
     const baseProfile = mapRowToProfile(row, rank);
 
-    const [participacionesStats, computedStats, historyEvents] =
+    const [participacionesStats, computedStats, historyEvents, ratingHistorial] =
       await Promise.all([
         computeStatsFromParticipaciones(row.id, RANKING_ORGANIZADOR_ID),
         computePlayerMatchStats(row.legacy_player_id, RANKING_ORGANIZADOR_ID),
         getPlayerHistoryEvents(row.id, row.legacy_player_id),
+        obtenerHistorialRatingPublic(row.id, 10),
       ]);
 
     const seasonTimeline = await computePlayerSeasonTimeline(
@@ -313,6 +407,7 @@ export async function getJugadorPublico(
     return {
       ...baseProfile,
       stats,
+      ratingHistorial,
       seasonTimeline,
       historyEvents,
       rivals,

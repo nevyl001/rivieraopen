@@ -9,6 +9,7 @@ export type {
   PlayerStatsSummary,
   PlayerSeasonTimeline,
   SeasonTimelinePoint,
+  RatingHistorialEntry,
   TournamentResult,
 } from "./player";
 

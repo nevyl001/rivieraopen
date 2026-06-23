@@ -5,7 +5,7 @@ import { PlayerProfile, PlayerPersonalInfo } from "@/components/players/PlayerPr
 import { PlayerStatsGrid } from "@/components/players/PlayerStatsGrid";
 import { PlayerHistorySection } from "@/components/players/PlayerHistorySection";
 import { PlayerRivalsSection } from "@/components/players/PlayerRivalsSection";
-import { PlayerSeasonChart } from "@/components/players/PlayerSeasonChart";
+import { PlayerSeasonRatingRow } from "@/components/players/PlayerSeasonRatingRow";
 import { getJugadorPublico } from "@/lib/playerService";
 import { ArrowLeft } from "lucide-react";
 import { Metadata } from "next";
@@ -78,7 +78,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
         <div className="space-y-6">
           <PlayerProfile player={player} />
 
-          <PlayerSeasonChart timeline={player.seasonTimeline ?? { season: 2026, points: [] }} />
+          <PlayerSeasonRatingRow player={player} />
 
           <div
             className={`grid grid-cols-1 gap-6 border-t border-[#222] pt-6 ${

@@ -67,6 +67,16 @@ export interface PlayerSeasonTimeline {
   points: SeasonTimelinePoint[];
 }
 
+export interface RatingHistorialEntry {
+  id: string;
+  fecha: string;
+  rating_antes: number;
+  rating_despues: number;
+  delta: number;
+  modo_juego: string;
+  descripcion: string;
+}
+
 export interface PlayerProfileDetail extends Player {
   slug: string | null;
   age: number | null;
@@ -78,6 +88,10 @@ export interface PlayerProfileDetail extends Player {
   paisCodigo: string | null;
   whatsapp: string | null;
   stats: PlayerStatsSummary;
+  rating: number;
+  ratingPartidos: number;
+  ratingFiabilidad: number;
+  ratingHistorial?: RatingHistorialEntry[];
   seasonTimeline?: PlayerSeasonTimeline;
   historyEvents?: PlayerHistoryEvent[];
   rivals?: PlayerRival[];
