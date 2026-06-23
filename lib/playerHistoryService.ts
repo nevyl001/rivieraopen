@@ -3,6 +3,10 @@ import { dbCategoryToUi } from "@/lib/categoryUtils";
 import { fetchRetaMatchesForEvent } from "@/lib/retaHistoryService";
 import { partidosDetalleToPlayerHistory } from "@/lib/partidosDetalleService";
 import {
+  fetchDuelosScoreMap,
+  formatDueloMarcador,
+} from "@/lib/duelo2v2ScoreService";
+import {
   fetchExpressEliminatoriaMatches,
   supplementExpressKnockoutMatches,
 } from "@/lib/expressKnockoutService";
@@ -353,7 +357,7 @@ export async function getPlayerHistoryEvents(
   });
 
   if (rows.length > 0) {
-    return buildEventsFromParticipaciones(rows, legacyPlayerId);
+    return buildEventsFromParticipaciones(rows, jugadorId, legacyPlayerId);
   }
 
   if (legacyPlayerId?.trim()) {
@@ -365,10 +369,20 @@ export async function getPlayerHistoryEvents(
 
 async function buildEventsFromParticipaciones(
   rows: ParticipacionRow[],
+  jugadorId: string,
   legacyPlayerId: string | null | undefined
 ): Promise<PlayerHistoryEvent[]> {
   const supabase = getSupabaseClient();
   if (!supabase) return [];
+
+  const dueloIds = [
+    ...new Set(
+      rows
+        .filter((row) => row.tipo_evento === "duelo_2v2")
+        .map((row) => row.evento_id)
+    ),
+  ];
+  const dueloScoreMap = await fetchDuelosScoreMap(dueloIds);
 
   const expressIds = [
     ...new Set(
@@ -440,6 +454,16 @@ async function buildEventsFromParticipaciones(
       row.tipo_evento === "duelo"
     ) {
       partidos = partidosDetalleToPlayerHistory(meta, row.fecha);
+      if (row.tipo_evento === "duelo_2v2") {
+        const duelo = dueloScoreMap.get(row.evento_id);
+        const marcador = duelo ? formatDueloMarcador(duelo, jugadorId) : null;
+        if (marcador) {
+          partidos = partidos.map((partido) => ({
+            ...partido,
+            score: marcador,
+          }));
+        }
+      }
     }
 
     const posicionFinal =
