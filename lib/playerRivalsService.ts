@@ -1,15 +1,15 @@
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { getCompetitionRankAtIndex } from "@/lib/rankingUtils";
 import {
+  OFFICIAL_RANKING_VIEW,
+  type SitioOficialJugadorRow,
+} from "@/lib/officialRankingVisibility";
+import {
   PlayerHistoryEvent,
   PlayerRival,
 } from "@/lib/types/playerHistory";
 
 const DEFAULT_PHOTO = "/img/players/players-1.png";
-
-const RANKING_ORGANIZADOR_ID =
-  process.env.NEXT_PUBLIC_RANKING_ORGANIZADOR_ID?.trim() ||
-  "2770b522-9064-4c7b-a729-4a0ea7e3f6e8";
 
 interface ParejaEmbed {
   player1_id: string | null;
@@ -23,7 +23,8 @@ interface JugadorRow {
   legacy_player_id?: string | null;
   categoria?: string | null;
   genero: string | null;
-  jugador_stats: { puntos_totales: number | null } | { puntos_totales: number | null }[] | null;
+  puntos_totales?: number;
+  jugador_stats?: { puntos_totales: number | null } | { puntos_totales: number | null }[] | null;
 }
 
 interface H2HRecord {
@@ -62,9 +63,11 @@ function matchesGenderFilter(
   return wantsFemale ? isFemale : !isFemale;
 }
 
-function extractPoints(
-  stats: JugadorRow["jugador_stats"]
-): number {
+function extractPoints(row: JugadorRow | SitioOficialJugadorRow): number {
+  if ("puntos_totales" in row && row.puntos_totales != null) {
+    return Number(row.puntos_totales);
+  }
+  const stats = (row as JugadorRow).jugador_stats;
   if (!stats) return 0;
   if (Array.isArray(stats)) return Number(stats[0]?.puntos_totales ?? 0);
   return Number(stats.puntos_totales ?? 0);
@@ -112,10 +115,8 @@ async function buildNameToJugadorMap(): Promise<Map<string, string>> {
   if (!supabase) return map;
 
   const { data } = await supabase
-    .from("riviera_jugadores")
-    .select("id, nombre")
-    .eq("organizador_id", RANKING_ORGANIZADOR_ID)
-    .eq("visible_publico", true);
+    .from(OFFICIAL_RANKING_VIEW)
+    .select("id, nombre");
 
   for (const row of data ?? []) {
     const nombre = (row.nombre as string | null)?.trim();
@@ -156,11 +157,17 @@ async function buildLegacyToJugadorMap(): Promise<Map<string, string>> {
   const supabase = getSupabaseClient();
   if (!supabase) return new Map();
 
+  const { data: visible } = await supabase
+    .from(OFFICIAL_RANKING_VIEW)
+    .select("id");
+
+  const ids = (visible ?? []).map((row) => row.id as string);
+  if (!ids.length) return new Map();
+
   const { data } = await supabase
     .from("riviera_jugadores")
     .select("id, legacy_player_id")
-    .eq("organizador_id", RANKING_ORGANIZADOR_ID)
-    .eq("visible_publico", true)
+    .in("id", ids)
     .not("legacy_player_id", "is", null);
 
   const map = new Map<string, string>();
@@ -377,17 +384,15 @@ async function getCategoryRankMap(
   if (!supabase || !categoria) return map;
 
   const { data } = await supabase
-    .from("riviera_jugadores")
-    .select("id, genero, jugador_stats ( puntos_totales )")
-    .eq("organizador_id", RANKING_ORGANIZADOR_ID)
-    .eq("categoria", categoria)
-    .eq("visible_publico", true);
+    .from(OFFICIAL_RANKING_VIEW)
+    .select("id, genero, puntos_totales")
+    .eq("categoria", categoria);
 
-  const ranked = ((data ?? []) as JugadorRow[])
+  const ranked = ((data ?? []) as SitioOficialJugadorRow[])
     .filter((row) => matchesGenderFilter(row.genero, genero))
     .map((row) => ({
       id: row.id,
-      points: extractPoints(row.jugador_stats),
+      points: extractPoints(row),
     }))
     .sort((a, b) => b.points - a.points);
 
@@ -436,15 +441,13 @@ async function getSimilarRankRivals(
   if (!supabase || !categoria) return [];
 
   const { data } = await supabase
-    .from("riviera_jugadores")
-    .select("id, nombre, foto_url, genero, jugador_stats ( puntos_totales )")
-    .eq("organizador_id", RANKING_ORGANIZADOR_ID)
-    .eq("categoria", categoria)
-    .eq("visible_publico", true);
+    .from(OFFICIAL_RANKING_VIEW)
+    .select("id, nombre, foto_url, genero, categoria, puntos_totales")
+    .eq("categoria", categoria);
 
   if (!data?.length) return [];
 
-  const filtered = (data as JugadorRow[])
+  const filtered = (data as SitioOficialJugadorRow[])
     .filter(
       (row) =>
         row.id !== jugadorId &&
@@ -453,14 +456,14 @@ async function getSimilarRankRivals(
     )
     .map((row) => ({
       row,
-      points: extractPoints(row.jugador_stats),
+      points: extractPoints(row),
     }))
     .filter((entry) => Math.abs(entry.points - playerPoints) <= 100)
     .sort((a, b) => Math.abs(a.points - playerPoints) - Math.abs(b.points - playerPoints));
 
   const sorted = filtered
     .map((entry) => entry.row)
-    .sort((a, b) => extractPoints(b.jugador_stats) - extractPoints(a.jugador_stats));
+    .sort((a, b) => extractPoints(b) - extractPoints(a));
 
   return sorted.slice(0, 3).map((row) => {
     const rankInfo = rankMap.get(row.id);
@@ -468,7 +471,7 @@ async function getSimilarRankRivals(
       id: row.id,
       nombre: row.nombre?.trim() || "Jugador",
       foto: row.foto_url?.trim() || DEFAULT_PHOTO,
-      points: rankInfo?.points ?? extractPoints(row.jugador_stats),
+      points: rankInfo?.points ?? extractPoints(row),
       rank: rankInfo?.rank ?? 0,
       wins: 0,
       losses: 0,
@@ -485,7 +488,7 @@ export async function getPlayerRivals(
   categoria: string | null,
   genero: string | null,
   playerPoints: number,
-  organizadorId: string = RANKING_ORGANIZADOR_ID,
+  organizadorId: string,
   historyEvents: PlayerHistoryEvent[] = []
 ): Promise<PlayerRival[]> {
   const supabase = getSupabaseClient();
@@ -504,12 +507,11 @@ export async function getPlayerRivals(
 
   if (facedIds.length) {
     const { data } = await supabase
-      .from("riviera_jugadores")
-      .select("id, nombre, foto_url, genero, categoria, jugador_stats ( puntos_totales )")
-      .in("id", facedIds)
-      .eq("visible_publico", true);
+      .from(OFFICIAL_RANKING_VIEW)
+      .select("id, nombre, foto_url, genero, categoria, puntos_totales")
+      .in("id", facedIds);
 
-    const rows = (data ?? []) as JugadorRow[];
+    const rows = (data ?? []) as SitioOficialJugadorRow[];
     const rivalRankLookup = await buildRivalRankLookup(rows);
 
     for (const row of rows) {
@@ -522,7 +524,7 @@ export async function getPlayerRivals(
         id: row.id,
         nombre: row.nombre?.trim() || "Jugador",
         foto: row.foto_url?.trim() || DEFAULT_PHOTO,
-        points: rankInfo?.points ?? extractPoints(row.jugador_stats),
+        points: rankInfo?.points ?? extractPoints(row),
         rank: rankInfo?.rank ?? 0,
         wins: record.wins,
         losses: record.losses,

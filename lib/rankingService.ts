@@ -5,29 +5,19 @@ import {
   uiCategoryToDb,
 } from "@/lib/categoryUtils";
 import { getCompetitionRankAtIndex } from "@/lib/rankingUtils";
+import {
+  OFFICIAL_RANKING_VIEW,
+  type SitioOficialJugadorRow,
+} from "@/lib/officialRankingVisibility";
 
 const DEFAULT_PHOTO = "/img/players/players-1.png";
 
-/** Cuenta nevyl (nrm001sm@hotmail.com) en Supabase */
-const RANKING_ORGANIZADOR_ID =
-  process.env.NEXT_PUBLIC_RANKING_ORGANIZADOR_ID?.trim() ||
-  "2770b522-9064-4c7b-a729-4a0ea7e3f6e8";
-
-type JugadorStatsRow =
-  | { puntos_totales: number | null }
-  | { puntos_totales: number | null }[];
-
-interface RivieraJugadorRow {
+interface JugadorContactRow {
   id: string;
-  nombre: string | null;
-  categoria: string | null;
-  foto_url: string | null;
-  genero: string | null;
   instagram_url: string | null;
   facebook_url: string | null;
   email: string | null;
   telefono: string | null;
-  jugador_stats: JugadorStatsRow | null;
 }
 
 function splitNombre(nombre: string | null): { firstName: string; lastName: string } {
@@ -63,22 +53,16 @@ function matchesGenderFilter(genero: string | null, filter: Gender): boolean {
   return filter === "Female" ? isFemale : !isFemale;
 }
 
-function extractPoints(stats: JugadorStatsRow | null): number {
-  if (!stats) return 0;
-  if (Array.isArray(stats)) {
-    return Number(stats[0]?.puntos_totales ?? 0);
-  }
-  return Number(stats.puntos_totales ?? 0);
-}
-
 function mapRowToPlayer(
-  row: RivieraJugadorRow,
+  row: SitioOficialJugadorRow,
+  contact: JugadorContactRow | undefined,
   rank: number,
   fallbackCategory: Category
 ): Player | null {
   if (!row.id) return null;
 
   const { firstName, lastName } = splitNombre(row.nombre);
+  const points = Number(row.puntos_totales ?? 0);
 
   return {
     id: String(row.id),
@@ -87,22 +71,49 @@ function mapRowToPlayer(
     photo: row.foto_url?.trim() || DEFAULT_PHOTO,
     category: dbCategoryToUi(row.categoria, fallbackCategory),
     gender: normalizeGender(row.genero),
-    points: extractPoints(row.jugador_stats),
+    points,
     rank,
     contact: {
-      email: row.email ?? "",
-      phone: row.telefono ?? "",
+      email: contact?.email ?? "",
+      phone: contact?.telefono ?? "",
     },
     socials: {
-      ...(row.instagram_url ? { instagram: row.instagram_url } : {}),
-      ...(row.facebook_url ? { facebook: row.facebook_url } : {}),
+      ...(contact?.instagram_url ? { instagram: contact.instagram_url } : {}),
+      ...(contact?.facebook_url ? { facebook: contact.facebook_url } : {}),
     },
     tournamentResults: [],
   };
 }
 
+async function fetchContactByIds(
+  ids: string[]
+): Promise<Map<string, JugadorContactRow>> {
+  const map = new Map<string, JugadorContactRow>();
+  if (!ids.length) return map;
+
+  const supabase = getSupabaseClient();
+  if (!supabase) return map;
+
+  const { data, error } = await supabase
+    .from("riviera_jugadores")
+    .select("id, instagram_url, facebook_url, email, telefono")
+    .in("id", ids);
+
+  if (error) {
+    console.error("fetchContactByIds:", error.message);
+    return map;
+  }
+
+  for (const row of data ?? []) {
+    map.set(String(row.id), row as JugadorContactRow);
+  }
+
+  return map;
+}
+
 /**
- * Ranking público por categoría desde Supabase (riviera_jugadores + jugador_stats).
+ * Ranking público por categoría (multi-organizador).
+ * Fuente: vista `riviera_jugadores_sitio_oficial`.
  */
 export async function getRankingPublico(
   categoria: string,
@@ -120,50 +131,39 @@ export async function getRankingPublico(
       : categoria) as Category;
 
     const { data, error } = await supabase
-      .from("riviera_jugadores")
+      .from(OFFICIAL_RANKING_VIEW)
       .select(
-        `
-        id,
-        nombre,
-        categoria,
-        foto_url,
-        genero,
-        instagram_url,
-        facebook_url,
-        email,
-        telefono,
-        jugador_stats ( puntos_totales )
-      `
+        "id, organizador_id, nombre, slug, foto_url, categoria, genero, pais_codigo, club, puntos_totales, total_partidos, victorias"
       )
-      .eq("categoria", dbCategory)
-      .eq("organizador_id", RANKING_ORGANIZADOR_ID)
-      .eq("visible_publico", true);
+      .eq("categoria", dbCategory);
 
     if (error) {
       console.error("getRankingPublico:", error.message);
       return [];
     }
 
-    if (!data || data.length === 0) {
-      return [];
-    }
+    if (!data?.length) return [];
 
-    const rows = (data as RivieraJugadorRow[]).filter((row) =>
+    const rows = (data as SitioOficialJugadorRow[]).filter((row) =>
       matchesGenderFilter(row.genero, genero)
     );
 
-    const sorted = rows
-      .map((row) => ({
-        row,
-        points: extractPoints(row.jugador_stats),
-      }))
-      .sort((a, b) => b.points - a.points);
+    const sorted = [...rows].sort(
+      (a, b) => Number(b.puntos_totales ?? 0) - Number(a.puntos_totales ?? 0)
+    );
+
+    const contactMap = await fetchContactByIds(sorted.map((row) => row.id));
 
     return sorted
-      .map(({ row, points }, index) =>
+      .map((row, index) =>
         mapRowToPlayer(
           row,
-          getCompetitionRankAtIndex(sorted, index, (e) => e.points),
+          contactMap.get(row.id),
+          getCompetitionRankAtIndex(
+            sorted,
+            index,
+            (entry) => Number(entry.puntos_totales ?? 0)
+          ),
           uiCategory
         )
       )

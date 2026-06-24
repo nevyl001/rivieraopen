@@ -22,12 +22,12 @@ import {
   normalizePlayerRatingFields,
   obtenerHistorialRatingPublic,
 } from "@/lib/playerRatingService";
+import {
+  isJugadorVisibleSitioOficial,
+  OFFICIAL_RANKING_VIEW,
+} from "@/lib/officialRankingVisibility";
 
 const DEFAULT_PHOTO = "/img/players/players-1.png";
-
-const RANKING_ORGANIZADOR_ID =
-  process.env.NEXT_PUBLIC_RANKING_ORGANIZADOR_ID?.trim() ||
-  "2770b522-9064-4c7b-a729-4a0ea7e3f6e8";
 
 interface JugadorStatsRow {
   jugador_id?: string;
@@ -50,6 +50,7 @@ interface JugadorStatsRow {
 
 interface RivieraJugadorRow {
   id: string;
+  organizador_id: string;
   legacy_player_id: string | null;
   nombre: string | null;
   slug: string | null;
@@ -77,6 +78,7 @@ interface RivieraJugadorRow {
 
 const JUGADOR_SELECT_BASE = `
         id,
+        organizador_id,
         legacy_player_id,
         nombre,
         slug,
@@ -117,6 +119,7 @@ const JUGADOR_SELECT_BASE = `
 
 const JUGADOR_SELECT_WITH_RATING = `
         id,
+        organizador_id,
         legacy_player_id,
         nombre,
         slug,
@@ -239,24 +242,19 @@ async function computeRank(
   if (!supabase || !categoria) return 0;
 
   const { data, error } = await supabase
-    .from("riviera_jugadores")
-    .select("id, genero, jugador_stats ( puntos_totales )")
-    .eq("categoria", categoria)
-    .eq("organizador_id", RANKING_ORGANIZADOR_ID)
-    .eq("visible_publico", true);
+    .from(OFFICIAL_RANKING_VIEW)
+    .select("id, genero, puntos_totales")
+    .eq("categoria", categoria);
 
   if (error || !data) return 0;
 
   const gender = normalizeGender(genero);
-  const ranked = data
+  const ranked = (data as { id: string; genero: string | null; puntos_totales: number }[])
     .filter((row) => normalizeGender(row.genero) === gender)
-    .map((row) => {
-      const stats = row.jugador_stats as JugadorStatsRow | JugadorStatsRow[] | null;
-      return {
-        id: row.id as string,
-        points: extractPoints(stats),
-      };
-    })
+    .map((row) => ({
+      id: row.id,
+      points: Number(row.puntos_totales ?? 0),
+    }))
     .sort((a, b) => b.points - a.points);
 
   const index = ranked.findIndex((row) => row.id === jugadorId);
@@ -313,6 +311,7 @@ function mapRowToProfile(
 
 /**
  * Perfil público de un jugador desde Supabase (riviera_jugadores + jugador_stats).
+ * Visibilidad: RPC is_jugador_visible_sitio_oficial (multi-organizador).
  */
 export async function getJugadorPublico(
   id: string
@@ -320,6 +319,9 @@ export async function getJugadorPublico(
   try {
     const supabase = getSupabaseClient();
     if (!supabase) return null;
+
+    const visible = await isJugadorVisibleSitioOficial(id);
+    if (!visible) return null;
 
     const selectCols =
       jugadorRatingColsInDb === false
@@ -333,8 +335,6 @@ export async function getJugadorPublico(
       .from("riviera_jugadores")
       .select(selectCols)
       .eq("id", id)
-      .eq("organizador_id", RANKING_ORGANIZADOR_ID)
-      .eq("visible_publico", true)
       .maybeSingle();
 
     data = (primary.data as RivieraJugadorRow | null) ?? null;
@@ -346,8 +346,6 @@ export async function getJugadorPublico(
         .from("riviera_jugadores")
         .select(JUGADOR_SELECT_BASE)
         .eq("id", id)
-        .eq("organizador_id", RANKING_ORGANIZADOR_ID)
-        .eq("visible_publico", true)
         .maybeSingle();
       data = (fallback.data as RivieraJugadorRow | null) ?? null;
       error = fallback.error;
@@ -363,6 +361,7 @@ export async function getJugadorPublico(
     if (!data) return null;
 
     const row = data;
+    const organizadorId = row.organizador_id;
     const points = extractPoints(row.jugador_stats);
     const rank = await computeRank(row.categoria, row.genero, row.id, points);
 
@@ -370,9 +369,9 @@ export async function getJugadorPublico(
 
     const [participacionesStats, computedStats, historyEvents, ratingHistorial] =
       await Promise.all([
-        computeStatsFromParticipaciones(row.id, RANKING_ORGANIZADOR_ID),
-        computePlayerMatchStats(row.legacy_player_id, RANKING_ORGANIZADOR_ID),
-        getPlayerHistoryEvents(row.id, row.legacy_player_id),
+        computeStatsFromParticipaciones(row.id, organizadorId),
+        computePlayerMatchStats(row.legacy_player_id, organizadorId),
+        getPlayerHistoryEvents(row.id, row.legacy_player_id, organizadorId),
         obtenerHistorialRatingPublic(row.id, 10),
       ]);
 
@@ -380,7 +379,7 @@ export async function getJugadorPublico(
       row.id,
       row.legacy_player_id,
       undefined,
-      RANKING_ORGANIZADOR_ID,
+      organizadorId,
       historyEvents
     );
 
@@ -390,7 +389,7 @@ export async function getJugadorPublico(
       row.categoria,
       row.genero,
       points,
-      RANKING_ORGANIZADOR_ID,
+      organizadorId,
       historyEvents
     );
 

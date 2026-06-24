@@ -163,7 +163,8 @@ async function getOrgTorneoExpressIds(
 }
 
 async function buildLegacyNameMap(
-  legacyIds: string[]
+  legacyIds: string[],
+  organizadorId: string
 ): Promise<Map<string, string>> {
   const map = new Map<string, string>();
   if (!legacyIds.length) return map;
@@ -175,7 +176,7 @@ async function buildLegacyNameMap(
     .from("riviera_jugadores")
     .select("legacy_player_id, nombre")
     .in("legacy_player_id", legacyIds)
-    .eq("organizador_id", RANKING_ORGANIZADOR_ID);
+    .eq("organizador_id", organizadorId);
 
   for (const row of data ?? []) {
     const legacyId = row.legacy_player_id as string | null;
@@ -215,7 +216,8 @@ function opponentLabelFromPareja(
 
 async function fetchExpressMatchesForTorneo(
   torneoId: string,
-  legacyPlayerId: string
+  legacyPlayerId: string,
+  organizadorId: string
 ): Promise<PlayerHistoryMatch[]> {
   const supabase = getSupabaseClient();
   if (!supabase || !legacyPlayerId.trim()) return [];
@@ -274,7 +276,7 @@ async function fetchExpressMatchesForTorneo(
     }
   }
 
-  const nameMap = await buildLegacyNameMap([...legacyIds]);
+  const nameMap = await buildLegacyNameMap([...legacyIds], organizadorId);
   const matches: PlayerHistoryMatch[] = [];
 
   for (const raw of partidos as ExpressPartidoRow[]) {
@@ -357,7 +359,12 @@ export async function getPlayerHistoryEvents(
   });
 
   if (rows.length > 0) {
-    return buildEventsFromParticipaciones(rows, jugadorId, legacyPlayerId);
+    return buildEventsFromParticipaciones(
+      rows,
+      jugadorId,
+      legacyPlayerId,
+      organizadorId
+    );
   }
 
   if (legacyPlayerId?.trim()) {
@@ -370,7 +377,8 @@ export async function getPlayerHistoryEvents(
 async function buildEventsFromParticipaciones(
   rows: ParticipacionRow[],
   jugadorId: string,
-  legacyPlayerId: string | null | undefined
+  legacyPlayerId: string | null | undefined,
+  organizadorId: string
 ): Promise<PlayerHistoryEvent[]> {
   const supabase = getSupabaseClient();
   if (!supabase) return [];
@@ -417,7 +425,8 @@ async function buildEventsFromParticipaciones(
     if (row.tipo_evento === "torneo_express" && legacyPlayerId) {
       const groupMatches = await fetchExpressMatchesForTorneo(
         row.evento_id,
-        legacyPlayerId
+        legacyPlayerId,
+        organizadorId
       );
       const eliminatoriaMatches = await fetchExpressEliminatoriaMatches(
         row.evento_id,
@@ -529,7 +538,8 @@ async function buildEventsFromExpressPartidos(
   for (const torneo of torneos as TorneoExpressRow[]) {
     const partidos = await fetchExpressMatchesForTorneo(
       torneo.id,
-      legacyPlayerId
+      legacyPlayerId,
+      organizadorId
     );
     if (!partidos.length) continue;
 
