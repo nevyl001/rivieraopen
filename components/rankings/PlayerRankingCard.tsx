@@ -44,6 +44,7 @@ export function PlayerRankingCard({ player }: PlayerRankingCardProps) {
           src={player.photo}
           alt={`${player.firstName} ${player.lastName}`}
           fill
+          unoptimized
           className="object-cover"
           sizes="(max-width: 768px) 48px, 64px"
         />

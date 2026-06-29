@@ -28,6 +28,7 @@ function RivalCard({ rival }: { rival: PlayerRival }) {
           src={rival.foto}
           alt={rival.nombre}
           fill
+          unoptimized
           className="object-cover"
           sizes="44px"
         />
