@@ -37,6 +37,44 @@ function formatCategoryLabel(value: string | null | undefined): string | null {
   return ui === "Open" ? "Open" : `${ui}ª Fuerza`;
 }
 
+function parseHistorialEntry(entry: unknown): OfficialHistorialEntry | null {
+  if (!entry || typeof entry !== "object") return null;
+
+  const item = entry as Record<string, unknown>;
+  const participacionId = item.participacion_id;
+  const eventType = item.event_type;
+  const eventId = item.event_id;
+  const eventName = item.event_name;
+  const activityAt = item.activity_at;
+
+  if (
+    typeof participacionId !== "string" ||
+    typeof eventType !== "string" ||
+    typeof eventId !== "string" ||
+    typeof eventName !== "string" ||
+    typeof activityAt !== "string"
+  ) {
+    return null;
+  }
+
+  const parsed: OfficialHistorialEntry = {
+    participacion_id: participacionId,
+    event_type: eventType,
+    event_id: eventId,
+    event_name: eventName,
+    points: Number(item.points ?? 0),
+    source_club_name:
+      typeof item.source_club_name === "string" ? item.source_club_name : null,
+    activity_at: activityAt,
+  };
+
+  if (item.metadata && typeof item.metadata === "object") {
+    parsed.metadata = item.metadata as OfficialHistorialMetadata;
+  }
+
+  return parsed;
+}
+
 function parseOfficialProfile(data: unknown): OfficialJugadorPublicProfile | null {
   if (!data || typeof data !== "object") return null;
 
@@ -50,43 +88,8 @@ function parseOfficialProfile(data: unknown): OfficialJugadorPublicProfile | nul
 
   const historialRaw = Array.isArray(row.historial) ? row.historial : [];
 
-  const historial: OfficialHistorialEntry[] = historialRaw
-    .map((entry) => {
-      if (!entry || typeof entry !== "object") return null;
-      const item = entry as Record<string, unknown>;
-      const participacionId = item.participacion_id;
-      const eventType = item.event_type;
-      const eventId = item.event_id;
-      const eventName = item.event_name;
-      const activityAt = item.activity_at;
-
-      if (
-        typeof participacionId !== "string" ||
-        typeof eventType !== "string" ||
-        typeof eventId !== "string" ||
-        typeof eventName !== "string" ||
-        typeof activityAt !== "string"
-      ) {
-        return null;
-      }
-
-      return {
-        participacion_id: participacionId,
-        event_type: eventType,
-        event_id: eventId,
-        event_name: eventName,
-        points: Number(item.points ?? 0),
-        source_club_name:
-          typeof item.source_club_name === "string"
-            ? item.source_club_name
-            : null,
-        activity_at: activityAt,
-        metadata:
-          item.metadata && typeof item.metadata === "object"
-            ? (item.metadata as OfficialHistorialMetadata)
-            : null,
-      };
-    })
+  const historial = historialRaw
+    .map(parseHistorialEntry)
     .filter((entry): entry is OfficialHistorialEntry => entry !== null);
 
   return {
