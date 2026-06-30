@@ -6,26 +6,20 @@ import {
   PlayerStatsSummary,
 } from "@/lib/types";
 import { dbCategoryToUi } from "@/lib/categoryUtils";
-import { findCompetitionRank } from "@/lib/rankingUtils";
 import {
   computePlayerMatchStats,
   mergePlayerStats,
 } from "@/lib/playerMatchStatsService";
-import {
-  applyParticipacionesStats,
-  computeStatsFromParticipaciones,
-} from "@/lib/playerParticipacionesService";
 import { computePlayerSeasonTimeline } from "@/lib/playerSeasonTimelineService";
-import { getPlayerHistoryEvents } from "@/lib/playerHistoryService";
 import { getPlayerRivals } from "@/lib/playerRivalsService";
 import {
   normalizePlayerRatingFields,
   obtenerHistorialRatingPublic,
 } from "@/lib/playerRatingService";
 import {
-  isJugadorVisibleSitioOficial,
-  OFFICIAL_RANKING_VIEW,
-} from "@/lib/officialRankingVisibility";
+  getOfficialJugadorPublicProfile,
+  mapOfficialHistorialToHistoryEvents,
+} from "@/lib/officialPlayerProfileService";
 
 const DEFAULT_PHOTO = "/img/players/players-1.png";
 
@@ -227,53 +221,14 @@ function extractStats(
   };
 }
 
-function extractPoints(stats: JugadorStatsRow | JugadorStatsRow[] | null): number {
-  const row = Array.isArray(stats) ? stats[0] : stats;
-  return Number(row?.puntos_totales ?? 0);
-}
-
-async function computeRank(
-  categoria: string | null,
-  genero: string | null,
-  jugadorId: string,
-  points: number
-): Promise<number> {
-  const supabase = getSupabaseClient();
-  if (!supabase || !categoria) return 0;
-
-  const { data, error } = await supabase
-    .from(OFFICIAL_RANKING_VIEW)
-    .select("id, genero, puntos_totales")
-    .eq("categoria", categoria);
-
-  if (error || !data) return 0;
-
-  const gender = normalizeGender(genero);
-  const ranked = (data as { id: string; genero: string | null; puntos_totales: number }[])
-    .filter((row) => normalizeGender(row.genero) === gender)
-    .map((row) => ({
-      id: row.id,
-      points: Number(row.puntos_totales ?? 0),
-    }))
-    .sort((a, b) => b.points - a.points);
-
-  const index = ranked.findIndex((row) => row.id === jugadorId);
-  if (index < 0) return 0;
-
-  return findCompetitionRank(
-    ranked,
-    (row) => row.id === jugadorId,
-    (row) => row.points
-  );
-}
 
 function mapRowToProfile(
   row: RivieraJugadorRow,
-  rank: number
+  rank: number,
+  points: number
 ): PlayerProfileDetail {
   const { firstName, lastName } = splitNombre(row.nombre);
   const stats = extractStats(row.jugador_stats);
-  const points = extractPoints(row.jugador_stats);
   const ratingFields = normalizePlayerRatingFields(row);
 
   return {
@@ -310,8 +265,8 @@ function mapRowToProfile(
 }
 
 /**
- * Perfil público de un jugador desde Supabase (riviera_jugadores + jugador_stats).
- * Visibilidad: RPC is_jugador_visible_sitio_oficial (multi-organizador).
+ * Perfil público de un jugador desde Supabase (riviera_jugadores + RPC oficial).
+ * Puntos, ranking e historial multiclub: get_riviera_oficial_jugador_public_profile.
  */
 export async function getJugadorPublico(
   id: string
@@ -320,8 +275,8 @@ export async function getJugadorPublico(
     const supabase = getSupabaseClient();
     if (!supabase) return null;
 
-    const visible = await isJugadorVisibleSitioOficial(id);
-    if (!visible) return null;
+    const officialProfile = await getOfficialJugadorPublicProfile(id);
+    if (!officialProfile) return null;
 
     const selectCols =
       jugadorRatingColsInDb === false
@@ -362,18 +317,18 @@ export async function getJugadorPublico(
 
     const row = data;
     const organizadorId = row.organizador_id;
-    const points = extractPoints(row.jugador_stats);
-    const rank = await computeRank(row.categoria, row.genero, row.id, points);
+    const points = officialProfile.puntos_totales;
+    const rank = officialProfile.ranking_posicion;
+    const historyEvents = mapOfficialHistorialToHistoryEvents(
+      officialProfile.historial
+    );
 
-    const baseProfile = mapRowToProfile(row, rank);
+    const baseProfile = mapRowToProfile(row, rank, points);
 
-    const [participacionesStats, computedStats, historyEvents, ratingHistorial] =
-      await Promise.all([
-        computeStatsFromParticipaciones(row.id, organizadorId),
-        computePlayerMatchStats(row.legacy_player_id, organizadorId),
-        getPlayerHistoryEvents(row.id, row.legacy_player_id, organizadorId),
-        obtenerHistorialRatingPublic(row.id, 10),
-      ]);
+    const [computedStats, ratingHistorial] = await Promise.all([
+      computePlayerMatchStats(row.legacy_player_id, organizadorId),
+      obtenerHistorialRatingPublic(row.id, 10),
+    ]);
 
     const seasonTimeline = await computePlayerSeasonTimeline(
       row.id,
@@ -393,15 +348,7 @@ export async function getJugadorPublico(
       historyEvents
     );
 
-    const statsFromPartidos = mergePlayerStats(
-      baseProfile.stats,
-      computedStats
-    );
-
-    const stats = applyParticipacionesStats(
-      statsFromPartidos,
-      participacionesStats
-    );
+    const stats = mergePlayerStats(baseProfile.stats, computedStats);
 
     return {
       ...baseProfile,

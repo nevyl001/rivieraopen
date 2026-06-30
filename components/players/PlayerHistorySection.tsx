@@ -92,6 +92,11 @@ function HistoryEventCard({ event }: { event: PlayerHistoryEvent }) {
                 {event.categoria}
               </span>
             )}
+            {event.sourceClubName && (
+              <span className="rounded-full border border-[#2a2a2a] px-2 py-0.5 text-[#999]">
+                {event.sourceClubName}
+              </span>
+            )}
             {placement && <span>{placement}</span>}
           </div>
         </div>

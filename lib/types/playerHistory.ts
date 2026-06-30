@@ -30,6 +30,8 @@ export interface PlayerHistoryEvent {
   partidosPerdidos: number | null;
   partidosEmpatados: number | null;
   partidos: PlayerHistoryMatch[];
+  /** Club de origen en historial multiclub (RPC oficial). */
+  sourceClubName?: string | null;
 }
 
 export interface PlayerRival {
