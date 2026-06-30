@@ -1,6 +1,12 @@
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { getCompetitionRankAtIndex } from "@/lib/rankingUtils";
 import {
+  fetchDuelosScoreMap,
+  getOpponentIdsAndNamesFromDuelo,
+  didPlayerWinDuelo,
+  resolveDueloJugadorId,
+} from "@/lib/duelo2v2ScoreService";
+import {
   OFFICIAL_RANKING_VIEW,
   type SitioOficialJugadorRow,
 } from "@/lib/officialRankingVisibility";
@@ -33,6 +39,7 @@ interface H2HRecord {
   losses: number;
   draws: number;
   lastMatchDate: string | null;
+  displayName?: string;
 }
 
 function unwrapPareja(
@@ -77,7 +84,8 @@ function updateH2H(
   map: Map<string, H2HRecord>,
   rivalId: string,
   outcome: "win" | "loss" | "draw",
-  matchDate: string | null
+  matchDate: string | null,
+  displayName?: string
 ) {
   const current = map.get(rivalId) ?? {
     rivalJugadorId: rivalId,
@@ -90,6 +98,10 @@ function updateH2H(
   if (outcome === "win") current.wins += 1;
   else if (outcome === "loss") current.losses += 1;
   else current.draws += 1;
+
+  if (displayName?.trim()) {
+    current.displayName = displayName.trim();
+  }
 
   if (matchDate && (!current.lastMatchDate || matchDate > current.lastMatchDate)) {
     current.lastMatchDate = matchDate;
@@ -137,6 +149,13 @@ function applyHistoryToHeadToHead(
     const matchDate = event.fecha;
 
     for (const partido of event.partidos) {
+      if (
+        !partido.opponentLabel?.trim() ||
+        partido.opponentLabel.trim().toLowerCase() === "rival"
+      ) {
+        continue;
+      }
+
       for (const opponentName of parseOpponentNames(partido.opponentLabel)) {
         const rivalJugadorId = nameToJugador.get(
           normalizePlayerName(opponentName)
@@ -178,6 +197,64 @@ async function buildLegacyToJugadorMap(): Promise<Map<string, string>> {
   return map;
 }
 
+async function applyDueloEventsToHeadToHead(
+  h2h: Map<string, H2HRecord>,
+  historyEvents: PlayerHistoryEvent[],
+  jugadorId: string
+): Promise<void> {
+  const dueloEvents = historyEvents.filter(
+    (event) => event.tipoEvento === "duelo_2v2"
+  );
+  if (!dueloEvents.length) return;
+
+  const dueloMap = await fetchDuelosScoreMap([
+    ...new Set(dueloEvents.map((event) => event.eventoId)),
+  ]);
+
+  for (const event of dueloEvents) {
+    const duelo = dueloMap.get(event.eventoId);
+    if (!duelo) continue;
+
+    const resolvedId = resolveDueloJugadorId(duelo, jugadorId, null);
+    const won = didPlayerWinDuelo(duelo, resolvedId);
+    const outcome: "win" | "loss" = won ? "win" : "loss";
+    const opponents = getOpponentIdsAndNamesFromDuelo(duelo, jugadorId, null);
+
+    for (const opponent of opponents) {
+      if (opponent.id === jugadorId) continue;
+      updateH2H(h2h, opponent.id, outcome, event.fecha, opponent.nombre);
+    }
+  }
+}
+
+async function fetchRivieraJugadorProfiles(
+  jugadorIds: string[]
+): Promise<Map<string, JugadorRow>> {
+  const map = new Map<string, JugadorRow>();
+  if (!jugadorIds.length) return map;
+
+  const supabase = getSupabaseClient();
+  if (!supabase) return map;
+
+  const { data, error } = await supabase
+    .from("riviera_jugadores")
+    .select(
+      "id, nombre, foto_url, genero, categoria, legacy_player_id, jugador_stats ( puntos_totales )"
+    )
+    .in("id", jugadorIds);
+
+  if (error) {
+    console.error("fetchRivieraJugadorProfiles:", error.message);
+    return map;
+  }
+
+  for (const row of data ?? []) {
+    map.set(String(row.id), row as JugadorRow);
+  }
+
+  return map;
+}
+
 async function computeHeadToHead(
   jugadorId: string,
   legacyPlayerId: string | null | undefined,
@@ -191,6 +268,7 @@ async function computeHeadToHead(
   if (historyEvents.length) {
     const nameToJugador = await buildNameToJugadorMap();
     applyHistoryToHeadToHead(h2h, historyEvents, jugadorId, nameToJugador);
+    await applyDueloEventsToHeadToHead(h2h, historyEvents, jugadorId);
     return h2h;
   }
 
@@ -506,25 +584,44 @@ export async function getPlayerRivals(
   const facedRivals: PlayerRival[] = [];
 
   if (facedIds.length) {
-    const { data } = await supabase
-      .from(OFFICIAL_RANKING_VIEW)
-      .select("id, nombre, foto_url, genero, categoria, puntos_totales")
-      .in("id", facedIds);
+    const [{ data: officialRows }, directProfiles] = await Promise.all([
+      supabase
+        .from(OFFICIAL_RANKING_VIEW)
+        .select("id, nombre, foto_url, genero, categoria, puntos_totales")
+        .in("id", facedIds),
+      fetchRivieraJugadorProfiles(facedIds),
+    ]);
 
-    const rows = (data ?? []) as SitioOficialJugadorRow[];
-    const rivalRankLookup = await buildRivalRankLookup(rows);
+    const profileById = new Map<string, JugadorRow | SitioOficialJugadorRow>();
+    for (const row of (officialRows ?? []) as SitioOficialJugadorRow[]) {
+      profileById.set(row.id, row);
+    }
+    for (const [id, row] of directProfiles) {
+      if (!profileById.has(id)) profileById.set(id, row);
+    }
 
-    for (const row of rows) {
-      const record = h2hMap.get(row.id);
+    const rivalRows = facedIds
+      .map((id) => profileById.get(id))
+      .filter((row): row is JugadorRow | SitioOficialJugadorRow => Boolean(row));
+    const rivalRankLookup = await buildRivalRankLookup(
+      rivalRows as JugadorRow[]
+    );
+
+    for (const rivalId of facedIds) {
+      const record = h2hMap.get(rivalId);
       if (!record) continue;
-      const rankInfo =
-        rivalRankLookup.get(row.id) ?? rankMap.get(row.id);
+
+      const row = profileById.get(rivalId);
+      const rankInfo = rivalRankLookup.get(rivalId) ?? rankMap.get(rivalId);
 
       facedRivals.push({
-        id: row.id,
-        nombre: row.nombre?.trim() || "Jugador",
-        foto: row.foto_url?.trim() || DEFAULT_PHOTO,
-        points: rankInfo?.points ?? extractPoints(row),
+        id: rivalId,
+        nombre:
+          row?.nombre?.trim() ||
+          record.displayName?.trim() ||
+          "Jugador",
+        foto: row?.foto_url?.trim() || DEFAULT_PHOTO,
+        points: rankInfo?.points ?? (row ? extractPoints(row) : 0),
         rank: rankInfo?.rank ?? 0,
         wins: record.wins,
         losses: record.losses,

@@ -1,5 +1,7 @@
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { dbCategoryToUi } from "@/lib/categoryUtils";
+import { partidosDetalleToPlayerHistory } from "@/lib/partidosDetalleService";
+import { ParticipacionMetadataWithDetalle } from "@/lib/types/partidosDetalle";
 import { PlayerHistoryEvent } from "@/lib/types/playerHistory";
 
 export interface OfficialHistorialMetadata {
@@ -9,6 +11,10 @@ export interface OfficialHistorialMetadata {
   partidos_ganados?: number | null;
   partidos_perdidos?: number | null;
   partidos_empatados?: number | null;
+  organizador_id?: string | null;
+  sets_favor?: number | null;
+  sets_contra?: number | null;
+  partidos_detalle?: ParticipacionMetadataWithDetalle["partidos_detalle"];
   [key: string]: unknown;
 }
 
@@ -158,7 +164,10 @@ export function mapOfficialHistorialToHistoryEvents(
         metadata.partidos_empatados != null
           ? Number(metadata.partidos_empatados)
           : null,
-      partidos: [],
+      partidos: partidosDetalleToPlayerHistory(
+        metadata as ParticipacionMetadataWithDetalle,
+        entry.activity_at
+      ),
       sourceClubName: entry.source_club_name?.trim() || null,
     };
   });

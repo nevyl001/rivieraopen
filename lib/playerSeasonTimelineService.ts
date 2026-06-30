@@ -202,10 +202,31 @@ function matchesFromHistoryEvents(
   const matches: MatchResult[] = [];
 
   for (const event of historyEvents) {
-    for (const partido of event.partidos) {
-      const date = (partido.sortDate || event.fecha || "").slice(0, 10);
-      if (!isInSeason(date, season)) continue;
-      matches.push({ date, won: partido.won, draw: partido.isDraw });
+    const eventDate = (event.fecha ?? "").slice(0, 10);
+
+    if (event.partidos.length > 0) {
+      for (const partido of event.partidos) {
+        const date = (partido.sortDate || event.fecha || "").slice(0, 10);
+        if (!isInSeason(date, season)) continue;
+        matches.push({ date, won: partido.won, draw: partido.isDraw });
+      }
+      continue;
+    }
+
+    const wins = Number(event.partidosGanados ?? 0);
+    const losses = Number(event.partidosPerdidos ?? 0);
+    const draws = Number(event.partidosEmpatados ?? 0);
+    if (wins + losses + draws === 0) continue;
+    if (!isInSeason(eventDate, season)) continue;
+
+    for (let i = 0; i < wins; i++) {
+      matches.push({ date: eventDate, won: true });
+    }
+    for (let i = 0; i < losses; i++) {
+      matches.push({ date: eventDate, won: false });
+    }
+    for (let i = 0; i < draws; i++) {
+      matches.push({ date: eventDate, won: false, draw: true });
     }
   }
 
@@ -471,6 +492,10 @@ export async function computePlayerSeasonTimeline(
       season,
       points: buildCumulativePointsFromMatches(historyMatches, season),
     };
+  }
+
+  if (historyEvents) {
+    return { season, points: [] };
   }
 
   const participacionEvents = await eventsFromParticipaciones(

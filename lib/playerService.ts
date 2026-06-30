@@ -11,6 +11,7 @@ import {
   mergePlayerStats,
 } from "@/lib/playerMatchStatsService";
 import { computePlayerSeasonTimeline } from "@/lib/playerSeasonTimelineService";
+import { enrichOfficialHistoryEvents, computeStatsFromHistoryEvents } from "@/lib/playerHistoryService";
 import { getPlayerRivals } from "@/lib/playerRivalsService";
 import {
   normalizePlayerRatingFields,
@@ -319,8 +320,15 @@ export async function getJugadorPublico(
     const organizadorId = row.organizador_id;
     const points = officialProfile.puntos_totales;
     const rank = officialProfile.ranking_posicion;
-    const historyEvents = mapOfficialHistorialToHistoryEvents(
+    const baseHistoryEvents = mapOfficialHistorialToHistoryEvents(
       officialProfile.historial
+    );
+    const historyEvents = await enrichOfficialHistoryEvents(
+      baseHistoryEvents,
+      officialProfile.historial,
+      row.id,
+      row.legacy_player_id,
+      organizadorId
     );
 
     const baseProfile = mapRowToProfile(row, rank, points);
@@ -348,7 +356,23 @@ export async function getJugadorPublico(
       historyEvents
     );
 
-    const stats = mergePlayerStats(baseProfile.stats, computedStats);
+    const historyStats = computeStatsFromHistoryEvents(historyEvents);
+    const mergedStats = mergePlayerStats(baseProfile.stats, computedStats);
+    const stats =
+      historyStats.totalPartidos > 0
+        ? {
+            ...mergedStats,
+            ...historyStats,
+            setsFavor:
+              historyStats.setsFavor > 0
+                ? historyStats.setsFavor
+                : mergedStats.setsFavor,
+            setsContra:
+              historyStats.setsContra > 0
+                ? historyStats.setsContra
+                : mergedStats.setsContra,
+          }
+        : mergedStats;
 
     return {
       ...baseProfile,

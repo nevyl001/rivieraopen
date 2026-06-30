@@ -16,6 +16,10 @@ describe("formatDueloMarcador", () => {
     pareja_a_j2_id: "player-a2",
     pareja_b_j1_id: "player-b1",
     pareja_b_j2_id: "player-b2",
+    pareja_a_j1_nombre: "A1",
+    pareja_a_j2_nombre: "A2",
+    pareja_b_j1_nombre: "B1",
+    pareja_b_j2_nombre: "B2",
   };
 
   it("muestra sets jugados desde la pareja ganadora", () => {

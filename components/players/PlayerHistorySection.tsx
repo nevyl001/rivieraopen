@@ -97,8 +97,16 @@ function HistoryEventCard({ event }: { event: PlayerHistoryEvent }) {
                 {event.sourceClubName}
               </span>
             )}
-            {placement && <span>{placement}</span>}
-          </div>
+          {placement && <span>{placement}</span>}
+          {!open && event.partidos.length === 1 && (
+            <span className="text-[#888]">
+              {t("profile.history.vs")} {event.partidos[0].opponentLabel}
+              {event.partidos[0].score && event.partidos[0].score !== "—"
+                ? ` · ${event.partidos[0].score}`
+                : ""}
+            </span>
+          )}
+        </div>
         </div>
 
         <div className="flex shrink-0 flex-col items-end gap-2">

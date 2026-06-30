@@ -14,6 +14,10 @@ export interface Duelo2v2ScoreRow {
   pareja_a_j2_id: string | null;
   pareja_b_j1_id: string | null;
   pareja_b_j2_id: string | null;
+  pareja_a_j1_nombre: string | null;
+  pareja_a_j2_nombre: string | null;
+  pareja_b_j1_nombre: string | null;
+  pareja_b_j2_nombre: string | null;
 }
 
 export function parseDetalleSets(raw: unknown): Duelo2v2SetDetalle[] {
@@ -39,6 +43,112 @@ function isPlayerOnParejaA(
     duelo.pareja_a_j1_id === jugadorId ||
     duelo.pareja_a_j2_id === jugadorId
   );
+}
+
+export function getOpponentJugadorIdsFromDuelo(
+  duelo: Duelo2v2ScoreRow,
+  jugadorId: string
+): string[] {
+  const onA = isPlayerOnParejaA(duelo, jugadorId);
+  const ids = onA
+    ? [duelo.pareja_b_j1_id, duelo.pareja_b_j2_id]
+    : [duelo.pareja_a_j1_id, duelo.pareja_a_j2_id];
+
+  return ids.filter((id): id is string => Boolean(id?.trim()));
+}
+
+export function didPlayerWinDuelo(
+  duelo: Duelo2v2ScoreRow,
+  jugadorId: string
+): boolean {
+  const onA = isPlayerOnParejaA(duelo, jugadorId);
+  return onA
+    ? duelo.sets_pareja_a > duelo.sets_pareja_b
+    : duelo.sets_pareja_b > duelo.sets_pareja_a;
+}
+
+export function resolveDueloJugadorId(
+  duelo: Duelo2v2ScoreRow,
+  profileJugadorId: string,
+  participacionJugadorId?: string | null
+): string {
+  const candidates = [participacionJugadorId, profileJugadorId].filter(
+    (id): id is string => Boolean(id?.trim())
+  );
+
+  for (const id of candidates) {
+    if (
+      duelo.pareja_a_j1_id === id ||
+      duelo.pareja_a_j2_id === id ||
+      duelo.pareja_b_j1_id === id ||
+      duelo.pareja_b_j2_id === id
+    ) {
+      return id;
+    }
+  }
+
+  return profileJugadorId;
+}
+
+export function getAllDueloJugadorIds(duelo: Duelo2v2ScoreRow): string[] {
+  return [
+    duelo.pareja_a_j1_id,
+    duelo.pareja_a_j2_id,
+    duelo.pareja_b_j1_id,
+    duelo.pareja_b_j2_id,
+  ].filter((id): id is string => Boolean(id?.trim()));
+}
+
+export function getOpponentNamesFromDuelo(
+  duelo: Duelo2v2ScoreRow,
+  jugadorId: string,
+  participacionJugadorId?: string | null
+): string[] {
+  const resolvedId = resolveDueloJugadorId(
+    duelo,
+    jugadorId,
+    participacionJugadorId
+  );
+  const onA = isPlayerOnParejaA(duelo, resolvedId);
+  const names = onA
+    ? [duelo.pareja_b_j1_nombre, duelo.pareja_b_j2_nombre]
+    : [duelo.pareja_a_j1_nombre, duelo.pareja_a_j2_nombre];
+
+  return names
+    .map((name) => name?.trim())
+    .filter((name): name is string => Boolean(name));
+}
+
+export function getOpponentIdsAndNamesFromDuelo(
+  duelo: Duelo2v2ScoreRow,
+  jugadorId: string,
+  participacionJugadorId?: string | null
+): { id: string; nombre: string }[] {
+  const resolvedId = resolveDueloJugadorId(
+    duelo,
+    jugadorId,
+    participacionJugadorId
+  );
+  const onA = isPlayerOnParejaA(duelo, resolvedId);
+  const pairs = onA
+    ? [
+        { id: duelo.pareja_b_j1_id, nombre: duelo.pareja_b_j1_nombre },
+        { id: duelo.pareja_b_j2_id, nombre: duelo.pareja_b_j2_nombre },
+      ]
+    : [
+        { id: duelo.pareja_a_j1_id, nombre: duelo.pareja_a_j1_nombre },
+        { id: duelo.pareja_a_j2_id, nombre: duelo.pareja_a_j2_nombre },
+      ];
+
+  return pairs
+    .filter(
+      (entry): entry is { id: string; nombre: string } =>
+        Boolean(entry.id?.trim() && entry.nombre?.trim())
+    )
+    .map((entry) => ({
+      id: entry.id!.trim(),
+      nombre: entry.nombre!.trim(),
+    }));
 }
 
 /** Marcador legible por sets (ej. "6-3, 6-3") desde la perspectiva del jugador. */
@@ -79,7 +189,7 @@ export async function fetchDuelosScoreMap(
   const { data, error } = await supabase
     .from("duelos_2v2")
     .select(
-      "id, detalle_sets, sets_pareja_a, sets_pareja_b, pareja_a_j1_id, pareja_a_j2_id, pareja_b_j1_id, pareja_b_j2_id"
+      "id, detalle_sets, sets_pareja_a, sets_pareja_b, pareja_a_j1_id, pareja_a_j2_id, pareja_b_j1_id, pareja_b_j2_id, pareja_a_j1_nombre, pareja_a_j2_nombre, pareja_b_j1_nombre, pareja_b_j2_nombre"
     )
     .in("id", dueloIds);
 
@@ -99,6 +209,18 @@ export async function fetchDuelosScoreMap(
       pareja_a_j2_id: r.pareja_a_j2_id ? String(r.pareja_a_j2_id) : null,
       pareja_b_j1_id: r.pareja_b_j1_id ? String(r.pareja_b_j1_id) : null,
       pareja_b_j2_id: r.pareja_b_j2_id ? String(r.pareja_b_j2_id) : null,
+      pareja_a_j1_nombre: r.pareja_a_j1_nombre
+        ? String(r.pareja_a_j1_nombre)
+        : null,
+      pareja_a_j2_nombre: r.pareja_a_j2_nombre
+        ? String(r.pareja_a_j2_nombre)
+        : null,
+      pareja_b_j1_nombre: r.pareja_b_j1_nombre
+        ? String(r.pareja_b_j1_nombre)
+        : null,
+      pareja_b_j2_nombre: r.pareja_b_j2_nombre
+        ? String(r.pareja_b_j2_nombre)
+        : null,
     });
   }
 
