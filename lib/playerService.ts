@@ -21,6 +21,7 @@ import {
   getOfficialJugadorPublicProfile,
   mapOfficialHistorialToHistoryEvents,
 } from "@/lib/officialPlayerProfileService";
+import { getGlobalSitioOficialRankingPosicion } from "@/lib/globalRankingPosition";
 
 const DEFAULT_PHOTO = "/img/players/players-1.png";
 
@@ -319,7 +320,12 @@ export async function getJugadorPublico(
     const row = data;
     const organizadorId = row.organizador_id;
     const points = officialProfile.puntos_totales;
-    const rank = officialProfile.ranking_posicion;
+    const rank = await getGlobalSitioOficialRankingPosicion(
+      row.id,
+      row.categoria,
+      row.genero,
+      points
+    );
     const baseHistoryEvents = mapOfficialHistorialToHistoryEvents(
       officialProfile.historial
     );

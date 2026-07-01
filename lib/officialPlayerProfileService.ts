@@ -108,8 +108,8 @@ function parseOfficialProfile(data: unknown): OfficialJugadorPublicProfile | nul
 }
 
 /**
- * Perfil oficial multiclub (puntos ROMC, ranking y historial global).
- * RPC definida en Supabase (repo app Riviera).
+ * Perfil oficial multiclub (puntos ROMC, historial global).
+ * ranking_posicion del RPC es por club; la ficha usa getGlobalSitioOficialRankingPosicion.
  */
 export async function getOfficialJugadorPublicProfile(
   jugadorId: string

@@ -5,8 +5,8 @@ import {
   uiCategoryToDb,
 } from "@/lib/categoryUtils";
 import { getCompetitionRankAtIndex } from "@/lib/rankingUtils";
+import { listGlobalSitioOficialRankingRows } from "@/lib/globalRankingPosition";
 import {
-  OFFICIAL_RANKING_VIEW,
   type SitioOficialJugadorRow,
 } from "@/lib/officialRankingVisibility";
 
@@ -46,11 +46,6 @@ function isFemenilGenero(value: string | null): boolean {
 
 function normalizeGender(value: string | null): Gender {
   return isFemenilGenero(value) ? "Female" : "Male";
-}
-
-function matchesGenderFilter(genero: string | null, filter: Gender): boolean {
-  const isFemale = isFemenilGenero(genero);
-  return filter === "Female" ? isFemale : !isFemale;
 }
 
 function mapRowToPlayer(
@@ -130,23 +125,8 @@ export async function getRankingPublico(
       ? "Open"
       : categoria) as Category;
 
-    const { data, error } = await supabase
-      .from(OFFICIAL_RANKING_VIEW)
-      .select(
-        "id, organizador_id, nombre, slug, foto_url, categoria, genero, pais_codigo, club, puntos_totales, total_partidos, victorias"
-      )
-      .eq("categoria", dbCategory);
-
-    if (error) {
-      console.error("getRankingPublico:", error.message);
-      return [];
-    }
-
-    if (!data?.length) return [];
-
-    const rows = (data as SitioOficialJugadorRow[]).filter((row) =>
-      matchesGenderFilter(row.genero, genero)
-    );
+    const rows = await listGlobalSitioOficialRankingRows(dbCategory, genero);
+    if (!rows.length) return [];
 
     const sorted = [...rows].sort(
       (a, b) => Number(b.puntos_totales ?? 0) - Number(a.puntos_totales ?? 0)
