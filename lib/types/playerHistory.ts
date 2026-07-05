@@ -32,6 +32,13 @@ export interface PlayerHistoryEvent {
   partidos: PlayerHistoryMatch[];
   /** Club de origen en historial multiclub (RPC oficial). */
   sourceClubName?: string | null;
+  /** Enriquecimiento Passport (derivado, no persistido). */
+  organizerName?: string | null;
+  partners?: string[];
+  rivals?: string[];
+  ratingChange?: number | null;
+  ratingAfter?: number | null;
+  resultLabel?: string | null;
 }
 
 export interface PlayerRival {
@@ -45,4 +52,5 @@ export interface PlayerRival {
   draws: number;
   hasFaced: boolean;
   lastMatchDate: string | null;
+  timesFaced?: number;
 }

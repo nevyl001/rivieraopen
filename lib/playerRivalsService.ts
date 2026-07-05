@@ -628,6 +628,7 @@ export async function getPlayerRivals(
         draws: record.draws,
         hasFaced: true,
         lastMatchDate: record.lastMatchDate,
+        timesFaced: record.wins + record.losses + record.draws,
       });
     }
 

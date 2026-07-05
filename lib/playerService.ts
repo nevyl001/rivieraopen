@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import {
   Category,
@@ -22,6 +23,19 @@ import {
   mapOfficialHistorialToHistoryEvents,
 } from "@/lib/officialPlayerProfileService";
 import { getGlobalSitioOficialRankingPosicion } from "@/lib/globalRankingPosition";
+import {
+  fetchOrganizerNamesByIds,
+  loadPlayerPassportIdentity,
+  type OfficialPlayerIdentityEmbed,
+} from "@/lib/playerPassportIdentityService";
+import {
+  computeAchievements,
+  computeCareerSummary,
+  computePartnerStats,
+  enrichHistoryEventsForPassport,
+} from "@/lib/playerPassportAnalyticsService";
+import { resolveShareProfileUrl } from "@/lib/playerPassportUrls";
+import { resolveJugadorIdFromProfileParam } from "@/lib/playerProfileRoutes";
 
 const DEFAULT_PHOTO = "/img/players/players-1.png";
 
@@ -70,7 +84,23 @@ interface RivieraJugadorRow {
   rating_partidos?: number | null;
   rating_fiabilidad?: number | null;
   jugador_stats: JugadorStatsRow | JugadorStatsRow[] | null;
+  riviera_official_player_identity?:
+    | {
+        riviera_id: string | null;
+        debut_at: string | null;
+      }
+    | {
+        riviera_id: string | null;
+        debut_at: string | null;
+      }[]
+    | null;
 }
+
+const JUGADOR_IDENTITY_EMBED = `
+        riviera_official_player_identity (
+          riviera_id,
+          debut_at
+        )`;
 
 const JUGADOR_SELECT_BASE = `
         id,
@@ -110,7 +140,8 @@ const JUGADOR_SELECT_BASE = `
           racha_actual,
           ultima_actividad,
           puntos_totales
-        )
+        ),
+        ${JUGADOR_IDENTITY_EMBED}
       `;
 
 const JUGADOR_SELECT_WITH_RATING = `
@@ -154,7 +185,8 @@ const JUGADOR_SELECT_WITH_RATING = `
           racha_actual,
           ultima_actividad,
           puntos_totales
-        )
+        ),
+        ${JUGADOR_IDENTITY_EMBED}
       `;
 
 let jugadorRatingColsInDb: boolean | null = null;
@@ -270,10 +302,13 @@ function mapRowToProfile(
  * Perfil público de un jugador desde Supabase (riviera_jugadores + RPC oficial).
  * Puntos, ranking e historial multiclub: get_riviera_oficial_jugador_public_profile.
  */
-export async function getJugadorPublico(
-  id: string
+export const getJugadorPublico = cache(async function getJugadorPublico(
+  profileParam: string
 ): Promise<PlayerProfileDetail | null> {
   try {
+    const id = await resolveJugadorIdFromProfileParam(profileParam);
+    if (!id) return null;
+
     const supabase = getSupabaseClient();
     if (!supabase) return null;
 
@@ -380,13 +415,73 @@ export async function getJugadorPublico(
           }
         : mergedStats;
 
+    const playerName = `${baseProfile.firstName} ${baseProfile.lastName}`.trim();
+    const fallbackDebutDate = historyEvents
+      .map((event) => event.fecha)
+      .filter(Boolean)
+      .sort()[0] ?? null;
+
+    const organizerIds = [
+      organizadorId,
+      ...officialProfile.historial
+        .map((entry) => entry.metadata?.organizador_id)
+        .filter((value): value is string => typeof value === "string"),
+    ];
+
+    const identityEmbed: OfficialPlayerIdentityEmbed | null = Array.isArray(
+      row.riviera_official_player_identity
+    )
+      ? (row.riviera_official_player_identity[0] ?? null)
+      : (row.riviera_official_player_identity ?? null);
+
+    const [passport, organizerNames] = await Promise.all([
+      loadPlayerPassportIdentity(row.id, {
+        registrationOrganizerId: organizadorId,
+        fallbackClubName: row.club,
+        fallbackDebutDate,
+        identityEmbed,
+      }),
+      fetchOrganizerNamesByIds(organizerIds),
+    ]);
+
+    const passportHistoryEvents = enrichHistoryEventsForPassport(
+      historyEvents,
+      officialProfile.historial,
+      organizerNames,
+      ratingHistorial,
+      playerName
+    );
+
+    const careerSummary = computeCareerSummary(
+      historyEvents,
+      passport.registrationClubName ?? row.club
+    );
+    const partners = computePartnerStats(
+      historyEvents,
+      officialProfile.historial,
+      playerName
+    );
+    const achievements = computeAchievements(
+      historyEvents,
+      stats.totalPartidos,
+      points,
+      careerSummary.totalClubs
+    );
+    const shareProfileUrl = resolveShareProfileUrl(row.id, passport.rivieraId);
+
     return {
       ...baseProfile,
       stats,
       ratingHistorial,
       seasonTimeline,
       historyEvents,
+      passportHistoryEvents,
       rivals,
+      passport,
+      careerSummary,
+      partners,
+      achievements,
+      shareProfileUrl,
     };
   } catch (err) {
     console.error(
@@ -395,4 +490,4 @@ export async function getJugadorPublico(
     );
     return null;
   }
-}
+});

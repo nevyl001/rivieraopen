@@ -8,6 +8,8 @@ interface ShareProfileButtonProps {
   playerId: string;
   playerName: string;
   rank: number | null;
+  shareUrl?: string;
+  canonicalUrl?: string | null;
 }
 
 /** Web Share solo en celular; Mac/PC siempre copian el enlace. */
@@ -23,6 +25,8 @@ export function ShareProfileButton({
   playerId,
   playerName,
   rank,
+  shareUrl,
+  canonicalUrl,
 }: ShareProfileButtonProps) {
   const { t } = useTranslation("rankings");
   const [copied, setCopied] = useState(false);
@@ -33,6 +37,15 @@ export function ShareProfileButton({
   }, []);
 
   const rankLabel = rank ? `#${rank}` : "—";
+
+  const resolveUrl = useCallback(() => {
+    if (shareUrl?.trim()) return shareUrl;
+    if (canonicalUrl?.trim()) return canonicalUrl;
+    if (typeof window !== "undefined") {
+      return `${window.location.origin}/players/${playerId}`;
+    }
+    return `/players/${playerId}`;
+  }, [canonicalUrl, playerId, shareUrl]);
 
   const copyLink = useCallback(async (url: string) => {
     try {
@@ -45,7 +58,7 @@ export function ShareProfileButton({
   }, [t]);
 
   const handleShare = useCallback(async () => {
-    const url = `${window.location.origin}/players/${playerId}`;
+    const url = resolveUrl();
 
     if (!shouldUseNativeShare()) {
       await copyLink(url);
@@ -66,13 +79,13 @@ export function ShareProfileButton({
       }
       await copyLink(url);
     }
-  }, [copyLink, playerId, playerName, rankLabel, t]);
+  }, [copyLink, playerName, rankLabel, resolveUrl, t]);
 
   return (
     <button
       type="button"
       onClick={handleShare}
-      className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#111] px-4 py-3 text-sm font-medium text-white transition-colors hover:border-[#555] hover:bg-[#1a1a1a] sm:w-auto sm:self-start"
+      className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#111] px-4 py-3 text-sm font-medium text-white transition-colors hover:border-[#555] hover:bg-[#1a1a1a] lg:w-auto lg:self-start"
     >
       {copied ? (
         <>

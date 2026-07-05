@@ -1,6 +1,5 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { PlayerPublicPage } from "@/components/players/PlayerPublicPage";
-import { fetchPublicJugadorIdForRivieraId } from "@/lib/playerPassportIdentityService";
 import { getJugadorPublico } from "@/lib/playerService";
 import { Metadata } from "next";
 
@@ -8,12 +7,15 @@ export const dynamic = "force-dynamic";
 
 interface PlayerPageProps {
   params: Promise<{
-    id: string;
+    rivieraId: string;
   }>;
 }
 
-async function loadPlayerMetadata(profileParam: string): Promise<Metadata> {
-  const player = await getJugadorPublico(profileParam);
+export async function generateMetadata({
+  params,
+}: PlayerPageProps): Promise<Metadata> {
+  const { rivieraId } = await params;
+  const player = await getJugadorPublico(rivieraId);
 
   if (!player) {
     return {
@@ -23,7 +25,7 @@ async function loadPlayerMetadata(profileParam: string): Promise<Metadata> {
 
   const fullName = `${player.firstName} ${player.lastName}`.trim();
   const passportTitle = player.passport?.rivieraId
-    ? `${fullName} | Riviera Player Passport`
+    ? `${fullName} | ${player.passport.rivieraId}`
     : `${fullName} - Riviera Open`;
 
   const metadata: Metadata = {
@@ -32,7 +34,7 @@ async function loadPlayerMetadata(profileParam: string): Promise<Metadata> {
     keywords: [
       "jugador pádel",
       fullName,
-      `categoría ${player.category}`,
+      player.passport?.rivieraId ?? "",
       "riviera open",
       "riviera player passport",
     ],
@@ -56,28 +58,12 @@ async function loadPlayerMetadata(profileParam: string): Promise<Metadata> {
   return metadata;
 }
 
-export async function generateMetadata({
-  params,
-}: PlayerPageProps): Promise<Metadata> {
-  const { id } = await params;
-  return loadPlayerMetadata(id);
-}
-
-export default async function LegacyPlayerPage({ params }: PlayerPageProps) {
-  const { id } = await params;
-  const player = await getJugadorPublico(id);
+export default async function CanonicalPlayerPage({ params }: PlayerPageProps) {
+  const { rivieraId } = await params;
+  const player = await getJugadorPublico(rivieraId);
 
   if (!player) {
     notFound();
-  }
-
-  if (player.passport?.rivieraId) {
-    const resolvedId = await fetchPublicJugadorIdForRivieraId(
-      player.passport.rivieraId
-    );
-    if (resolvedId === player.id) {
-      redirect(`/player/${player.passport.rivieraId}`);
-    }
   }
 
   return <PlayerPublicPage player={player} />;

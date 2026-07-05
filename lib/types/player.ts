@@ -1,4 +1,11 @@
 import type { PlayerHistoryEvent, PlayerRival } from "./playerHistory";
+import type {
+  PlayerAchievement,
+  PlayerCareerSummary,
+  PlayerPartnerStat,
+  PlayerPassportIdentity,
+  PassportHistoryEvent,
+} from "./playerPassport";
 
 export type Category = "Open" | "1" | "2" | "3" | "4" | "5" | "6";
 export type Gender = "Male" | "Female";
@@ -94,7 +101,13 @@ export interface PlayerProfileDetail extends Player {
   ratingHistorial?: RatingHistorialEntry[];
   seasonTimeline?: PlayerSeasonTimeline;
   historyEvents?: PlayerHistoryEvent[];
+  passportHistoryEvents?: PassportHistoryEvent[];
   rivals?: PlayerRival[];
+  passport?: PlayerPassportIdentity;
+  careerSummary?: PlayerCareerSummary;
+  partners?: PlayerPartnerStat[];
+  achievements?: PlayerAchievement[];
+  shareProfileUrl?: string;
 }
 
 /**

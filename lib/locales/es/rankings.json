@@ -157,5 +157,43 @@
       "h2hScore": "{{wins}}G · {{losses}}P",
       "h2hScoreWithDraws": "{{wins}}G · {{losses}}P · {{draws}}E"
     }
+  },
+  "passport": {
+    "statusOfficial": "Oficial Riviera",
+    "statusLocal": "Local",
+    "rivieraId": "Riviera ID",
+    "registrationClub": "Club de Registro",
+    "debutRiviera": "Debut Riviera",
+    "debutSeason": "Temporada de Debut",
+    "canonicalUrl": "URL canónica",
+    "careerTitle": "Carrera Deportiva Riviera",
+    "totalClubs": "Total de clubes",
+    "totalEvents": "Total de eventos",
+    "totalTournaments": "Total de torneos",
+    "totalRetas": "Total de retas",
+    "totalLeagues": "Total de ligas",
+    "totalAmericans": "Total de americanos",
+    "totalDuels": "Total de duelos",
+    "clubsPlayedTitle": "Clubes donde ha jugado",
+    "clubsPlayedSubtitle": "Participaciones acumuladas en la carrera oficial Riviera",
+    "clubEventCount": "{{count}} eventos",
+    "partnersTitle": "Compañeros más frecuentes",
+    "partnersSubtitle": "Partidos jugados juntos en la carrera oficial",
+    "partnerMatches": "{{count}} partidos juntos",
+    "partnerRecord": "{{wins}}G · {{losses}}P",
+    "achievementsTitle": "Logros",
+    "timesFaced": "{{count}} enfrentamientos",
+    "historyPartners": "Compañero(s)",
+    "achievements": {
+      "firstTournament": "Primer torneo",
+      "firstWin": "Primera victoria",
+      "tournamentChampion": "Campeón de torneo",
+      "matches100": "100 partidos",
+      "matches250": "250 partidos",
+      "points500": "500 puntos Riviera",
+      "points1000": "1000 puntos Riviera",
+      "clubs5": "5 clubes distintos",
+      "tournaments10": "10 torneos"
+    }
   }
 }

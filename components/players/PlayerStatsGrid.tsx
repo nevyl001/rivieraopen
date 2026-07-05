@@ -40,17 +40,20 @@ export function PlayerStatsGrid({ player }: PlayerStatsGridProps) {
 
   return (
     <div>
-      <h2 className="mb-4 text-[10px] uppercase tracking-[0.18em] text-[#555]">
+      <h2 className="mb-3 text-[10px] uppercase tracking-[0.18em] text-[#555] lg:mb-4">
         {t("profile.matchStats")}
       </h2>
 
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[10px] bg-[#222] md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 lg:gap-px lg:overflow-hidden lg:rounded-[10px] lg:bg-[#222] xl:grid-cols-3">
         {items.map((item) => (
-          <div key={item.label} className="bg-[#111] px-4 py-4">
-            <p className="mb-2 text-[10px] uppercase tracking-wide text-[#555]">
+          <div
+            key={item.label}
+            className="rounded-[10px] border border-[#222] bg-[#111] px-4 py-3 lg:rounded-none lg:border-0 lg:py-4"
+          >
+            <p className="mb-1.5 text-[10px] uppercase tracking-wide text-[#555] lg:mb-2">
               {item.label}
             </p>
-            <p className="text-[26px] font-medium tabular-nums leading-none text-white">
+            <p className="text-2xl font-medium tabular-nums leading-none text-white lg:text-[26px]">
               {item.value}
             </p>
           </div>
@@ -58,7 +61,7 @@ export function PlayerStatsGrid({ player }: PlayerStatsGridProps) {
       </div>
 
       {stats.ultimaActividad && (
-        <div className="mt-4 flex items-center justify-between border-t border-[#222] pt-4 text-sm">
+        <div className="mt-3 flex flex-col gap-1 border-t border-[#222] pt-3 text-sm sm:flex-row sm:items-center sm:justify-between lg:mt-4 lg:pt-4">
           <span className="text-[10px] uppercase tracking-[0.18em] text-[#555]">
             {t("profile.lastActivity")}
           </span>
