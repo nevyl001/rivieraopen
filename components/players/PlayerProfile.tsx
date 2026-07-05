@@ -32,7 +32,7 @@ function PlayerPhotoFrame({
 }) {
   const frameClass =
     variant === "mobile"
-      ? "size-[112px] shrink-0 overflow-hidden rounded-xl bg-[#111] ring-1 ring-[#2a2a2a]"
+      ? "mx-auto size-[168px] shrink-0 overflow-hidden rounded-2xl bg-[#111] shadow-[0_10px_40px_rgba(0,0,0,0.55)] ring-2 ring-[#1D9E75]/20 sm:size-[180px]"
       : "size-[280px] shrink-0 overflow-hidden rounded-2xl bg-[#111] ring-1 ring-[#2a2a2a] sm:size-[300px] lg:size-[320px]";
 
   return (
@@ -77,9 +77,11 @@ function StatusBadge({
 function RivieraIdCopyButton({
   rivieraId,
   compact = false,
+  centered = false,
 }: {
   rivieraId: string;
   compact?: boolean;
+  centered?: boolean;
 }) {
   const { t } = useTranslation("rankings");
   const [copied, setCopied] = useState(false);
@@ -98,8 +100,12 @@ function RivieraIdCopyButton({
     <button
       type="button"
       onClick={handleCopy}
-      className={`group flex w-full min-w-0 items-center gap-2 text-left ${
-        compact ? "justify-start" : "justify-center lg:justify-start"
+      className={`group flex w-full min-w-0 items-center gap-2 ${
+        centered
+          ? "justify-center"
+          : compact
+            ? "justify-start"
+            : "justify-center lg:justify-start"
       }`}
       aria-label={t("passport.copyId")}
     >
@@ -266,7 +272,7 @@ export function PlayerProfile({ player }: PlayerProfileProps) {
 
   const compactRegistrationLine =
     passport?.registrationClubName || passport?.debutDate ? (
-      <p className="text-left text-[11px] leading-relaxed text-[#777] lg:hidden">
+      <p className="text-center text-[11px] leading-relaxed text-[#777] lg:hidden">
         {passport.registrationClubName && (
           <>
             <span className="text-[#555]">{t("passport.registrationClub")}: </span>
@@ -297,12 +303,12 @@ export function PlayerProfile({ player }: PlayerProfileProps) {
       </div>
 
       {/* Mobile credential hero */}
-      <div className="overflow-hidden rounded-[14px] border border-[#1f1f1f] bg-[#0d0d0d] p-3 lg:hidden">
-        <p className="mb-2 text-center text-[9px] uppercase tracking-[0.18em] text-[#555]">
+      <div className="overflow-hidden rounded-[14px] border border-[#1f1f1f] bg-[#0d0d0d] p-3.5 lg:hidden">
+        <p className="mb-3 text-center text-[9px] uppercase tracking-[0.18em] text-[#555]">
           Riviera Player Passport
         </p>
 
-        <div className="flex items-start gap-3">
+        <div className="flex flex-col items-center text-center">
           <PlayerPhotoFrame
             src={player.photo}
             alt={playerName}
@@ -310,34 +316,36 @@ export function PlayerProfile({ player }: PlayerProfileProps) {
             variant="mobile"
           />
 
-          <div className="min-w-0 flex-1 text-left">
-            <h1 className="break-words text-xl font-medium leading-tight text-white">
-              {playerName}
-            </h1>
+          <h1 className="mt-3 break-words text-[22px] font-medium leading-tight text-white">
+            {playerName}
+          </h1>
 
-            {passport?.rivieraId && (
-              <div className="mt-1.5">
-                <RivieraIdCopyButton rivieraId={passport.rivieraId} compact />
-              </div>
-            )}
-
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              <span className="rounded-full border border-[#444] px-2 py-0.5 text-[10px] text-[#aaa]">
-                {fuerzaLabel}
-              </span>
-              <span className="rounded-full border border-[#444] px-2 py-0.5 text-[10px] text-[#aaa]">
-                {player.gender === "Female"
-                  ? t("genders.femenil")
-                  : t("genders.varonil")}
-              </span>
-              {passport?.status && (
-                <StatusBadge
-                  status={passport.status}
-                  label={statusLabel}
-                  compact
-                />
-              )}
+          {passport?.rivieraId && (
+            <div className="mt-2 w-full">
+              <RivieraIdCopyButton
+                rivieraId={passport.rivieraId}
+                compact
+                centered
+              />
             </div>
+          )}
+
+          <div className="mt-2.5 flex flex-wrap justify-center gap-1.5">
+            <span className="rounded-full border border-[#444] px-2 py-0.5 text-[10px] text-[#aaa]">
+              {fuerzaLabel}
+            </span>
+            <span className="rounded-full border border-[#444] px-2 py-0.5 text-[10px] text-[#aaa]">
+              {player.gender === "Female"
+                ? t("genders.femenil")
+                : t("genders.varonil")}
+            </span>
+            {passport?.status && (
+              <StatusBadge
+                status={passport.status}
+                label={statusLabel}
+                compact
+              />
+            )}
           </div>
         </div>
 
