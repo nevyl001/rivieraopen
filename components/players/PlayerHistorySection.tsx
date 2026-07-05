@@ -44,9 +44,17 @@ function placementLabel(posicion: number | null, t: (key: string) => string) {
   return `${posicion}°`;
 }
 
-function MetaPill({ children }: { children: React.ReactNode }) {
+function MetaPill({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <span className="inline-flex max-w-full break-words rounded-full border border-[#2a2a2a] px-2 py-0.5 text-[11px] text-[#999] lg:text-xs">
+    <span
+      className={`inline-flex max-w-full break-words rounded-full border border-[#2a2a2a] px-2 py-0.5 text-[10px] text-[#999] lg:text-xs ${className}`}
+    >
       {children}
     </span>
   );
@@ -76,7 +84,7 @@ function HistoryEventCard({ event }: { event: PassportHistoryEvent }) {
         type="button"
         onClick={() => canExpand && setOpen((prev) => !prev)}
         disabled={!canExpand}
-        className={`w-full px-3 py-3 text-left transition-colors lg:px-4 lg:py-4 ${
+        className={`w-full px-2.5 py-2.5 text-left transition-colors lg:px-4 lg:py-4 ${
           canExpand ? "hover:bg-[#151515]" : "cursor-default"
         }`}
       >
@@ -97,20 +105,28 @@ function HistoryEventCard({ event }: { event: PassportHistoryEvent }) {
               )}
             </div>
 
-            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-[#777] lg:mt-1.5 lg:gap-2 lg:text-xs">
+            <div className="mt-1.5 flex flex-wrap items-center gap-1 text-[10px] text-[#777] lg:mt-1.5 lg:gap-2 lg:text-xs">
               <MetaPill>{eventTypeLabel(event.tipoEvento)}</MetaPill>
-              {event.categoria && <MetaPill>{event.categoria}</MetaPill>}
               {clubName && <MetaPill>{clubName}</MetaPill>}
+              {event.categoria && (
+                <MetaPill className="hidden sm:inline-flex">{event.categoria}</MetaPill>
+              )}
               {event.organizerName &&
                 event.organizerName !== clubName && (
-                  <MetaPill>{event.organizerName}</MetaPill>
+                  <MetaPill className="hidden md:inline-flex">
+                    {event.organizerName}
+                  </MetaPill>
                 )}
-              {placement && <span className="break-words">{placement}</span>}
+              {placement && (
+                <span className="hidden break-words sm:inline">{placement}</span>
+              )}
               {event.resultLabel && (
-                <span className="break-words text-[#999]">{event.resultLabel}</span>
+                <span className="hidden break-words text-[#999] sm:inline">
+                  {event.resultLabel}
+                </span>
               )}
               {event.partners && event.partners.length > 0 && (
-                <span className="break-words text-[#888]">
+                <span className="hidden break-words text-[#888] lg:inline">
                   {t("passport.historyPartners")}: {event.partners.join(" · ")}
                 </span>
               )}
@@ -226,13 +242,13 @@ export function PlayerHistorySection({ events }: PlayerHistorySectionProps) {
   const { t } = useTranslation("rankings");
 
   return (
-    <div className="border-t border-[#222] pt-4 lg:pt-6">
-      <h2 className="mb-3 text-[10px] uppercase tracking-[0.18em] text-[#555] lg:mb-4">
+    <div className="border-t border-[#222] pt-3 lg:pt-6">
+      <h2 className="mb-2 text-[10px] uppercase tracking-[0.18em] text-[#555] lg:mb-4">
         {t("profile.activityHistory")}
       </h2>
 
       {events.length > 0 ? (
-        <div className="space-y-2 lg:space-y-3">
+        <div className="space-y-1.5 lg:space-y-3">
           {events.map((event) => (
             <HistoryEventCard key={event.id} event={event} />
           ))}

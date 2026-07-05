@@ -5,9 +5,13 @@ import { useTranslation } from "@/lib/hooks/useTranslation";
 
 interface PlayerStatsGridProps {
   player: PlayerProfileDetail;
+  hideTitle?: boolean;
 }
 
-export function PlayerStatsGrid({ player }: PlayerStatsGridProps) {
+export function PlayerStatsGrid({
+  player,
+  hideTitle = false,
+}: PlayerStatsGridProps) {
   const { t } = useTranslation("rankings");
   const { stats } = player;
 
@@ -40,20 +44,22 @@ export function PlayerStatsGrid({ player }: PlayerStatsGridProps) {
 
   return (
     <div>
-      <h2 className="mb-3 text-[10px] uppercase tracking-[0.18em] text-[#555] lg:mb-4">
-        {t("profile.matchStats")}
-      </h2>
+      {!hideTitle && (
+        <h2 className="mb-2 text-[10px] uppercase tracking-[0.18em] text-[#555] lg:mb-4">
+          {t("profile.matchStats")}
+        </h2>
+      )}
 
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 lg:gap-px lg:overflow-hidden lg:rounded-[10px] lg:bg-[#222] xl:grid-cols-3">
+      <div className="grid grid-cols-2 gap-1.5 lg:grid-cols-2 lg:gap-px lg:overflow-hidden lg:rounded-[10px] lg:bg-[#222] xl:grid-cols-3">
         {items.map((item) => (
           <div
             key={item.label}
-            className="rounded-[10px] border border-[#222] bg-[#111] px-4 py-3 lg:rounded-none lg:border-0 lg:py-4"
+            className="rounded-lg border border-[#222] bg-[#111] px-2.5 py-2 lg:rounded-none lg:border-0 lg:px-4 lg:py-4"
           >
-            <p className="mb-1.5 text-[10px] uppercase tracking-wide text-[#555] lg:mb-2">
+            <p className="mb-0.5 text-[9px] uppercase tracking-wide text-[#555] lg:mb-2 lg:text-[10px]">
               {item.label}
             </p>
-            <p className="text-2xl font-medium tabular-nums leading-none text-white lg:text-[26px]">
+            <p className="text-lg font-medium tabular-nums leading-none text-white lg:text-[26px]">
               {item.value}
             </p>
           </div>
@@ -61,11 +67,13 @@ export function PlayerStatsGrid({ player }: PlayerStatsGridProps) {
       </div>
 
       {stats.ultimaActividad && (
-        <div className="mt-3 flex flex-col gap-1 border-t border-[#222] pt-3 text-sm sm:flex-row sm:items-center sm:justify-between lg:mt-4 lg:pt-4">
+        <div className="mt-2 flex flex-col gap-0.5 border-t border-[#222] pt-2 text-sm sm:flex-row sm:items-center sm:justify-between lg:mt-4 lg:pt-4">
           <span className="text-[10px] uppercase tracking-[0.18em] text-[#555]">
             {t("profile.lastActivity")}
           </span>
-          <span className="font-medium text-white">{stats.ultimaActividad}</span>
+          <span className="text-xs font-medium text-white lg:text-sm">
+            {stats.ultimaActividad}
+          </span>
         </div>
       )}
     </div>
