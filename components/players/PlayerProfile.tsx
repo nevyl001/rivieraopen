@@ -23,17 +23,13 @@ function PlayerPhotoFrame({
   src,
   alt,
   priority = false,
-  variant = "desktop",
 }: {
   src: string;
   alt: string;
   priority?: boolean;
-  variant?: "mobile" | "desktop";
 }) {
   const frameClass =
-    variant === "mobile"
-      ? "mx-auto size-[168px] shrink-0 overflow-hidden rounded-2xl bg-[#111] shadow-[0_10px_40px_rgba(0,0,0,0.55)] ring-2 ring-[#1D9E75]/20 sm:size-[180px]"
-      : "size-[280px] shrink-0 overflow-hidden rounded-2xl bg-[#111] ring-1 ring-[#2a2a2a] sm:size-[300px] lg:size-[320px]";
+    "size-[280px] shrink-0 overflow-hidden rounded-2xl bg-[#111] ring-1 ring-[#2a2a2a] sm:size-[300px] lg:size-[320px]";
 
   return (
     <div className={frameClass}>
@@ -78,10 +74,12 @@ function RivieraIdCopyButton({
   rivieraId,
   compact = false,
   centered = false,
+  onDark = false,
 }: {
   rivieraId: string;
   compact?: boolean;
   centered?: boolean;
+  onDark?: boolean;
 }) {
   const { t } = useTranslation("rankings");
   const [copied, setCopied] = useState(false);
@@ -118,7 +116,13 @@ function RivieraIdCopyButton({
       >
         {rivieraId}
       </span>
-      <span className="shrink-0 text-[#555] transition-colors group-hover:text-[#1D9E75]">
+      <span
+        className={`shrink-0 transition-colors ${
+          onDark
+            ? "text-white/55 group-hover:text-white"
+            : "text-[#555] group-hover:text-[#1D9E75]"
+        }`}
+      >
         {copied ? (
           <Check size={compact ? 14 : 16} className="text-emerald-400" />
         ) : (
@@ -159,24 +163,123 @@ function HeaderStatGrid({
 
 function MobileMetricGrid({
   stats,
+  overlay = false,
 }: {
   stats: Array<{ label: string; value: string }>;
+  overlay?: boolean;
 }) {
   return (
     <div className="grid grid-cols-2 gap-1.5">
       {stats.map((stat) => (
         <div
           key={stat.label}
-          className="rounded-lg border border-[#222] bg-[#111] px-2.5 py-2"
+          className={
+            overlay
+              ? "rounded-lg bg-black/50 px-2 py-1.5 ring-1 ring-white/10 backdrop-blur-md"
+              : "rounded-lg border border-[#222] bg-[#111] px-2.5 py-2"
+          }
         >
-          <p className="text-[9px] uppercase tracking-wide text-[#555]">
+          <p
+            className={`text-[8px] uppercase tracking-wide ${
+              overlay ? "text-white/60" : "text-[#555]"
+            }`}
+          >
             {stat.label}
           </p>
-          <p className="mt-0.5 text-lg font-medium tabular-nums leading-none text-white">
+          <p className="mt-0.5 text-base font-medium tabular-nums leading-none text-white">
             {stat.value}
           </p>
         </div>
       ))}
+    </div>
+  );
+}
+
+function MobilePassportHeroCard({
+  photo,
+  photoAlt,
+  playerName,
+  mobileMetrics,
+  fuerzaLabel,
+  genderLabel,
+  passport,
+  statusLabel,
+  registrationLine,
+}: {
+  photo: string;
+  photoAlt: string;
+  playerName: string;
+  mobileMetrics: Array<{ label: string; value: string }>;
+  fuerzaLabel: string;
+  genderLabel: string;
+  passport: PlayerProfileDetail["passport"];
+  statusLabel: string;
+  registrationLine: React.ReactNode;
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-[#1f1f1f] shadow-[0_16px_48px_rgba(0,0,0,0.45)] lg:hidden">
+      <div className="relative aspect-[3/4] min-h-[360px] w-full max-h-[440px]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={photo}
+          alt={photoAlt}
+          loading="eager"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover object-[50%_18%]"
+        />
+
+        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/15 to-black/92" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
+
+        <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3">
+          <span className="text-[9px] uppercase tracking-[0.18em] text-white/75">
+            Riviera Player Passport
+          </span>
+          {passport?.status && (
+            <StatusBadge
+              status={passport.status}
+              label={statusLabel}
+              compact
+            />
+          )}
+        </div>
+
+        <div className="absolute inset-x-0 bottom-0 p-3.5 pt-10 text-center">
+          <h1 className="break-words text-[24px] font-medium leading-tight text-white drop-shadow-sm">
+            {playerName}
+          </h1>
+
+          {passport?.rivieraId && (
+            <div className="mt-2">
+              <RivieraIdCopyButton
+                rivieraId={passport.rivieraId}
+                compact
+                centered
+                onDark
+              />
+            </div>
+          )}
+
+          <div className="mt-2.5 flex flex-wrap justify-center gap-1.5">
+            <span className="rounded-full border border-white/15 bg-black/40 px-2 py-0.5 text-[10px] text-white/90 backdrop-blur-sm">
+              {fuerzaLabel}
+            </span>
+            <span className="rounded-full border border-white/15 bg-black/40 px-2 py-0.5 text-[10px] text-white/90 backdrop-blur-sm">
+              {genderLabel}
+            </span>
+          </div>
+
+          <div className="mt-3">
+            <MobileMetricGrid stats={mobileMetrics} overlay />
+          </div>
+
+          {registrationLine && (
+            <div className="mt-2.5 text-[10px] leading-relaxed text-white/65">
+              {registrationLine}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -272,23 +375,23 @@ export function PlayerProfile({ player }: PlayerProfileProps) {
 
   const compactRegistrationLine =
     passport?.registrationClubName || passport?.debutDate ? (
-      <p className="text-center text-[11px] leading-relaxed text-[#777] lg:hidden">
+      <>
         {passport.registrationClubName && (
           <>
-            <span className="text-[#555]">{t("passport.registrationClub")}: </span>
-            <span className="text-[#ccc]">{passport.registrationClubName}</span>
+            <span className="text-white/50">{t("passport.registrationClub")}: </span>
+            <span>{passport.registrationClubName}</span>
           </>
         )}
         {passport.registrationClubName && passport.debutDate && (
-          <span className="text-[#444]"> · </span>
+          <span className="text-white/35"> · </span>
         )}
         {passport.debutDate && (
           <>
-            <span className="text-[#555]">{t("passport.debutShort")}: </span>
-            <span className="text-[#ccc]">{formatShortDate(passport.debutDate)}</span>
+            <span className="text-white/50">{t("passport.debutShort")}: </span>
+            <span>{formatShortDate(passport.debutDate)}</span>
           </>
         )}
-      </p>
+      </>
     ) : null;
 
   return (
@@ -302,79 +405,39 @@ export function PlayerProfile({ player }: PlayerProfileProps) {
         )}
       </div>
 
-      {/* Mobile credential hero */}
-      <div className="overflow-hidden rounded-[14px] border border-[#1f1f1f] bg-[#0d0d0d] p-3.5 lg:hidden">
-        <p className="mb-3 text-center text-[9px] uppercase tracking-[0.18em] text-[#555]">
-          Riviera Player Passport
-        </p>
+      <MobilePassportHeroCard
+        photo={player.photo}
+        photoAlt={playerName}
+        playerName={playerName}
+        mobileMetrics={mobileMetrics}
+        fuerzaLabel={fuerzaLabel}
+        genderLabel={
+          player.gender === "Female"
+            ? t("genders.femenil")
+            : t("genders.varonil")
+        }
+        passport={passport}
+        statusLabel={statusLabel}
+        registrationLine={compactRegistrationLine}
+      />
 
-        <div className="flex flex-col items-center text-center">
-          <PlayerPhotoFrame
-            src={player.photo}
-            alt={playerName}
-            priority
-            variant="mobile"
-          />
-
-          <h1 className="mt-3 break-words text-[22px] font-medium leading-tight text-white">
-            {playerName}
-          </h1>
-
-          {passport?.rivieraId && (
-            <div className="mt-2 w-full">
-              <RivieraIdCopyButton
-                rivieraId={passport.rivieraId}
-                compact
-                centered
-              />
-            </div>
-          )}
-
-          <div className="mt-2.5 flex flex-wrap justify-center gap-1.5">
-            <span className="rounded-full border border-[#444] px-2 py-0.5 text-[10px] text-[#aaa]">
-              {fuerzaLabel}
-            </span>
-            <span className="rounded-full border border-[#444] px-2 py-0.5 text-[10px] text-[#aaa]">
-              {player.gender === "Female"
-                ? t("genders.femenil")
-                : t("genders.varonil")}
-            </span>
-            {passport?.status && (
-              <StatusBadge
-                status={passport.status}
-                label={statusLabel}
-                compact
-              />
-            )}
-          </div>
-        </div>
-
-        <div className="mt-3">
-          <MobileMetricGrid stats={mobileMetrics} />
-        </div>
-
-        {compactRegistrationLine && (
-          <div className="mt-2.5">{compactRegistrationLine}</div>
-        )}
-
-        <div className="mt-3 hidden gap-2 sm:flex">
-          <ShareProfileButton
-            playerId={player.id}
-            playerName={playerName}
-            rank={player.rank}
-            shareUrl={player.shareProfileUrl}
-            canonicalUrl={passport?.canonicalProfileUrl}
-            className="flex-1"
-          />
-          <button
-            type="button"
-            onClick={() => setQrOpen(true)}
-            className="flex shrink-0 items-center justify-center rounded-lg border border-[#333] bg-[#111] px-3 py-3 text-white"
-            aria-label={t("passport.qrTitle")}
-          >
-            <QrCode size={18} />
-          </button>
-        </div>
+      <div className="hidden gap-2 sm:flex lg:hidden">
+        <ShareProfileButton
+          playerId={player.id}
+          playerName={playerName}
+          rank={player.rank}
+          shareUrl={player.shareProfileUrl}
+          canonicalUrl={passport?.canonicalProfileUrl}
+          className="flex-1"
+        />
+        <button
+          type="button"
+          onClick={() => setQrOpen(true)}
+          className="flex shrink-0 items-center justify-center rounded-lg border border-[#333] bg-[#111] px-3 py-3 text-white"
+          aria-label={t("passport.qrTitle")}
+        >
+          <QrCode size={18} />
+        </button>
       </div>
 
       {/* Desktop passport header */}
