@@ -21,6 +21,10 @@
     "inThisLevel": "in this level",
     "howRankingsWork": "How Rankings Work",
     "pointSystem": "Point System",
+    "searchByName": "Search by name",
+    "searchPlaceholder": "Search by name...",
+    "clearSearch": "Clear search",
+    "showingFiltered": "Showing {{count}} of {{total}} players",
     "rank": "Rank",
     "pts": "pts"
   },
@@ -47,56 +51,63 @@
     "semifinalist": "Semifinalist"
   },
   "pointSystem": {
-    "description": "Players accumulate points in tournaments, leagues, americans and challenges. The more you play and the better you perform, the higher your ranking.",
+    "description": "Players accumulate points in challenges, americans, 2v2 duels, express tournaments and leagues. The more you play and the better you perform, the higher your ranking.",
     "table": {
       "concept": "Concept",
       "points": "Points"
     },
     "tournament": {
-      "title": "Tournament",
-      "subtitle": "The full path adds up to 600 pts:",
-      "note": "Concepts stack: the champion earns participation + stages + podium.",
-      "participate": "Participate",
-      "groupStage": "Advance from group stage",
-      "semiFinal": "Reach semi-final",
-      "final": "Reach the final",
-      "champion": "Champion",
-      "runnerUp": "Runner-up",
-      "semiFinalists": "Semi-finalists (3rd / 4th)"
+      "title": "Express Tournament",
+      "subtitle": "Cumulative points:",
+      "note": "Example: a champion earns ~600 pts (50 participation + 100 groups + 50 semis + 100 final + 300 podium).",
+      "participate": "Participation",
+      "groupStage": "Group stage",
+      "semiFinal": "Semi-final",
+      "final": "Final",
+      "champion": "Podium: 1st place",
+      "runnerUp": "Podium: 2nd place",
+      "semiFinalists": "Podium: 3rd place"
     },
     "league": {
       "title": "League",
-      "firstRegistration": "First registration in the season",
-      "winRound": "Win a matchday",
-      "champion": "League champion",
-      "runnerUp": "Runner-up",
-      "thirdPlace": "Third place"
+      "firstRegistration": "Registration",
+      "winRound": "Matchday won",
+      "champion": "Final podium: 1st place",
+      "runnerUp": "Final podium: 2nd place",
+      "thirdPlace": "Final podium: 3rd place"
     },
     "american": {
       "title": "American",
-      "participate": "Participate",
-      "winDuel": "Each duel win",
-      "champion": "Champion",
-      "runnerUp": "Runner-up",
-      "thirdPlace": "Third place"
+      "note": "Example: a champion with 6 wins earns ~140 pts (30 base + 30 wins + 80 podium).",
+      "participate": "Base",
+      "winDuel": "Per win",
+      "champion": "Podium: 1st place",
+      "runnerUp": "Podium: 2nd place",
+      "thirdPlace": "Podium: 3rd place"
+    },
+    "duel2v2": {
+      "title": "2v2 Duel",
+      "winner": "Winner",
+      "loser": "Loser"
     },
     "challenge": {
-      "title": "Challenge (individual or teams)",
-      "participate": "Participate (4th place onwards)",
-      "champion": "Champion",
-      "runnerUp": "Runner-up",
-      "thirdPlace": "Third place"
+      "title": "Challenge",
+      "participate": "4th place onwards",
+      "champion": "1st place",
+      "runnerUp": "2nd place",
+      "thirdPlace": "3rd place"
     },
     "rules": {
       "title": "General rules",
       "noDeduction": "You only gain points; none are deducted for losing.",
       "tieBreak": "Rankings are ordered by total points; ties share the same position.",
-      "autoRegister": "Points are recorded automatically when challenges, tournaments, leagues and americans finish.",
+      "autoRegister": "Points are recorded automatically when challenges, tournaments, leagues, americans and duels finish.",
       "liveRanking": "Check the live ranking and your history in the app."
     }
   },
   "messages": {
     "noPlayers": "No players found at this level.",
+    "noSearchResults": "No players found with that name.",
     "loadingRankings": "Loading rankings...",
     "playerNotFound": "Player not found."
   },

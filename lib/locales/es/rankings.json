@@ -21,6 +21,10 @@
     "inThisLevel": "en esta categoría",
     "howRankingsWork": "Cómo Funcionan los Rankings",
     "pointSystem": "Sistema de Puntos",
+    "searchByName": "Buscar por nombre",
+    "searchPlaceholder": "Buscar por nombre...",
+    "clearSearch": "Limpiar búsqueda",
+    "showingFiltered": "Mostrando {{count}} de {{total}} jugadores",
     "rank": "Ranking",
     "pts": "pts"
   },
@@ -47,56 +51,63 @@
     "semifinalist": "Semifinalista"
   },
   "pointSystem": {
-    "description": "Los jugadores acumulan puntos en torneos, ligas, americanos y retas. Mientras más participes y mejor rindas, más alto será tu ranking.",
+    "description": "Los jugadores acumulan puntos en retas, americanos, duelos 2v2, torneos express y ligas. Mientras más participes y mejor rindas, más alto será tu ranking.",
     "table": {
       "concept": "Concepto",
       "points": "Puntos"
     },
     "tournament": {
-      "title": "Torneo",
-      "subtitle": "El camino completo suma hasta 600 pts:",
-      "note": "Los conceptos se acumulan: quien gana el torneo suma participación + fases + podio.",
-      "participate": "Participar",
-      "groupStage": "Pasar fase de grupos",
-      "semiFinal": "Llegar a semifinal",
-      "final": "Llegar a la final",
-      "champion": "Campeón",
-      "runnerUp": "Subcampeón",
-      "semiFinalists": "Semifinalistas (3.º / 4.º)"
+      "title": "Torneo Express",
+      "subtitle": "Puntos acumulativos:",
+      "note": "Ejemplo: un campeón suma ~600 pts (50 participación + 100 grupos + 50 semis + 100 final + 300 podio).",
+      "participate": "Participación",
+      "groupStage": "Fase de grupos",
+      "semiFinal": "Semifinal",
+      "final": "Final",
+      "champion": "Podio: 1.º lugar",
+      "runnerUp": "Podio: 2.º lugar",
+      "semiFinalists": "Podio: 3.º lugar"
     },
     "league": {
       "title": "Liga",
-      "firstRegistration": "Primera inscripción en la temporada",
-      "winRound": "Ganar una jornada",
-      "champion": "Campeón de liga",
-      "runnerUp": "Subcampeón",
-      "thirdPlace": "Tercer lugar"
+      "firstRegistration": "Inscripción",
+      "winRound": "Jornada ganada",
+      "champion": "Podio final: 1.º lugar",
+      "runnerUp": "Podio final: 2.º lugar",
+      "thirdPlace": "Podio final: 3.º lugar"
     },
     "american": {
       "title": "Americano",
-      "participate": "Participar",
-      "winDuel": "Cada victoria en duelo",
-      "champion": "Campeón",
-      "runnerUp": "Subcampeón",
-      "thirdPlace": "Tercer lugar"
+      "note": "Ejemplo: campeón con 6 victorias suma ~140 pts (30 base + 30 victorias + 80 podio).",
+      "participate": "Base",
+      "winDuel": "Por victoria",
+      "champion": "Podio: 1.º lugar",
+      "runnerUp": "Podio: 2.º lugar",
+      "thirdPlace": "Podio: 3.º lugar"
+    },
+    "duel2v2": {
+      "title": "Duelo 2v2",
+      "winner": "Ganador",
+      "loser": "Perdedor"
     },
     "challenge": {
-      "title": "Reta (individual o por equipos)",
-      "participate": "Participar (4.º en adelante)",
-      "champion": "Campeón",
-      "runnerUp": "Subcampeón",
-      "thirdPlace": "Tercer lugar"
+      "title": "Reta",
+      "participate": "4.º lugar en adelante",
+      "champion": "1.º lugar",
+      "runnerUp": "2.º lugar",
+      "thirdPlace": "3.º lugar"
     },
     "rules": {
       "title": "Reglas generales",
       "noDeduction": "Solo sumas puntos; no se restan por perder.",
       "tieBreak": "El ranking ordena por total de puntos; si hay empate, comparten posición.",
-      "autoRegister": "Los puntos se registran automáticamente al terminar retas, torneos, ligas y americanos.",
+      "autoRegister": "Los puntos se registran automáticamente al terminar retas, torneos, ligas, americanos y duelos.",
       "liveRanking": "Consulta el ranking en vivo y tu historial en la app."
     }
   },
   "messages": {
     "noPlayers": "No se encontraron jugadores en este nivel.",
+    "noSearchResults": "No se encontraron jugadores con ese nombre.",
     "loadingRankings": "Cargando rankings...",
     "playerNotFound": "Jugador no encontrado."
   },

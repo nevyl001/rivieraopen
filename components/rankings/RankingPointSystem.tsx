@@ -56,14 +56,41 @@ export function RankingPointSystem() {
 
   const sections: PointSection[] = [
     {
+      title: t("pointSystem.challenge.title"),
+      rows: [
+        { concept: t("pointSystem.challenge.champion"), points: "100" },
+        { concept: t("pointSystem.challenge.runnerUp"), points: "75" },
+        { concept: t("pointSystem.challenge.thirdPlace"), points: "50" },
+        { concept: t("pointSystem.challenge.participate"), points: "25" },
+      ],
+    },
+    {
+      title: t("pointSystem.american.title"),
+      note: t("pointSystem.american.note"),
+      rows: [
+        { concept: t("pointSystem.american.participate"), points: "30" },
+        { concept: t("pointSystem.american.winDuel"), points: "+5" },
+        { concept: t("pointSystem.american.champion"), points: "80" },
+        { concept: t("pointSystem.american.runnerUp"), points: "40" },
+        { concept: t("pointSystem.american.thirdPlace"), points: "20" },
+      ],
+    },
+    {
+      title: t("pointSystem.duel2v2.title"),
+      rows: [
+        { concept: t("pointSystem.duel2v2.winner"), points: "50" },
+        { concept: t("pointSystem.duel2v2.loser"), points: "20" },
+      ],
+    },
+    {
       title: t("pointSystem.tournament.title"),
       subtitle: t("pointSystem.tournament.subtitle"),
       note: t("pointSystem.tournament.note"),
       rows: [
         { concept: t("pointSystem.tournament.participate"), points: "50" },
-        { concept: t("pointSystem.tournament.groupStage"), points: "100" },
-        { concept: t("pointSystem.tournament.semiFinal"), points: "50" },
-        { concept: t("pointSystem.tournament.final"), points: "100" },
+        { concept: t("pointSystem.tournament.groupStage"), points: "+100" },
+        { concept: t("pointSystem.tournament.semiFinal"), points: "+50" },
+        { concept: t("pointSystem.tournament.final"), points: "+100" },
         { concept: t("pointSystem.tournament.champion"), points: "+300" },
         { concept: t("pointSystem.tournament.runnerUp"), points: "+150" },
         { concept: t("pointSystem.tournament.semiFinalists"), points: "+50" },
@@ -73,29 +100,10 @@ export function RankingPointSystem() {
       title: t("pointSystem.league.title"),
       rows: [
         { concept: t("pointSystem.league.firstRegistration"), points: "100" },
-        { concept: t("pointSystem.league.winRound"), points: "50" },
+        { concept: t("pointSystem.league.winRound"), points: "+50" },
         { concept: t("pointSystem.league.champion"), points: "500" },
         { concept: t("pointSystem.league.runnerUp"), points: "250" },
         { concept: t("pointSystem.league.thirdPlace"), points: "100" },
-      ],
-    },
-    {
-      title: t("pointSystem.american.title"),
-      rows: [
-        { concept: t("pointSystem.american.participate"), points: "30" },
-        { concept: t("pointSystem.american.winDuel"), points: "5" },
-        { concept: t("pointSystem.american.champion"), points: "80" },
-        { concept: t("pointSystem.american.runnerUp"), points: "40" },
-        { concept: t("pointSystem.american.thirdPlace"), points: "20" },
-      ],
-    },
-    {
-      title: t("pointSystem.challenge.title"),
-      rows: [
-        { concept: t("pointSystem.challenge.participate"), points: "25" },
-        { concept: t("pointSystem.challenge.champion"), points: "100" },
-        { concept: t("pointSystem.challenge.runnerUp"), points: "75" },
-        { concept: t("pointSystem.challenge.thirdPlace"), points: "50" },
       ],
     },
   ];
