@@ -1,33 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { archiveRetaResults } from "@/lib/retaArchiveService";
+import { isRetaArchiveAuthorized } from "@/lib/retaArchiveApiAuth";
 
 export const dynamic = "force-dynamic";
-
-function isAuthorized(request: NextRequest): boolean {
-  const secret = process.env.RETA_ARCHIVE_SECRET?.trim();
-  if (!secret) return false;
-
-  const header = request.headers.get("authorization")?.trim();
-  if (header === `Bearer ${secret}`) return true;
-
-  const querySecret = request.nextUrl.searchParams.get("secret")?.trim();
-  return querySecret === secret;
-}
 
 /**
  * POST /api/retas/[retaId]/archive-results
  *
- * Archiva partidos de la reta en jugador_participaciones.metadata.partidos_detalle
- * para que el historial sobreviva si se borra la reta.
+ * Archiva partidos de la reta en jugador_participaciones.metadata.partidos_detalle.
+ * Llamar al cerrar la reta, ANTES de eliminar matches.
  *
- * Llamar desde la app al cerrar la reta, ANTES de eliminar matches.
+ * La reta puede cerrarse (puntos/ranking) aunque canDeleteMatches sea false.
+ * Solo borrar matches cuando canDeleteMatches === true.
+ *
  * Header: Authorization: Bearer <RETA_ARCHIVE_SECRET>
  */
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ retaId: string }> }
 ) {
-  if (!isAuthorized(request)) {
+  if (!isRetaArchiveAuthorized(request)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
@@ -46,7 +38,7 @@ export async function POST(
 
   const result = await archiveRetaResults(retaId.trim(), { force });
 
-  if (result.errors.length && result.updated === 0) {
+  if (result.errors.length && result.updated === 0 && result.alreadyArchived === 0) {
     return NextResponse.json(result, { status: 422 });
   }
 

@@ -7,8 +7,12 @@ import {
   RetaPartidoArchivado,
   RetaPartidoResultado,
   RetaParticipacionMetadataWithArchive,
+  type ArchiveRetaResultsSummary,
+  type RetaArchiveParticipacionFailure,
+  type RetaArchiveStatus,
 } from "@/lib/types/retaArchive";
 import { PlayerHistoryMatch } from "@/lib/types/playerHistory";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 interface GameRow {
   pair1_games: number | null;
@@ -164,17 +168,131 @@ export async function buildArchivedMatchesForPlayer(
   return archived.sort((a, b) => a.ronda - b.ronda);
 }
 
-export interface ArchiveRetaResultsSummary {
-  retaId: string;
-  updated: number;
-  skipped: number;
-  errors: string[];
+interface ParticipacionArchiveRow {
+  id: string;
+  jugador_id: string;
+  metadata: Record<string, unknown> | null;
+}
+
+function emptyArchiveSummary(retaId: string): ArchiveRetaResultsSummary {
+  return {
+    retaId,
+    total: 0,
+    updated: 0,
+    alreadyArchived: 0,
+    failed: 0,
+    archived: 0,
+    complete: false,
+    canDeleteMatches: false,
+    errors: [],
+    failures: [],
+  };
+}
+
+export function buildRetaArchiveStatus(
+  retaId: string,
+  participaciones: ParticipacionArchiveRow[],
+  jugadorNames: Map<string, string>
+): RetaArchiveStatus {
+  const failures: RetaArchiveParticipacionFailure[] = [];
+
+  for (const participacion of participaciones) {
+    const participacionId = participacion.id;
+    const jugadorId = participacion.jugador_id;
+    const jugadorNombre = jugadorNames.get(jugadorId);
+    const metadata = (participacion.metadata ??
+      {}) as RetaParticipacionMetadataWithArchive;
+    const archivedMatches = extractPartidosDetalle(metadata);
+
+    if (archivedMatches.length > 0) continue;
+
+    failures.push({
+      participacionId,
+      jugadorId,
+      jugadorNombre,
+      reason: "no_pairs_or_matches",
+      message: jugadorNombre
+        ? `${jugadorNombre}: sin partidos_detalle archivado`
+        : `Participación ${participacionId}: sin partidos_detalle archivado`,
+    });
+  }
+
+  const total = participaciones.length;
+  const archived = total - failures.length;
+
+  return {
+    retaId,
+    total,
+    archived,
+    complete: total > 0 && failures.length === 0,
+    canDeleteMatches: total > 0 && failures.length === 0,
+    failures,
+  };
+}
+
+/**
+ * Lee el estado de archivado sin escribir. Usar antes de borrar matches.
+ */
+export async function getRetaArchiveStatus(
+  retaId: string,
+  supabase?: SupabaseClient | null
+): Promise<RetaArchiveStatus> {
+  const client =
+    supabase ??
+    (await import("@/lib/supabaseAdminClient")).getSupabaseAdminClient() ??
+    getSupabaseClient();
+
+  if (!client) {
+    return {
+      retaId,
+      total: 0,
+      archived: 0,
+      complete: false,
+      canDeleteMatches: false,
+      failures: [],
+    };
+  }
+
+  const { data: participaciones, error } = await client
+    .from("jugador_participaciones")
+    .select("id, jugador_id, metadata")
+    .eq("tipo_evento", "reta")
+    .eq("evento_id", retaId);
+
+  if (error || !participaciones?.length) {
+    return {
+      retaId,
+      total: 0,
+      archived: 0,
+      complete: false,
+      canDeleteMatches: false,
+      failures: [],
+    };
+  }
+
+  const rows = participaciones as ParticipacionArchiveRow[];
+  const jugadorIds = [...new Set(rows.map((row) => row.jugador_id))];
+  const { data: jugadores } = await client
+    .from("riviera_jugadores")
+    .select("id, nombre")
+    .in("id", jugadorIds);
+
+  const jugadorNames = new Map<string, string>();
+  for (const jugador of jugadores ?? []) {
+    const nombre = (jugador.nombre as string | null)?.trim();
+    if (nombre) jugadorNames.set(jugador.id as string, nombre);
+  }
+
+  return buildRetaArchiveStatus(retaId, rows, jugadorNames);
 }
 
 /**
  * Copia partidos de matches/games a metadata.partidos_detalle en cada
  * jugador_participaciones de la reta. Debe llamarse al cerrar la reta,
- * antes de borrar filas en matches.
+ * antes de eliminar filas en matches.
+ *
+ * Si canDeleteMatches es false, la reta puede cerrarse (puntos/ranking) pero
+ * NO se deben borrar filas en matches hasta resolver failures.
  */
 export async function archiveRetaResults(
   retaId: string,
@@ -182,12 +300,7 @@ export async function archiveRetaResults(
 ): Promise<ArchiveRetaResultsSummary> {
   const { getSupabaseAdminClient } = await import("@/lib/supabaseAdminClient");
   const admin = getSupabaseAdminClient();
-  const summary: ArchiveRetaResultsSummary = {
-    retaId,
-    updated: 0,
-    skipped: 0,
-    errors: [],
-  };
+  const summary = emptyArchiveSummary(retaId);
 
   if (!admin) {
     summary.errors.push("SUPABASE_SERVICE_ROLE_KEY no configurada");
@@ -210,13 +323,15 @@ export async function archiveRetaResults(
     return summary;
   }
 
+  summary.total = participaciones.length;
+
   const jugadorIds = [
     ...new Set(participaciones.map((row) => row.jugador_id as string)),
   ];
 
   const { data: jugadores, error: jugError } = await admin
     .from("riviera_jugadores")
-    .select("id, legacy_player_id")
+    .select("id, legacy_player_id, nombre")
     .in("id", jugadorIds);
 
   if (jugError) {
@@ -225,30 +340,47 @@ export async function archiveRetaResults(
   }
 
   const legacyByJugador = new Map<string, string>();
+  const jugadorNames = new Map<string, string>();
   for (const row of jugadores ?? []) {
+    const id = row.id as string;
     const legacy = row.legacy_player_id as string | null;
     if (legacy?.trim()) {
-      legacyByJugador.set(row.id as string, legacy.trim());
+      legacyByJugador.set(id, legacy.trim());
     }
+    const nombre = (row.nombre as string | null)?.trim();
+    if (nombre) jugadorNames.set(id, nombre);
   }
+
+  const runFailures: RetaArchiveParticipacionFailure[] = [];
 
   for (const participacion of participaciones) {
     const participacionId = participacion.id as string;
     const jugadorId = participacion.jugador_id as string;
+    const jugadorNombre = jugadorNames.get(jugadorId);
     const metadata = (participacion.metadata ?? {}) as Record<string, unknown>;
 
     const existing = extractPartidosDetalle(
       metadata as RetaParticipacionMetadataWithArchive
     );
     if (existing.length && !options.force) {
-      summary.skipped += 1;
+      summary.alreadyArchived += 1;
       continue;
     }
 
     const legacyPlayerId = legacyByJugador.get(jugadorId);
     if (!legacyPlayerId) {
-      summary.errors.push(`Participación ${participacionId}: sin legacy_player_id`);
-      summary.skipped += 1;
+      const message = jugadorNombre
+        ? `${jugadorNombre}: sin legacy_player_id en riviera_jugadores`
+        : `Participación ${participacionId}: sin legacy_player_id`;
+      summary.errors.push(message);
+      runFailures.push({
+        participacionId,
+        jugadorId,
+        jugadorNombre,
+        reason: "missing_legacy_player_id",
+        message,
+      });
+      summary.failed += 1;
       continue;
     }
 
@@ -259,7 +391,18 @@ export async function archiveRetaResults(
     );
 
     if (!partidosDetalle.length) {
-      summary.skipped += 1;
+      const message = jugadorNombre
+        ? `${jugadorNombre}: sin pairs/matches finalizados para archivar`
+        : `Participación ${participacionId}: sin pairs/matches finalizados para archivar`;
+      summary.errors.push(message);
+      runFailures.push({
+        participacionId,
+        jugadorId,
+        jugadorNombre,
+        reason: "no_pairs_or_matches",
+        message,
+      });
+      summary.failed += 1;
       continue;
     }
 
@@ -275,13 +418,31 @@ export async function archiveRetaResults(
       .eq("id", participacionId);
 
     if (updateError) {
-      summary.errors.push(`Participación ${participacionId}: ${updateError.message}`);
-      summary.skipped += 1;
+      const message = jugadorNombre
+        ? `${jugadorNombre}: error al guardar partidos_detalle (${updateError.message})`
+        : `Participación ${participacionId}: ${updateError.message}`;
+      summary.errors.push(message);
+      runFailures.push({
+        participacionId,
+        jugadorId,
+        jugadorNombre,
+        reason: "update_failed",
+        message,
+      });
+      summary.failed += 1;
       continue;
     }
 
     summary.updated += 1;
   }
 
-  return summary;
+  const finalStatus = await getRetaArchiveStatus(retaId, admin);
+
+  return {
+    ...summary,
+    archived: finalStatus.archived,
+    complete: finalStatus.complete,
+    canDeleteMatches: finalStatus.canDeleteMatches,
+    failures: finalStatus.failures.length ? finalStatus.failures : runFailures,
+  };
 }
