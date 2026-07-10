@@ -816,7 +816,7 @@ async function buildDueloPartidosFromScore(
   return [
     {
       id: `duelo-${entry.event_id}`,
-      round: "Duelo 2v2",
+      round: "Duelo 2 vs 2",
       opponentLabel,
       score,
       won: didPlayerWinDuelo(duelo, dueloJugadorId),

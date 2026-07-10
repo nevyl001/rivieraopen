@@ -17,8 +17,8 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   reta: "Reta",
   americano: "Americano",
   duelo: "Duelo",
-  duelo_2v2: "Duelo 2v2",
-  "2vs2": "Duelo 2v2",
+  duelo_2v2: "Duelo 2 vs 2",
+  "2vs2": "Duelo 2 vs 2",
 };
 
 function isDueloType(tipo: string): boolean {

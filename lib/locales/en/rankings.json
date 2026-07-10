@@ -51,7 +51,7 @@
     "semifinalist": "Semifinalist"
   },
   "pointSystem": {
-    "description": "Players accumulate points in challenges, americans, 2v2 duels, express tournaments and leagues. The more you play and the better you perform, the higher your ranking.",
+    "description": "Players accumulate points in challenges, americans, 2 vs 2 duels, express tournaments and leagues. The more you play and the better you perform, the higher your ranking.",
     "table": {
       "concept": "Concept",
       "points": "Points"
@@ -86,7 +86,7 @@
       "thirdPlace": "Podium: 3rd place"
     },
     "duel2v2": {
-      "title": "2v2 Duel",
+      "title": "2 vs 2 Duel",
       "winner": "Winner",
       "loser": "Loser"
     },

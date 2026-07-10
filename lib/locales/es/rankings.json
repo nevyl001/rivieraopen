@@ -51,7 +51,7 @@
     "semifinalist": "Semifinalista"
   },
   "pointSystem": {
-    "description": "Los jugadores acumulan puntos en retas, americanos, duelos 2v2, torneos express y ligas. Mientras más participes y mejor rindas, más alto será tu ranking.",
+    "description": "Los jugadores acumulan puntos en retas, americanos, duelos 2 vs 2, torneos express y ligas. Mientras más participes y mejor rindas, más alto será tu ranking.",
     "table": {
       "concept": "Concepto",
       "points": "Puntos"
@@ -86,7 +86,7 @@
       "thirdPlace": "Podio: 3.º lugar"
     },
     "duel2v2": {
-      "title": "Duelo 2v2",
+      "title": "Duelo 2 vs 2",
       "winner": "Ganador",
       "loser": "Perdedor"
     },
