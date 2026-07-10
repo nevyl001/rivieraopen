@@ -1,6 +1,11 @@
+import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
 import { PlayerPublicPage } from "@/components/players/PlayerPublicPage";
-import { fetchPublicJugadorIdForRivieraId } from "@/lib/playerPassportIdentityService";
+import {
+  fetchPublicJugadorIdForRivieraId,
+  getPublicRivieraIdForJugador,
+} from "@/lib/playerPassportIdentityService";
+import { buildCanonicalPlayerProfileUrl } from "@/lib/playerPassportUrls";
 import { getJugadorPublico } from "@/lib/playerService";
 import { Metadata } from "next";
 
@@ -11,6 +16,18 @@ interface PlayerPageProps {
     id: string;
   }>;
 }
+
+const resolveLegacyPlayerRedirect = cache(
+  async (jugadorId: string): Promise<string | null> => {
+    const rivieraId = await getPublicRivieraIdForJugador(jugadorId);
+    if (!rivieraId) return null;
+
+    const resolvedId = await fetchPublicJugadorIdForRivieraId(rivieraId);
+    if (resolvedId !== jugadorId) return null;
+
+    return rivieraId;
+  }
+);
 
 async function loadPlayerMetadata(profileParam: string): Promise<Metadata> {
   const player = await getJugadorPublico(profileParam);
@@ -60,24 +77,37 @@ export async function generateMetadata({
   params,
 }: PlayerPageProps): Promise<Metadata> {
   const { id } = await params;
+  const redirectRivieraId = await resolveLegacyPlayerRedirect(id);
+
+  if (redirectRivieraId) {
+    const canonicalUrl = buildCanonicalPlayerProfileUrl(redirectRivieraId);
+    return {
+      title: "Riviera Open",
+      ...(canonicalUrl
+        ? {
+            alternates: {
+              canonical: canonicalUrl,
+            },
+          }
+        : {}),
+    };
+  }
+
   return loadPlayerMetadata(id);
 }
 
 export default async function LegacyPlayerPage({ params }: PlayerPageProps) {
   const { id } = await params;
+  const redirectRivieraId = await resolveLegacyPlayerRedirect(id);
+
+  if (redirectRivieraId) {
+    redirect(`/player/${redirectRivieraId}`);
+  }
+
   const player = await getJugadorPublico(id);
 
   if (!player) {
     notFound();
-  }
-
-  if (player.passport?.rivieraId) {
-    const resolvedId = await fetchPublicJugadorIdForRivieraId(
-      player.passport.rivieraId
-    );
-    if (resolvedId === player.id) {
-      redirect(`/player/${player.passport.rivieraId}`);
-    }
   }
 
   return <PlayerPublicPage player={player} />;

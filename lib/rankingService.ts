@@ -5,6 +5,7 @@ import {
   uiCategoryToDb,
 } from "@/lib/categoryUtils";
 import { getCompetitionRankAtIndex } from "@/lib/rankingUtils";
+import { fetchPublicRivieraIdsByJugadorIds } from "@/lib/playerPassportIdentityService";
 import { listGlobalSitioOficialRankingRows } from "@/lib/globalRankingPosition";
 import {
   type SitioOficialJugadorRow,
@@ -51,6 +52,7 @@ function normalizeGender(value: string | null): Gender {
 function mapRowToPlayer(
   row: SitioOficialJugadorRow,
   contact: JugadorContactRow | undefined,
+  rivieraId: string | undefined,
   rank: number,
   fallbackCategory: Category
 ): Player | null {
@@ -61,6 +63,7 @@ function mapRowToPlayer(
 
   return {
     id: String(row.id),
+    ...(rivieraId ? { rivieraId } : {}),
     firstName,
     lastName,
     photo: row.foto_url?.trim() || DEFAULT_PHOTO,
@@ -132,13 +135,18 @@ export async function getRankingPublico(
       (a, b) => Number(b.puntos_totales ?? 0) - Number(a.puntos_totales ?? 0)
     );
 
-    const contactMap = await fetchContactByIds(sorted.map((row) => row.id));
+    const ids = sorted.map((row) => row.id);
+    const [contactMap, rivieraIdMap] = await Promise.all([
+      fetchContactByIds(ids),
+      fetchPublicRivieraIdsByJugadorIds(ids),
+    ]);
 
     return sorted
       .map((row, index) =>
         mapRowToPlayer(
           row,
           contactMap.get(row.id),
+          rivieraIdMap.get(row.id),
           getCompetitionRankAtIndex(
             sorted,
             index,

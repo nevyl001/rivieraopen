@@ -61,7 +61,7 @@ function resolveStatusFromRow(
   return fallbackOfficial ? "OFICIAL_RIVIERA" : "LOCAL";
 }
 
-async function fetchPublicRivieraId(
+export async function getPublicRivieraIdForJugador(
   jugadorId: string
 ): Promise<string | null> {
   const supabase = getSupabaseClient();
@@ -104,6 +104,26 @@ export async function fetchPublicJugadorIdForRivieraId(
   }
 
   return typeof data === "string" && data.trim() ? data.trim() : null;
+}
+
+export async function fetchPublicRivieraIdsByJugadorIds(
+  jugadorIds: string[]
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  if (!jugadorIds.length) return map;
+
+  const entries = await Promise.all(
+    jugadorIds.map(async (jugadorId) => {
+      const rivieraId = await getPublicRivieraIdForJugador(jugadorId);
+      return rivieraId ? ([jugadorId, rivieraId] as const) : null;
+    })
+  );
+
+  for (const entry of entries) {
+    if (entry) map.set(entry[0], entry[1]);
+  }
+
+  return map;
 }
 
 async function fetchIdentityEmbedFromJugador(
@@ -271,7 +291,7 @@ export async function loadPlayerPassportIdentity(
     accessRows,
     isOfficialVisible,
   ] = await Promise.all([
-    fetchPublicRivieraId(jugadorId),
+    getPublicRivieraIdForJugador(jugadorId),
     embeddedIdentity
       ? Promise.resolve(embeddedIdentity as Record<string, unknown>)
       : fetchIdentityRow(jugadorId),

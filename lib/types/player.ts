@@ -32,6 +32,7 @@ export interface PlayerSocials {
 
 export interface Player {
   id: string;
+  rivieraId?: string | null;
   firstName: string;
   lastName: string;
   photo: string;

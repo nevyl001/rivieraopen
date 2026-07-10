@@ -8,6 +8,7 @@ import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "@/lib/hooks/useTranslation";
 import { getCategoryTranslationKey } from "@/lib/categoryUtils";
+import { buildPlayerProfilePath } from "@/lib/playerProfileRoutes";
 import { Player } from "@/lib/types";
 
 interface FeaturedPlayersClientProps {
@@ -107,7 +108,7 @@ export function FeaturedPlayersClient({
             {getVisiblePlayers().map((player) => (
               <Link
                 key={player.id}
-                href={`/players/${player.id}`}
+                href={buildPlayerProfilePath(player.id, player.rivieraId)}
                 className="group"
               >
                 <div className="flex items-stretch overflow-hidden rounded-3xl border border-gray-200 bg-white transition-all duration-300 hover:border-accent/30 hover:shadow-xl hover:shadow-accent/20">

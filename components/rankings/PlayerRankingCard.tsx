@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Player } from "@/lib/types";
 import { Trophy } from "lucide-react";
 import { useTranslation } from "@/lib/hooks/useTranslation";
 import { PlayerSocialIcons } from "@/components/rankings/PlayerSocialIcons";
+import { buildPlayerProfilePath } from "@/lib/playerProfileRoutes";
 
 interface PlayerRankingCardProps {
   player: Player;
@@ -12,12 +14,14 @@ interface PlayerRankingCardProps {
 
 export function PlayerRankingCard({ player }: PlayerRankingCardProps) {
   const { t } = useTranslation("rankings");
+  const router = useRouter();
+  const profileHref = buildPlayerProfilePath(player.id, player.rivieraId);
 
   const handleCardClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest("a[data-social-link]")) {
       return;
     }
-    window.location.href = `/players/${player.id}`;
+    router.push(profileHref);
   };
 
   const isTopThree = player.rank <= 3;
