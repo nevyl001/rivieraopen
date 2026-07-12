@@ -369,7 +369,8 @@ export const getJugadorPublico = cache(async function getJugadorPublico(
       officialProfile.historial,
       row.id,
       row.legacy_player_id,
-      organizadorId
+      organizadorId,
+      row.nombre
     );
 
     const baseProfile = mapRowToProfile(row, rank, points);

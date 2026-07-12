@@ -49,6 +49,8 @@ interface ParticipacionMetadata {
   pareja_campeon_id?: string;
   pareja_subcampeon_id?: string;
   modalidad_label?: string;
+  canonical_legacy_player_id?: string;
+  pair_id?: string;
 }
 
 interface ParticipacionRow {
@@ -886,18 +888,25 @@ async function buildMatchesForOfficialEntry(
   profileJugadorId: string,
   participacionJugadorId: string | null,
   dueloScoreMap: Map<string, Duelo2v2ScoreRow>,
-  jugadorNameMap: Map<string, string>
+  jugadorNameMap: Map<string, string>,
+  playerName?: string | null
 ): Promise<PlayerHistoryMatch[]> {
   const meta = (entry.metadata ?? {}) as ParticipacionMetadataWithDetalle &
     ParticipacionMetadata & {
       sets_favor?: number | null;
       sets_contra?: number | null;
+      canonical_legacy_player_id?: string | null;
     };
   const eventOrgId = resolveEntryOrganizadorId(entry, fallbackOrganizadorId);
   let partidos = partidosDetalleToPlayerHistory(meta, entry.activity_at);
 
-  if (!partidos.length && legacyPlayerId?.trim()) {
-    if (entry.event_type === "torneo_express") {
+  if (
+    !partidos.length &&
+    (legacyPlayerId?.trim() ||
+      playerName?.trim() ||
+      meta.canonical_legacy_player_id)
+  ) {
+    if (entry.event_type === "torneo_express" && legacyPlayerId?.trim()) {
       const groupMatches = await fetchExpressMatchesForTorneo(
         entry.event_id,
         legacyPlayerId,
@@ -927,11 +936,23 @@ async function buildMatchesForOfficialEntry(
     } else if (entry.event_type === "reta") {
       partidos = await fetchRetaMatchesForEvent(
         entry.event_id,
-        legacyPlayerId,
-        meta,
+        legacyPlayerId?.trim() || "",
+        {
+          ...meta,
+          canonical_legacy_player_id:
+            meta.canonical_legacy_player_id ?? undefined,
+          pair_id: meta.pair_id ?? undefined,
+        },
         typeof meta.sets_favor === "number" ? meta.sets_favor : null,
         typeof meta.sets_contra === "number" ? meta.sets_contra : null,
-        entry.activity_at
+        entry.activity_at,
+        {
+          playerName,
+          candidateLegacyIds: [
+            legacyPlayerId,
+            meta.canonical_legacy_player_id,
+          ],
+        }
       );
     } else if (
       entry.event_type === "americano" ||
@@ -989,13 +1010,16 @@ function applyDueloMarcadorToPartidos(
 
 /**
  * Completa rival/resultado en historial RPC cuando metadata no trae partidos_detalle.
+ * Para retas multiclub, resuelve el ID del jugador en pairs aunque no sea el
+ * legacy_player_id del club de registro (p. ej. Hackpadel → Riviera Open).
  */
 export async function enrichOfficialHistoryEvents(
   events: PlayerHistoryEvent[],
   historial: OfficialHistorialEntry[],
   jugadorId: string,
   legacyPlayerId: string | null | undefined,
-  organizadorId: string
+  organizadorId: string,
+  playerName?: string | null
 ): Promise<PlayerHistoryEvent[]> {
   if (!events.length || !historial.length) return events;
 
@@ -1023,6 +1047,11 @@ export async function enrichOfficialHistoryEvents(
   }
   const jugadorNameMap = await fetchPlayerDisplayNames([...nameLookupIds]);
 
+  const resolvedPlayerName =
+    playerName?.trim() ||
+    (await fetchPlayerDisplayNames([jugadorId])).get(jugadorId) ||
+    null;
+
   const enriched = await Promise.all(
     events.map(async (event) => {
       const rawEntry = entryById.get(event.id);
@@ -1047,7 +1076,8 @@ export async function enrichOfficialHistoryEvents(
           jugadorId,
           participacionJugadorId,
           dueloScoreMap,
-          jugadorNameMap
+          jugadorNameMap,
+          resolvedPlayerName
         );
       } else if (entry.event_type === "duelo_2v2") {
         partidos = patchDueloPartidoLabels(

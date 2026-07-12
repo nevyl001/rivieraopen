@@ -15,6 +15,16 @@ interface RetaParticipacionMetadata extends RetaParticipacionMetadataWithArchive
   partidos_perdidos?: number;
   partidos_empatados?: number;
   posicion?: number;
+  /** ID del jugador en la app de retas (puede diferir del club de registro). */
+  canonical_legacy_player_id?: string;
+  pair_id?: string;
+}
+
+export interface FetchRetaMatchesOptions {
+  /** Nombre del jugador oficial — resuelve el ID correcto en pairs de otro club. */
+  playerName?: string | null;
+  /** IDs legacy candidatos adicionales (p. ej. perfil + metadata). */
+  candidateLegacyIds?: Array<string | null | undefined>;
 }
 
 interface GameRow {
@@ -97,6 +107,83 @@ function formatMatchGameScores(
       return `${my}-${opp}`;
     })
     .join(", ");
+}
+
+function normalizePlayerName(value: string | null | undefined): string {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function uniqueIds(ids: Array<string | null | undefined>): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const id of ids) {
+    const trimmed = id?.trim();
+    if (!trimmed || seen.has(trimmed)) continue;
+    seen.add(trimmed);
+    out.push(trimmed);
+  }
+  return out;
+}
+
+/**
+ * Cuando el jugador juega en un club distinto al de registro, su ID en `pairs`
+ * puede no coincidir con riviera_jugadores.legacy_player_id. Resolvemos
+ * candidatos desde metadata y, si hace falta, por nombre en la reta.
+ */
+async function resolveRetaLegacyPlayerIds(
+  retaId: string,
+  metadata: RetaParticipacionMetadata,
+  options: FetchRetaMatchesOptions = {}
+): Promise<string[]> {
+  const candidates = uniqueIds([
+    ...(options.candidateLegacyIds ?? []),
+    metadata.canonical_legacy_player_id,
+  ]);
+
+  const supabase = getSupabaseClient();
+  if (!supabase) return candidates;
+
+  if (metadata.pair_id?.trim()) {
+    const { data: pair } = await supabase
+      .from("pairs")
+      .select("player1_id, player2_id")
+      .eq("id", metadata.pair_id.trim())
+      .maybeSingle();
+    if (pair) {
+      return uniqueIds([
+        ...candidates,
+        pair.player1_id as string | null,
+        pair.player2_id as string | null,
+      ]);
+    }
+  }
+
+  const playerName = normalizePlayerName(options.playerName);
+  if (!playerName) return candidates;
+
+  const { data: pairs } = await supabase
+    .from("pairs")
+    .select("player1_id, player2_id, player1_name, player2_name")
+    .eq("tournament_id", retaId);
+
+  if (!pairs?.length) return candidates;
+
+  const fromName: string[] = [];
+  for (const pair of pairs) {
+    if (normalizePlayerName(pair.player1_name as string) === playerName) {
+      fromName.push(String(pair.player1_id));
+    }
+    if (normalizePlayerName(pair.player2_name as string) === playerName) {
+      fromName.push(String(pair.player2_id));
+    }
+  }
+
+  return uniqueIds([...candidates, ...fromName]);
 }
 
 async function fetchRetaMatchesFromDb(
@@ -223,16 +310,26 @@ export async function fetchRetaMatchesForEvent(
   metadata: RetaParticipacionMetadata,
   _setsFavor: number | null,
   _setsContra: number | null,
-  eventDate: string | null
+  eventDate: string | null,
+  options: FetchRetaMatchesOptions = {}
 ): Promise<PlayerHistoryMatch[]> {
-  if (!legacyPlayerId.trim()) return [];
-
   if (canUsePartidosDetalle(metadata)) {
     return partidosDetalleToPlayerHistory(metadata, eventDate);
   }
 
-  const fromDb = await fetchRetaMatchesFromDb(retaId, legacyPlayerId, metadata);
-  if (fromDb.length) return fromDb;
+  const legacyCandidates = await resolveRetaLegacyPlayerIds(retaId, metadata, {
+    playerName: options.playerName,
+    candidateLegacyIds: [
+      legacyPlayerId,
+      ...(options.candidateLegacyIds ?? []),
+      metadata.canonical_legacy_player_id,
+    ],
+  });
+
+  for (const candidateId of legacyCandidates) {
+    const fromDb = await fetchRetaMatchesFromDb(retaId, candidateId, metadata);
+    if (fromDb.length) return fromDb;
+  }
 
   if (metadata.subtipo === "reta_cierre") {
     return partidosDetalleToPlayerHistory(metadata, eventDate);
