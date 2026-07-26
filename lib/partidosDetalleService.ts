@@ -69,17 +69,44 @@ function resolveRoundLabels(
   rows: PartidoDetalle[],
   metadata: ParticipacionMetadataWithDetalle
 ): string[] {
-  const needsGenerated = rows.some((row) => !row.fase?.trim());
+  const labelMeta = metadata as RetaRoundLabelMetadata;
+  const hasExplicitPlayoff =
+    (Number.isFinite(Number(labelMeta.regular_rondas_max)) &&
+      Number(labelMeta.regular_rondas_max) > 0) ||
+    labelMeta.remontada_activa === true;
+
+  const needsGenerated = rows.some((row) => {
+    const fase = row.fase?.trim();
+    if (!fase) return true;
+    // Si no hay estructura de playoff en metadata, no confiar en Semifinal/Final guardados
+    if (
+      !hasExplicitPlayoff &&
+      /semifinal|final|fase final/i.test(fase)
+    ) {
+      return true;
+    }
+    return false;
+  });
+
   if (!needsGenerated) {
     return rows.map((row) => row.fase!.trim());
   }
 
   const generated = labelRetaRondasForPartidos(
     rows.map((row) => ({ ronda: row.ronda, fecha: row.fecha })),
-    metadata as RetaRoundLabelMetadata
+    labelMeta
   );
 
-  return rows.map((row, index) => row.fase?.trim() || generated[index]);
+  return rows.map((row, index) => {
+    const fase = row.fase?.trim();
+    if (
+      fase &&
+      (hasExplicitPlayoff || !/semifinal|final|fase final/i.test(fase))
+    ) {
+      return fase;
+    }
+    return generated[index];
+  });
 }
 
 export function partidosDetalleToPlayerHistory(

@@ -18,6 +18,25 @@ export interface LabelRetaRondaOptions {
   maxRound?: number;
 }
 
+function isRoundRobinFormat(metadata: RetaRoundLabelMetadata): boolean {
+  return (
+    metadata.formato === "round_robin" || metadata.modalidad === "round_robin"
+  );
+}
+
+/**
+ * Solo aplicar Semifinal/Final cuando el metadata lo indica de forma explícita.
+ * Sin total_participantes / regular_rondas_max / remontada, NO inventar playoffs
+ * (antes rrRounds caía a 1 y etiquetaba mal Ronda 2+ como Semifinal/Final).
+ */
+function hasExplicitPlayoffStructure(metadata: RetaRoundLabelMetadata): boolean {
+  const regularMax = Number(metadata.regular_rondas_max);
+  if (Number.isFinite(regularMax) && regularMax > 0) return true;
+  if (metadata.remontada_activa === true) return true;
+  const total = Number(metadata.total_participantes ?? 0);
+  return isRoundRobinFormat(metadata) && total > 1;
+}
+
 export function labelRetaRonda(
   ronda: number,
   metadata: RetaRoundLabelMetadata,
@@ -38,10 +57,14 @@ export function labelRetaRonda(
     }
   }
 
-  const isRoundRobin =
-    metadata.formato === "round_robin" ||
-    metadata.modalidad === "round_robin";
-  const rrRounds = Math.max(1, Number(metadata.total_participantes ?? 0) - 1);
+  // Sin estructura de playoff/remontada confiable → solo numerar por registro del jugador
+  if (!hasExplicitPlayoffStructure(metadata)) {
+    return `Ronda ${ronda}`;
+  }
+
+  const isRoundRobin = isRoundRobinFormat(metadata);
+  const total = Number(metadata.total_participantes ?? 0);
+  const rrRounds = Math.max(1, total - 1);
   const played = Number(metadata.partidos_jugados ?? 0);
   const maxRound = options.maxRound ?? 0;
   const hasRemontadaPhase =
