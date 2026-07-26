@@ -78,25 +78,73 @@ export function parseArchivedMatchesFromMetadata(
   return partidosDetalleToPlayerHistory(metadata, eventDate);
 }
 
-/** Construye el snapshot desde matches/games (para reta_cierre o backfill). */
-export async function buildArchivedMatchesForPlayer(
+/** trim + lowercase + colapso de espacios + quitar diacríticos. */
+export function normalizeArchivePlayerName(
+  name: string | null | undefined
+): string {
+  if (!name) return "";
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+export interface ArchivePairNameRow {
+  id: string;
+  player1_name: string | null;
+  player2_name: string | null;
+}
+
+/**
+ * Candidatos de pair por nombre normalizado dentro de una reta.
+ * - [] → sin candidato
+ * - [id] → inequívoco
+ * - length > 1 → ambiguo (no usar fallback)
+ */
+export function findPairIdsByNormalizedPlayerName(
+  pairs: ArchivePairNameRow[],
+  playerName: string | null | undefined
+): string[] {
+  const target = normalizeArchivePlayerName(playerName);
+  if (!target) return [];
+
+  const matched: string[] = [];
+  for (const pair of pairs) {
+    const p1 = normalizeArchivePlayerName(pair.player1_name);
+    const p2 = normalizeArchivePlayerName(pair.player2_name);
+    if (p1 === target || p2 === target) {
+      matched.push(pair.id);
+    }
+  }
+  return matched;
+}
+
+/**
+ * Preserva metadata existente y solo escribe snapshot de archive.
+ * No toca puntos ni campos de ranking ajenos.
+ */
+export function mergeArchiveSnapshotIntoMetadata(
+  metadata: Record<string, unknown>,
+  partidosDetalle: RetaPartidoArchivado[],
+  archivedAtIso: string
+): Record<string, unknown> {
+  return {
+    ...metadata,
+    partidos_detalle: partidosDetalle,
+    partidos_archivados_en: archivedAtIso,
+  };
+}
+
+async function fetchFinishedMatchesForPairs(
   retaId: string,
-  legacyPlayerId: string,
-  supabase = getSupabaseClient()
-): Promise<RetaPartidoArchivado[]> {
-  if (!supabase || !legacyPlayerId.trim()) return [];
+  pairIds: string[],
+  supabase: SupabaseClient
+): Promise<MatchRow[]> {
+  if (!pairIds.length) return [];
 
-  const { data: pairs } = await supabase
-    .from("pairs")
-    .select("id")
-    .eq("tournament_id", retaId)
-    .or(`player1_id.eq.${legacyPlayerId},player2_id.eq.${legacyPlayerId}`);
-
-  if (!pairs?.length) return [];
-
-  const pairIds = pairs.map((row) => row.id as string);
   const pairFilter = pairIds.join(",");
-
   const { data: matches, error } = await supabase
     .from("matches")
     .select(
@@ -120,10 +168,16 @@ export async function buildArchivedMatchesForPlayer(
     .order("created_at", { ascending: true });
 
   if (error || !matches?.length) return [];
+  return matches as MatchRow[];
+}
 
+function buildArchivedFromMatches(
+  pairIds: string[],
+  matches: MatchRow[]
+): RetaPartidoArchivado[] {
   const archived: RetaPartidoArchivado[] = [];
 
-  for (const raw of matches as MatchRow[]) {
+  for (const raw of matches) {
     const inPair1 = pairIds.includes(raw.pair1_id);
     const inPair2 = pairIds.includes(raw.pair2_id);
     if (!inPair1 && !inPair2) continue;
@@ -166,6 +220,86 @@ export async function buildArchivedMatchesForPlayer(
   }
 
   return archived.sort((a, b) => a.ronda - b.ronda);
+}
+
+/**
+ * Fallback seguro: un solo pair de la reta cuyo player1_name/player2_name
+ * coincide de forma normalizada con el jugador, y ese pair tiene matches finished.
+ */
+async function resolveUnequivocalPairIdsByPlayerName(
+  retaId: string,
+  playerName: string | null | undefined,
+  supabase: SupabaseClient
+): Promise<string[]> {
+  const target = normalizeArchivePlayerName(playerName);
+  if (!target) return [];
+
+  const { data: pairs, error } = await supabase
+    .from("pairs")
+    .select("id, player1_name, player2_name")
+    .eq("tournament_id", retaId);
+
+  if (error || !pairs?.length) return [];
+
+  const candidateIds = findPairIdsByNormalizedPlayerName(
+    pairs as ArchivePairNameRow[],
+    playerName
+  );
+
+  // 0 o >1 → no usar fallback (ambiguo o ausente)
+  if (candidateIds.length !== 1) return [];
+
+  const matches = await fetchFinishedMatchesForPairs(
+    retaId,
+    candidateIds,
+    supabase
+  );
+  if (!matches.length) return [];
+
+  return candidateIds;
+}
+
+/**
+ * Construye el snapshot desde matches/games (para reta_cierre o backfill).
+ * 1) Lookup por legacy_player_id.
+ * 2) Solo si hay 0 pairs: fallback por nombre inequívoco en la misma reta.
+ */
+export async function buildArchivedMatchesForPlayer(
+  retaId: string,
+  legacyPlayerId: string,
+  supabase = getSupabaseClient(),
+  playerName?: string | null
+): Promise<RetaPartidoArchivado[]> {
+  if (!supabase || !legacyPlayerId.trim()) return [];
+
+  const { data: pairsByLegacy } = await supabase
+    .from("pairs")
+    .select("id")
+    .eq("tournament_id", retaId)
+    .or(
+      `player1_id.eq.${legacyPlayerId},player2_id.eq.${legacyPlayerId}`
+    );
+
+  let pairIds = (pairsByLegacy ?? []).map((row) => row.id as string);
+
+  if (!pairIds.length) {
+    pairIds = await resolveUnequivocalPairIdsByPlayerName(
+      retaId,
+      playerName,
+      supabase
+    );
+  }
+
+  if (!pairIds.length) return [];
+
+  const matches = await fetchFinishedMatchesForPairs(
+    retaId,
+    pairIds,
+    supabase
+  );
+  if (!matches.length) return [];
+
+  return buildArchivedFromMatches(pairIds, matches);
 }
 
 interface ParticipacionArchiveRow {
@@ -387,7 +521,8 @@ export async function archiveRetaResults(
     const partidosDetalle = await buildArchivedMatchesForPlayer(
       retaId,
       legacyPlayerId,
-      admin
+      admin,
+      jugadorNombre
     );
 
     if (!partidosDetalle.length) {
@@ -406,11 +541,11 @@ export async function archiveRetaResults(
       continue;
     }
 
-    const nextMetadata = {
-      ...metadata,
-      partidos_detalle: partidosDetalle,
-      partidos_archivados_en: new Date().toISOString(),
-    };
+    const nextMetadata = mergeArchiveSnapshotIntoMetadata(
+      metadata,
+      partidosDetalle,
+      new Date().toISOString()
+    );
 
     const { error: updateError } = await admin
       .from("jugador_participaciones")
