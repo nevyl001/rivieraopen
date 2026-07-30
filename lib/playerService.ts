@@ -70,11 +70,7 @@ interface RivieraJugadorRow {
   instagram_url: string | null;
   facebook_url: string | null;
   tiktok_url: string | null;
-  email: string | null;
-  telefono: string | null;
-  whatsapp: string | null;
   edad: number | null;
-  fecha_nacimiento: string | null;
   club: string | null;
   nivel: string | null;
   mano_dominante: string | null;
@@ -102,6 +98,7 @@ const JUGADOR_IDENTITY_EMBED = `
           debut_at
         )`;
 
+/** Public-safe columns only. anon cannot SELECT email/telefono/whatsapp/fecha_nacimiento. */
 const JUGADOR_SELECT_BASE = `
         id,
         organizador_id,
@@ -114,11 +111,7 @@ const JUGADOR_SELECT_BASE = `
         instagram_url,
         facebook_url,
         tiktok_url,
-        email,
-        telefono,
-        whatsapp,
         edad,
-        fecha_nacimiento,
         club,
         nivel,
         mano_dominante,
@@ -156,11 +149,7 @@ const JUGADOR_SELECT_WITH_RATING = `
         instagram_url,
         facebook_url,
         tiktok_url,
-        email,
-        telefono,
-        whatsapp,
         edad,
-        fecha_nacimiento,
         club,
         nivel,
         mano_dominante,
@@ -275,8 +264,8 @@ function mapRowToProfile(
     points,
     rank,
     contact: {
-      email: row.email ?? "",
-      phone: row.telefono ?? "",
+      email: "",
+      phone: "",
     },
     socials: {
       ...(row.instagram_url ? { instagram: row.instagram_url } : {}),
@@ -286,13 +275,13 @@ function mapRowToProfile(
     tournamentResults: [],
     slug: row.slug,
     age: row.edad,
-    birthDate: row.fecha_nacimiento,
+    birthDate: null,
     club: row.club,
     nivel: row.nivel,
     manoDominante: row.mano_dominante,
     enCancha: row.en_cancha,
     paisCodigo: row.pais_codigo,
-    whatsapp: row.whatsapp,
+    whatsapp: null,
     stats,
     ...ratingFields,
   };
