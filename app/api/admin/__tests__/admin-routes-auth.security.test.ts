@@ -171,6 +171,11 @@ const cases: RouteCase[] = [
     args: [dummyParams],
   },
   { path: "/api/admin/audit-log", modulePath: "../audit-log/route", method: "GET" },
+  {
+    path: "/api/admin/upload-signature",
+    modulePath: "../upload-signature/route",
+    method: "POST",
+  },
 ];
 
 describe("Admin API routes reject anonymous requests", () => {

@@ -84,22 +84,10 @@ export default function GalleryManagementPage() {
         `Image optimized: ${formatFileSize(originalSize)} → ${formatFileSize(optimizedSize)} (${savings.toFixed(1)}% reduction)`,
       );
 
-      // Upload optimized file
-      const formData = new FormData();
-      formData.append("file", optimizedFile);
-      formData.append("folder", "gallery");
-
-      const uploadResponse = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json();
-        throw new Error(errorData.error || "Failed to upload photo");
-      }
-
-      const { url } = await uploadResponse.json();
+      const { uploadAdminImageDirect } = await import(
+        "@/lib/admin/client/directCloudinaryUpload"
+      );
+      const { url } = await uploadAdminImageDirect(optimizedFile, "gallery");
 
       // Add photo to gallery
       const addPhotoResponse = await fetch("/api/admin/gallery", {

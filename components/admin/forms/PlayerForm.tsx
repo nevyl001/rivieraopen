@@ -41,38 +41,14 @@ export function PlayerForm({ player, onSubmit, onCancel }: PlayerFormProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-    if (!allowedTypes.includes(file.type)) {
-      setUploadError("Invalid file type. Please upload JPEG, PNG, or WebP.");
-      return;
-    }
-
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError("File size exceeds 5MB limit.");
-      return;
-    }
-
     setIsUploading(true);
     setUploadError("");
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("folder", "players");
-
-      const response = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Upload failed");
-      }
-
-      const result = await response.json();
+      const { uploadAdminImageDirect } = await import(
+        "@/lib/admin/client/directCloudinaryUpload"
+      );
+      const result = await uploadAdminImageDirect(file, "players");
       updateField("photo", result.url);
     } catch (error) {
       setUploadError(
