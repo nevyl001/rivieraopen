@@ -2,29 +2,32 @@
 
 ## Overview
 
-Replace the current local filesystem-based image upload system with Cloudinary cloud storage to enable deployment on Vercel's read-only filesystem. The integration maintains existing UI/UX while routing uploads through Cloudinary's SDK, storing returned URLs in the database, and leveraging Cloudinary's CDN for optimized image delivery.
+Replace the current local filesystem-based image upload system with Cloudinary cloud storage to enable deployment on Vercel's read-only filesystem. The integration maintains existing UI/UX while uploading **directly from the browser to Cloudinary** via a short-lived signed credential. File bytes never pass through a Vercel Function.
+
+> **Current flow (authoritative):**  
+> UI admin → `POST /api/admin/upload-signature` (JSON only) → browser POST multipart to Cloudinary → app stores `secure_url` / metadata.  
+> The legacy proxied endpoint `POST /api/admin/upload` was removed. Vercel Firewall rule `block-legacy-admin-upload` continues to Deny that path at the edge.
 
 ## Main Algorithm/Workflow
 
 ```mermaid
 sequenceDiagram
     participant UI as Admin UI
-    participant API as Upload API
+    participant Sig as upload-signature API
     participant Opt as Image Optimizer
-    participant Cloud as Cloudinary SDK
+    participant Cloud as Cloudinary Upload API
     participant CDN as Cloudinary CDN
     participant DB as Database
 
-    UI->>Opt: Upload file (client-side)
+    UI->>Opt: Select file (client-side)
     Opt->>Opt: Resize & compress
-    Opt->>API: POST /api/admin/upload
-    API->>API: Validate file
-    API->>Cloud: upload_stream()
+    UI->>Sig: POST /api/admin/upload-signature (JSON folder)
+    Sig->>Sig: Auth + rate limit + sign params
+    Sig-->>UI: signature, timestamp, apiKey, cloudName, folder
+    UI->>Cloud: POST multipart (file + signed params)
     Cloud->>CDN: Store image
-    CDN-->>Cloud: Public URL
-    Cloud-->>API: Upload result
-    API->>DB: Store URL
-    API-->>UI: Return URL
+    Cloud-->>UI: secure_url, public_id
+    UI->>DB: Store URL via existing admin APIs
     UI->>CDN: Display image
 ```
 
@@ -378,30 +381,14 @@ const optimizedFile = await optimizeImage(file, {
   quality: 0.85,
 });
 
-// Upload to Cloudinary
-const formData = new FormData();
-formData.append("file", optimizedFile);
-formData.append("folder", "gallery"); // Optional folder parameter
+// Direct signed upload (file never hits Vercel)
+import { uploadAdminImageDirect } from "@/lib/admin/client/directCloudinaryUpload";
 
-const response = await fetch("/api/admin/upload", {
-  method: "POST",
-  body: formData,
-});
-
-const { url, publicId } = await response.json();
+const { url, publicId } = await uploadAdminImageDirect(optimizedFile, "gallery");
 // url: "https://res.cloudinary.com/your-cloud/image/upload/v1234567890/riviera-open/gallery/abc-123.jpg"
 
 // Example 2: Upload tournament photo
-const formData = new FormData();
-formData.append("file", optimizedFile);
-formData.append("folder", "tournaments");
-
-const response = await fetch("/api/admin/upload", {
-  method: "POST",
-  body: formData,
-});
-
-const { url } = await response.json();
+const { url } = await uploadAdminImageDirect(optimizedFile, "tournaments");
 // Store URL in database
 await fetch(`/api/admin/tournaments/${tournamentId}/photos`, {
   method: "POST",
@@ -670,7 +657,7 @@ CLOUDINARY_API_SECRET=your-api-secret
 2. Create `lib/cloudinary/config.ts` with SDK configuration
 3. Create `lib/cloudinary/upload.ts` with upload utilities
 4. Update `lib/admin/services/FileUploadService.ts` to use Cloudinary
-5. Update `app/api/admin/upload/route.ts` (no changes needed, uses service)
+5. Use `POST /api/admin/upload-signature` + browser direct upload to Cloudinary (do not proxy file bytes through Vercel). Legacy `/api/admin/upload` removed; WAF Deny remains.
 
 ### Phase 3: Testing
 

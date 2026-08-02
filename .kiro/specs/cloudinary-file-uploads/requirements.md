@@ -102,18 +102,20 @@ This document specifies the requirements for replacing the local filesystem-base
 4. THE Secure_URL SHALL include the cloud name in the URL path
 5. THE Secure_URL SHALL include a version number for cache invalidation
 
-### Requirement 8: API Endpoint Integration
+### Requirement 8: Signed Direct Upload Integration
 
-**User Story:** As an administrator using the admin UI, I want to upload images through the existing upload API endpoint, so that the integration is seamless with the current interface.
+**User Story:** As an administrator using the admin UI, I want to upload images directly to Cloudinary with a short-lived server signature, so that file bytes never pass through Vercel and Incoming Fast Data Transfer abuse is avoided.
+
+> **Supersedes** the retired proxied endpoint `POST /api/admin/upload` (removed). Perimeter Deny remains via WAF rule `block-legacy-admin-upload`.
 
 #### Acceptance Criteria
 
-1. WHEN a POST request is made to /api/admin/upload with a file, THE Upload_Service SHALL validate the file
-2. WHEN a POST request includes a folder parameter, THE Upload_Service SHALL use the specified folder for organizing the upload
-3. WHEN an upload succeeds, THE API endpoint SHALL return a JSON response with url, publicId, width, height, format, and bytes fields
-4. IF validation fails, THEN THE API endpoint SHALL return a 400 status code with an error message
-5. IF upload fails due to network or Cloudinary errors, THEN THE API endpoint SHALL return a 500 status code with an error message
-6. IF Cloudinary storage quota is exceeded, THEN THE API endpoint SHALL return a 507 status code with an insufficient storage message
+1. WHEN an authenticated admin requests `POST /api/admin/upload-signature` with an allowlisted folder, THE Signature_API SHALL return signature, timestamp, cloudName, apiKey, and folder only (never the API secret)
+2. WHEN the Admin_UI receives signed credentials, THE Admin_UI SHALL POST the file directly to Cloudinary (`https://api.cloudinary.com/v1_1/{cloudName}/image/upload`)
+3. WHEN a client-side upload succeeds, THE Admin_UI SHALL obtain secure_url, public_id, width, height, format, and bytes from Cloudinary
+4. IF client-side validation fails (type/size/SVG), THEN THE Admin_UI SHALL reject the file before requesting a signature
+5. IF signature auth fails, THEN THE Signature_API SHALL return 401 without issuing credentials
+6. IF the legacy path `/api/admin/upload` is requested, THEN Vercel Firewall SHALL Deny the request at the edge
 
 ### Requirement 9: Client-Side Optimization Compatibility
 

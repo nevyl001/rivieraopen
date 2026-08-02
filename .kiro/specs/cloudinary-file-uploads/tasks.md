@@ -90,20 +90,17 @@ Replace the local filesystem-based image upload system with Cloudinary cloud sto
     - Test folder parameter is passed correctly
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 4.1, 4.2, 4.3, 4.4_
 
-- [x] 7. Update upload API endpoint
-  - [x] 7.1 Update app/api/admin/upload/route.ts to handle folder parameter
-    - Extract optional folder parameter from form data
-    - Pass folder parameter to fileUploadService.uploadImage()
-    - Update response to include publicId field
-    - Add proper error status codes (400, 500, 507)
-    - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6_
-  - [x]\* 7.2 Write integration tests for upload API endpoint
-    - Test POST with valid file returns 200 and Cloudinary URL
-    - Test POST with invalid file type returns 400
-    - Test POST with oversized file returns 400
-    - Test POST with folder parameter stores in correct folder
-    - Test POST without file returns 400
-    - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6_
+- [x] 7. Signed direct upload (current)
+  - [x] 7.1 Implement `POST /api/admin/upload-signature` + browser direct upload to Cloudinary
+    - Auth, rate limit, JSON-only body, allowlisted folders
+    - Client helper `uploadAdminImageDirect` posts file to Cloudinary
+    - Remove legacy proxied `app/api/admin/upload` route
+    - Keep WAF Deny `block-legacy-admin-upload` on `/api/admin/upload`
+    - _Requirements: 8.1–8.6_
+  - [x]\* 7.2 Write tests for signature API and direct client upload
+    - Unauthorized / invalid folder / rate limit / no secret leakage
+    - Client rejects oversized/SVG; never calls `/api/admin/upload`
+    - _Requirements: 8.1–8.6_
 
 - [x] 8. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.

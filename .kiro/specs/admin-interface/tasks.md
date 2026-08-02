@@ -303,11 +303,10 @@ This implementation plan breaks down the admin interface into discrete, incremen
     - Store files in /public/uploads/ with UUID filenames
     - _Requirements: 8.2, 8.5, 8.6_
 
-  - [x] 15.2 Create file upload API route
-    - Create POST /api/admin/upload endpoint
-    - Handle multipart form data
-    - Validate file type and size
-    - Return uploaded file URL
+  - [x] 15.2 File upload via Cloudinary signed direct upload
+    - Current: UI admin → `POST /api/admin/upload-signature` → Cloudinary directo
+    - Legacy proxied `POST /api/admin/upload` removed; WAF Deny retained
+    - Validate file type/size on client; store returned secure_url
     - _Requirements: 8.2, 8.5, 8.6_
 
   - [x]\* 15.3 Write property test for file validation
