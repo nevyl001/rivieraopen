@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { playerAdminService } from "@/lib/admin/services/PlayerAdminService";
 import type { CreatePlayerData } from "@/lib/admin/validation/schemas";
+import { requireAdminSession } from "@/lib/admin/security/requireAdminSession";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const player = await playerAdminService.getPlayer(id);
@@ -28,6 +32,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const data: Partial<CreatePlayerData> = await request.json();
@@ -45,6 +52,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     await playerAdminService.deletePlayer(id);

@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { galleryAdminService } from "@/lib/admin/services/GalleryAdminService";
+import { requireAdminSession } from "@/lib/admin/security/requireAdminSession";
 
 interface RouteParams {
   params: Promise<{
@@ -19,6 +20,9 @@ interface RouteParams {
  * Get a single photo
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const photoId = parseInt(id);
@@ -46,6 +50,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  * Update photo metadata
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const photoId = parseInt(id);
@@ -77,6 +84,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
  * Delete a photo
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const photoId = parseInt(id);

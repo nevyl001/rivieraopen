@@ -7,8 +7,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { tournamentAdminService } from "@/lib/admin/services/TournamentAdminService";
 import { TournamentStatus } from "@/lib/types";
+import { requireAdminSession } from "@/lib/admin/security/requireAdminSession";
 
 export async function POST(request: NextRequest) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const { operation, tournamentIds, status } = await request.json();
 

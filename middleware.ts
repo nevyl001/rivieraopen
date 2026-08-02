@@ -4,12 +4,8 @@ import type { NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Check if the request is for an admin route (excluding login and API routes)
-  if (
-    pathname.startsWith("/admin") &&
-    pathname !== "/admin/login" &&
-    !pathname.startsWith("/api/admin/auth")
-  ) {
+  // Check if the request is for an admin page (excluding login)
+  if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
     const sessionId = request.cookies.get("admin_session")?.value;
 
     // If no session, redirect to login
@@ -20,6 +16,24 @@ export async function middleware(request: NextRequest) {
 
     // Session validation will be done server-side in the layout
     // Middleware just checks if cookie exists
+  }
+
+  // Defense-in-depth: also reject admin API requests with no session cookie
+  // at the edge. This does NOT replace per-route auth - it only catches
+  // requests before they reach a handler. Real validation
+  // (requireAdminSession) still runs inside every protected route.
+  if (
+    pathname.startsWith("/api/admin") &&
+    !pathname.startsWith("/api/admin/auth")
+  ) {
+    const sessionId = request.cookies.get("admin_session")?.value;
+
+    if (!sessionId) {
+      return NextResponse.json(
+        { error: { code: "UNAUTHORIZED", message: "Authentication required" } },
+        { status: 401 },
+      );
+    }
   }
 
   // If accessing /admin root, redirect to dashboard
@@ -41,5 +55,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: "/admin/:path*",
+  matcher: ["/admin/:path*", "/api/admin/:path*"],
 };

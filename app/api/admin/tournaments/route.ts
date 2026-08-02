@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { tournamentAdminService } from "@/lib/admin/services/TournamentAdminService";
 import type { TournamentStatus, TournamentGenre } from "@/lib/types";
 import type { CreateTournamentData } from "@/lib/admin/validation/schemas";
+import { requireAdminSession } from "@/lib/admin/security/requireAdminSession";
 
 export async function GET(request: NextRequest) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get("page") || "1");
@@ -37,6 +41,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const data: CreateTournamentData = await request.json();
 

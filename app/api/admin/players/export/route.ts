@@ -5,8 +5,12 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { playerAdminService } from "@/lib/admin/services/PlayerAdminService";
+import { requireAdminSession } from "@/lib/admin/security/requireAdminSession";
 
 export async function GET(request: NextRequest) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const searchQuery = searchParams.get("searchQuery") || undefined;

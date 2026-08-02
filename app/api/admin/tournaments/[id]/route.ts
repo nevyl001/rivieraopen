@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { tournamentAdminService } from "@/lib/admin/services/TournamentAdminService";
 import type { CreateTournamentData } from "@/lib/admin/validation/schemas";
+import { requireAdminSession } from "@/lib/admin/security/requireAdminSession";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const tournament = await tournamentAdminService.getTournament(id);
@@ -31,6 +35,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const data: Partial<CreateTournamentData> = await request.json();
@@ -54,6 +61,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     await tournamentAdminService.deleteTournament(id);

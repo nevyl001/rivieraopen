@@ -8,11 +8,15 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { galleryAdminService } from "@/lib/admin/services/GalleryAdminService";
+import { requireAdminSession } from "@/lib/admin/security/requireAdminSession";
 
 /**
  * List gallery photos with pagination
  */
 export async function GET(request: NextRequest) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get("page") || "1");
@@ -35,6 +39,9 @@ export async function GET(request: NextRequest) {
  * Upload a new photo
  */
 export async function POST(request: NextRequest) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const { src, alt, category } = await request.json();
 
@@ -63,6 +70,9 @@ export async function POST(request: NextRequest) {
  * Reorder photos
  */
 export async function PUT(request: NextRequest) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const { photoIds } = await request.json();
 

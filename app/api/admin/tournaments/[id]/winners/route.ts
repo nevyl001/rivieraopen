@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { tournamentAdminService } from "@/lib/admin/services/TournamentAdminService";
 import type { Category } from "@/lib/types";
+import { requireAdminSession } from "@/lib/admin/security/requireAdminSession";
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const { category, placement, playerId } = (await request.json()) as {
@@ -33,6 +37,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const { category, placement } = (await request.json()) as {

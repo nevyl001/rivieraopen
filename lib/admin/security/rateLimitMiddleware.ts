@@ -22,13 +22,19 @@ function getClientIp(request: NextRequest): string {
 
 /**
  * Rate limiting middleware for API routes
+ *
+ * @param extraIdentifier - additional identifier component (e.g. an admin
+ * session id) mixed into the rate limit key alongside the client IP.
  */
 export function rateLimitMiddleware(
   request: NextRequest,
   config: RateLimitConfig,
+  extraIdentifier?: string,
 ): NextResponse | null {
   const clientIp = getClientIp(request);
-  const identifier = `${clientIp}:${request.nextUrl.pathname}`;
+  const identifier = extraIdentifier
+    ? `${clientIp}:${extraIdentifier}:${request.nextUrl.pathname}`
+    : `${clientIp}:${request.nextUrl.pathname}`;
 
   const result = checkRateLimit(identifier, config);
 

@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { tournamentAdminService } from "@/lib/admin/services/TournamentAdminService";
 import { fileUploadService } from "@/lib/admin/services/FileUploadService";
+import { requireAdminSession } from "@/lib/admin/security/requireAdminSession";
 
 interface RouteParams {
   params: Promise<{
@@ -20,6 +21,9 @@ interface RouteParams {
  * Add a photo to a tournament
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const { photoUrl } = await request.json();
@@ -46,6 +50,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
  * Remove a photo from a tournament
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const { photoUrl } = await request.json();
@@ -79,6 +86,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
  * Reorder photos in a tournament
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const { photoUrls } = await request.json();

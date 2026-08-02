@@ -10,8 +10,12 @@ import {
   AuditAction,
   EntityType,
 } from "@/lib/admin/services/AuditLogService";
+import { requireAdminSession } from "@/lib/admin/security/requireAdminSession";
 
 export async function GET(request: NextRequest) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get("page") || "1");

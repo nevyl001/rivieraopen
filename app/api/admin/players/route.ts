@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { playerAdminService } from "@/lib/admin/services/PlayerAdminService";
 import type { CreatePlayerData } from "@/lib/admin/validation/schemas";
+import { requireAdminSession } from "@/lib/admin/security/requireAdminSession";
 
 export async function GET(request: NextRequest) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get("page") || "1");
@@ -31,6 +35,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const authError = await requireAdminSession(request);
+  if (authError) return authError;
+
   try {
     const data: CreatePlayerData = await request.json();
     const player = await playerAdminService.createPlayer(data);
