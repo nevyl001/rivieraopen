@@ -82,9 +82,4 @@ export const RATE_LIMITS = {
     windowMs: 60 * 60 * 1000,
     maxRequests: 5,
   },
-  // Public contact form submissions: 5 per 15 minutes per IP
-  CONTACT: {
-    windowMs: 15 * 60 * 1000,
-    maxRequests: 5,
-  },
 } as const;

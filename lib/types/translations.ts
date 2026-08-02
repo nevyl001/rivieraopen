@@ -175,48 +175,33 @@ export interface GalleryTranslations {
 }
 
 export interface ContactTranslations {
-  form: {
-    contactUs: string;
-    getInTouch: string;
-    name: string;
-    email: string;
-    phone: string;
-    subject: string;
-    message: string;
-    send: string;
-    sending: string;
-    required: string;
-    optional: string;
-  };
-  placeholders: {
-    enterName: string;
-    enterEmail: string;
-    enterPhone: string;
-    enterSubject: string;
-    enterMessage: string;
-  };
-  validation: {
-    nameRequired: string;
-    emailRequired: string;
-    emailInvalid: string;
-    messageRequired: string;
-    phoneInvalid: string;
-  };
-  success: {
-    messageSent: string;
-    thankYou: string;
-    willRespond: string;
-  };
-  error: {
-    sendFailed: string;
-    tryAgain: string;
-    networkError: string;
+  hero: {
+    title: string;
+    description: string;
   };
   info: {
-    contactInfo: string;
-    address: string;
-    hours: string;
+    getInTouch: string;
     followUs: string;
+  };
+  labels: {
+    whatsapp: string;
+    email: string;
+    phone: string;
+  };
+  card: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    benefit1: string;
+    benefit2: string;
+    benefit3: string;
+    benefit4: string;
+    ctaPrimary: string;
+    ctaSecondary: string;
+  };
+  banner: {
+    line1: string;
+    line2: string;
   };
 }
 

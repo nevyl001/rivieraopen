@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Container, Card, Button } from "@/components/ui";
-import { Mail, Phone, MapPin, Instagram, Facebook, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Container, Card } from "@/components/ui";
+import { Mail, Phone, Instagram, Facebook } from "lucide-react";
 import { TikTokIcon } from "@/components/ui/TikTokIcon";
 import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { useTranslation } from "@/lib/hooks/useTranslation";
@@ -11,106 +11,111 @@ import {
   CONTACT_PHONE_DISPLAY,
   CONTACT_PHONE_TEL,
   CONTACT_WHATSAPP_URL,
+  CONTACT_WHATSAPP_PARTNERSHIP_URL,
 } from "@/lib/constants/contact";
 
 export default function ContactPage() {
   const { t } = useTranslation("contact");
-  const { t: tCommon } = useTranslation("common");
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    message: "",
-    website: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"success" | "error" | null>(
-    null,
-  );
-  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitStatus(null);
-    setErrorMessage("");
-
-    if (formData.website.trim()) {
-      setSubmitStatus("success");
-      setFormData({ name: "", email: "", message: "", website: "" });
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nombre: formData.name,
-          email: formData.email,
-          mensaje: formData.message,
-          website: formData.website,
-        }),
-      });
-
-      const data = (await response.json()) as {
-        success?: boolean;
-        error?: string;
-      };
-
-      if (!response.ok) {
-        throw new Error(data.error || "Error al enviar el mensaje");
-      }
-
-      setSubmitStatus("success");
-      setFormData({ name: "", email: "", message: "", website: "" });
-    } catch (error) {
-      setSubmitStatus("error");
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Error al enviar el mensaje. Por favor intenta nuevamente.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const benefits = [
+    t("card.benefit1"),
+    t("card.benefit2"),
+    t("card.benefit3"),
+    t("card.benefit4"),
+  ];
 
   return (
     <div className="pt-32 pb-16 bg-gray-50">
       <Container>
         <div className="text-center mb-12">
           <h1 className="font-heading text-5xl font-bold text-black mb-4">
-            {t("form.contactUs")}
+            {t("hero.title")}
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {t("intro.description")}
+            {t("hero.description")}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          {/* Commercial CTA card - first in DOM order so it's immediately
+              visible on mobile without excessive scrolling; visually the
+              right column on desktop. */}
+          <Card
+            className="order-1 lg:order-2 text-white p-8 md:p-12"
+            style={{ backgroundColor: "#000000" }}
+          >
+            <p className="text-xs uppercase tracking-widest text-white/60 mb-4">
+              {t("card.eyebrow")}
+            </p>
+            <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">
+              {t("card.title")}
+            </h2>
+            <p className="text-white/80 text-lg mb-8">{t("card.description")}</p>
+
+            <ul className="space-y-3 mb-10">
+              {benefits.map((benefit) => (
+                <li key={benefit} className="flex items-start gap-3">
+                  <span
+                    className="mt-2.5 h-1.5 w-1.5 rounded-full bg-white/60 shrink-0"
+                    aria-hidden
+                  />
+                  <span className="text-white/90">{benefit}</span>
+                </li>
+              ))}
+            </ul>
+
+            <a
+              href={CONTACT_WHATSAPP_PARTNERSHIP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-3 w-full sm:w-auto bg-white text-black px-8 py-4 rounded-full font-medium text-lg hover:bg-gray-100 transition-all duration-300"
+            >
+              <WhatsAppIcon size={22} />
+              {t("card.ctaPrimary")}
+            </a>
+
+            <div className="mt-5">
+              <Link
+                href="/rankings"
+                className="text-sm text-white/70 hover:text-white underline underline-offset-4 transition-colors"
+              >
+                {t("card.ctaSecondary")}
+              </Link>
+            </div>
+          </Card>
+
+          <div className="order-2 lg:order-1 space-y-6">
             <Card>
               <h2 className="font-heading text-2xl font-semibold text-black mb-6">
-                {t("form.getInTouch")}
+                {t("info.getInTouch")}
               </h2>
               <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="bg-accent/10 p-3 rounded-lg shrink-0">
+                    <WhatsAppIcon size={24} className="text-accent" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-black mb-1">
+                      {t("labels.whatsapp")}
+                    </p>
+                    <a
+                      href={CONTACT_WHATSAPP_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-text-secondary hover:text-accent transition-colors"
+                    >
+                      {CONTACT_PHONE_DISPLAY}
+                    </a>
+                  </div>
+                </div>
+
                 <div className="flex items-start gap-4">
                   <div className="bg-accent/10 p-3 rounded-lg shrink-0">
                     <Mail size={24} className="text-accent" />
                   </div>
                   <div>
                     <p className="font-semibold text-black mb-1">
-                      {t("form.email")}
+                      {t("labels.email")}
                     </p>
                     <a
                       href={`mailto:${CONTACT_EMAIL}`}
@@ -127,7 +132,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-black mb-1">
-                      {t("form.phone")}
+                      {t("labels.phone")}
                     </p>
                     <a
                       href={`tel:${CONTACT_PHONE_TEL}`}
@@ -137,198 +142,66 @@ export default function ContactPage() {
                     </a>
                   </div>
                 </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="bg-accent/10 p-3 rounded-lg shrink-0">
-                    <WhatsAppIcon size={24} className="text-accent" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-black mb-1">
-                      {t("form.whatsapp")}
-                    </p>
-                    <a
-                      href={CONTACT_WHATSAPP_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-text-secondary hover:text-accent transition-colors"
-                    >
-                      {CONTACT_PHONE_DISPLAY}
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="bg-accent/10 p-3 rounded-lg shrink-0">
-                    <MapPin size={24} className="text-accent" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-black mb-1">
-                      {tCommon("labels.location")}
-                    </p>
-                    <p className="text-text-secondary">CDMX, México</p>
-                  </div>
-                </div>
               </div>
-            </Card>
 
-            <Card>
-              <h2 className="font-heading text-2xl font-semibold text-black mb-6">
-                {t("info.followUs")}
-              </h2>
-              <p className="text-text-secondary mb-4">
-                Mantente conectado con nosotros en redes sociales para las
-                últimas actualizaciones, anuncios de torneos y destacados de la
-                comunidad.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <a
-                  href="https://instagram.com/rivieraopen"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-accent rounded-full transition-colors group"
-                >
-                  <Instagram
-                    size={20}
-                    className="text-accent group-hover:text-white"
-                  />
-                  <span className="text-black group-hover:text-white">
-                    Instagram
-                  </span>
-                </a>
-                <a
-                  href="https://www.facebook.com/profile.php?id=61585620090741"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-accent rounded-full transition-colors group"
-                >
-                  <Facebook
-                    size={20}
-                    className="text-accent group-hover:text-white"
-                  />
-                  <span className="text-black group-hover:text-white">
-                    Facebook
-                  </span>
-                </a>
-                <a
-                  href="https://tiktok.com/@rivieraopen"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-accent rounded-full transition-colors group"
-                >
-                  <TikTokIcon
-                    size={20}
-                    className="text-accent group-hover:text-white"
-                  />
-                  <span className="text-black group-hover:text-white">
-                    TikTok
-                  </span>
-                </a>
+              <div className="mt-8 pt-6 border-t border-gray-100">
+                <p className="font-semibold text-black mb-4">
+                  {t("info.followUs")}
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <a
+                    href="https://instagram.com/rivieraopen"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-accent rounded-full transition-colors group"
+                  >
+                    <Instagram
+                      size={20}
+                      className="text-accent group-hover:text-white"
+                    />
+                    <span className="text-black group-hover:text-white">
+                      Instagram
+                    </span>
+                  </a>
+                  <a
+                    href="https://www.facebook.com/profile.php?id=61585620090741"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-accent rounded-full transition-colors group"
+                  >
+                    <Facebook
+                      size={20}
+                      className="text-accent group-hover:text-white"
+                    />
+                    <span className="text-black group-hover:text-white">
+                      Facebook
+                    </span>
+                  </a>
+                  <a
+                    href="https://tiktok.com/@rivieraopen"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-accent rounded-full transition-colors group"
+                  >
+                    <TikTokIcon
+                      size={20}
+                      className="text-accent group-hover:text-white"
+                    />
+                    <span className="text-black group-hover:text-white">
+                      TikTok
+                    </span>
+                  </a>
+                </div>
               </div>
             </Card>
           </div>
+        </div>
 
-          <Card>
-            <h2 className="font-heading text-2xl font-semibold text-black mb-6">
-              Envíanos un Mensaje
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <input
-                type="text"
-                name="website"
-                value={formData.website}
-                onChange={handleChange}
-                tabIndex={-1}
-                autoComplete="off"
-                className="hidden"
-                aria-hidden
-              />
-
-              <div>
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-black mb-2"
-                >
-                  {t("form.name")} *
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-black bg-white placeholder:text-gray-400"
-                  placeholder={t("placeholders.enterName")}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-black mb-2"
-                >
-                  {t("form.email")} *
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-black bg-white placeholder:text-gray-400"
-                  placeholder={t("placeholders.enterEmail")}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="message"
-                  className="block text-sm font-medium text-black mb-2"
-                >
-                  {t("form.message")} *
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  rows={6}
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent resize-none text-black bg-white placeholder:text-gray-400"
-                  placeholder={t("placeholders.enterMessage")}
-                />
-              </div>
-
-              {submitStatus === "success" && (
-                <div className="p-4 bg-success/10 text-success rounded-lg">
-                  ¡Mensaje enviado! Te contactaremos pronto.
-                </div>
-              )}
-
-              {submitStatus === "error" && (
-                <div className="p-4 bg-error/10 text-error rounded-lg">
-                  {errorMessage}
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={isSubmitting}
-                className="w-full"
-              >
-                {isSubmitting ? (
-                  <span className="inline-flex items-center justify-center gap-2">
-                    <Loader2 size={20} className="animate-spin" />
-                    {t("form.sending")}
-                  </span>
-                ) : (
-                  t("form.send")
-                )}
-              </Button>
-            </form>
-          </Card>
+        <div className="mt-16 md:mt-20 text-center border-t border-gray-200 pt-12">
+          <p className="text-xl md:text-2xl font-heading text-black mb-2">
+            {t("banner.line1")}
+          </p>
+          <p className="text-lg text-gray-600">{t("banner.line2")}</p>
         </div>
       </Container>
     </div>

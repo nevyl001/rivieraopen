@@ -1,49 +1,30 @@
 {
-  "intro": {
-    "description": "Have questions about tournaments, registration, or the circuit? We're also looking for strategic partnerships. We'd love to hear from you."
-  },
-  "form": {
-    "contactUs": "Contact Us",
-    "getInTouch": "Get in Touch",
-    "name": "Name",
-    "email": "Email",
-    "phone": "Phone",
-    "whatsapp": "WhatsApp",
-    "subject": "Subject",
-    "message": "Message",
-    "send": "Send",
-    "sending": "Sending...",
-    "required": "Required",
-    "optional": "Optional"
-  },
-  "placeholders": {
-    "enterName": "Enter your name",
-    "enterEmail": "Enter your email",
-    "enterPhone": "Enter your phone",
-    "enterSubject": "Enter subject",
-    "enterMessage": "Enter your message"
-  },
-  "validation": {
-    "nameRequired": "Name is required",
-    "emailRequired": "Email is required",
-    "emailInvalid": "Please enter a valid email",
-    "messageRequired": "Message is required",
-    "phoneInvalid": "Please enter a valid phone number"
-  },
-  "success": {
-    "messageSent": "Message sent successfully",
-    "thankYou": "Thank you for contacting us",
-    "willRespond": "We'll respond soon"
-  },
-  "error": {
-    "sendFailed": "Failed to send message",
-    "tryAgain": "Please try again",
-    "networkError": "Connection error"
+  "hero": {
+    "title": "Let's Connect",
+    "description": "Do you run a padel community, want to partner with Riviera Open, or become a sponsor? We connect players, organizers, and brands through a professional system with real-time national rankings and communities linked nationwide."
   },
   "info": {
-    "contactInfo": "Contact Information",
-    "address": "Address",
-    "hours": "Hours",
+    "getInTouch": "Get in Touch",
     "followUs": "Follow Us"
+  },
+  "labels": {
+    "whatsapp": "WhatsApp",
+    "email": "Email",
+    "phone": "Phone"
+  },
+  "card": {
+    "eyebrow": "Partnerships · Communities · Sponsors",
+    "title": "Grow your community with Riviera Open",
+    "description": "Run retas, leagues, and tournaments without losing your identity. Every result feeds into the national ranking, and your players can follow their progress in real time.",
+    "benefit1": "National ranking updated instantly.",
+    "benefit2": "Full history for every player and event.",
+    "benefit3": "Communities connected under their own identity.",
+    "benefit4": "Room for partnerships and sponsors.",
+    "ctaPrimary": "Chat on WhatsApp",
+    "ctaSecondary": "Discover Riviera App"
+  },
+  "banner": {
+    "line1": "The best communities don't just organize matches - they build competition.",
+    "line2": "Are you already playing in Riviera Open?"
   }
 }
