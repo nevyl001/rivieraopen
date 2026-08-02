@@ -179,10 +179,6 @@ export interface ContactTranslations {
     title: string;
     description: string;
   };
-  info: {
-    getInTouch: string;
-    followUs: string;
-  };
   labels: {
     whatsapp: string;
     email: string;
@@ -198,6 +194,8 @@ export interface ContactTranslations {
     benefit4: string;
     ctaPrimary: string;
     ctaSecondary: string;
+    channelsTitle: string;
+    followUsTitle: string;
   };
   banner: {
     line1: string;

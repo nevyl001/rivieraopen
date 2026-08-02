@@ -3,10 +3,6 @@
     "title": "Let's Connect",
     "description": "Do you run a padel community, want to partner with Riviera Open, or become a sponsor? We connect players, organizers, and brands through a professional system with real-time national rankings and communities linked nationwide."
   },
-  "info": {
-    "getInTouch": "Get in Touch",
-    "followUs": "Follow Us"
-  },
   "labels": {
     "whatsapp": "WhatsApp",
     "email": "Email",
@@ -15,13 +11,15 @@
   "card": {
     "eyebrow": "Partnerships · Communities · Sponsors",
     "title": "Grow your community with Riviera Open",
-    "description": "Run retas, leagues, and tournaments without losing your identity. Every result feeds into the national ranking, and your players can follow their progress in real time.",
-    "benefit1": "National ranking updated instantly.",
-    "benefit2": "Full history for every player and event.",
-    "benefit3": "Communities connected under their own identity.",
-    "benefit4": "Room for partnerships and sponsors.",
+    "description": "Run retas, leagues, and tournaments without losing your identity. Every result feeds the national ranking in real time and builds your players' full history.",
+    "benefit1": "National ranking updated instantly",
+    "benefit2": "Full player history",
+    "benefit3": "Your community keeps its identity",
+    "benefit4": "Room for sponsors and partnerships",
     "ctaPrimary": "Chat on WhatsApp",
-    "ctaSecondary": "Discover Riviera App"
+    "ctaSecondary": "Discover Riviera App",
+    "channelsTitle": "Write or call us",
+    "followUsTitle": "Follow Us"
   },
   "banner": {
     "line1": "The best communities don't just organize matches - they build competition.",
