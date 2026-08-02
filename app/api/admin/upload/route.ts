@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
   // 2. Rate limit, scoped to the authenticated session and IP.
   const sessionId = request.cookies.get("admin_session")!.value;
-  const rateLimitResponse = rateLimitMiddleware(
+  const rateLimitResponse = await rateLimitMiddleware(
     request,
     RATE_LIMITS.UPLOAD,
     sessionId,

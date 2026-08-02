@@ -1,13 +1,44 @@
 import { randomUUID } from "crypto";
 import type { AdminCredentials, AdminSession, AdminUser } from "./types";
-
-// In-memory session store (in production, use Redis or database)
-const sessions = new Map<string, AdminSession>();
+import type { AdminSessionStore } from "./sessionStore";
+import { InMemoryAdminSessionStore } from "./sessionStore";
+import { SupabaseAdminSessionStore } from "./supabaseSessionStore";
+import { getSupabaseAdminClient } from "@/lib/supabaseAdminClient";
 
 // Session expiration time: 24 hours
 const SESSION_DURATION = 24 * 60 * 60 * 1000;
 
+/**
+ * Picks a session store: Supabase-backed when SUPABASE_SERVICE_ROLE_KEY is
+ * configured (works correctly across serverless instances), otherwise an
+ * in-memory Map (only valid for a single long-lived process, e.g. local
+ * dev). Falling back silently in production would reintroduce intermittent
+ * 401s, so that case is logged loudly.
+ */
+function defaultStore(): AdminSessionStore {
+  if (getSupabaseAdminClient()) {
+    return new SupabaseAdminSessionStore();
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    console.error(
+      "AdminAuthProvider: SUPABASE_SERVICE_ROLE_KEY no configurada. " +
+        "Las sesiones administrativas se guardan en memoria de proceso y " +
+        "pueden no ser reconocidas por otras instancias serverless " +
+        "(401 intermitentes en el panel admin).",
+    );
+  }
+
+  return new InMemoryAdminSessionStore();
+}
+
 export class AdminAuthProvider {
+  private readonly store: AdminSessionStore;
+
+  constructor(store?: AdminSessionStore) {
+    this.store = store ?? defaultStore();
+  }
+
   /**
    * Authenticate user with credentials
    */
@@ -34,8 +65,8 @@ export class AdminAuthProvider {
       expiresAt,
     };
 
-    // Store session
-    sessions.set(sessionId, session);
+    // Persist session
+    await this.store.set(session);
 
     return session;
   }
@@ -44,14 +75,14 @@ export class AdminAuthProvider {
    * Logout user and invalidate session
    */
   async logout(sessionId: string): Promise<void> {
-    sessions.delete(sessionId);
+    await this.store.delete(sessionId);
   }
 
   /**
    * Validate if a session is still valid
    */
   async validateSession(sessionId: string): Promise<boolean> {
-    const session = sessions.get(sessionId);
+    const session = await this.store.get(sessionId);
 
     if (!session) {
       return false;
@@ -59,7 +90,7 @@ export class AdminAuthProvider {
 
     // Check if session has expired
     if (new Date() > session.expiresAt) {
-      sessions.delete(sessionId);
+      await this.store.delete(sessionId);
       return false;
     }
 
@@ -76,7 +107,7 @@ export class AdminAuthProvider {
       return null;
     }
 
-    const session = sessions.get(sessionId);
+    const session = await this.store.get(sessionId);
     if (!session) {
       return null;
     }
@@ -93,24 +124,25 @@ export class AdminAuthProvider {
   /**
    * Clean up expired sessions (should be called periodically)
    */
-  cleanupExpiredSessions(): void {
-    const now = new Date();
-    for (const [sessionId, session] of sessions.entries()) {
-      if (now > session.expiresAt) {
-        sessions.delete(sessionId);
-      }
-    }
+  async cleanupExpiredSessions(): Promise<void> {
+    await this.store.deleteExpired();
   }
 }
 
 // Export singleton instance
 export const adminAuthProvider = new AdminAuthProvider();
 
-// Clean up expired sessions every hour
+// Best-effort periodic cleanup. This only reaches every session in
+// long-lived processes (local dev); in serverless it opportunistically
+// trims whichever instance happens to stay warm - validateSession already
+// rejects expired sessions regardless, so this is table/memory hygiene,
+// not a correctness requirement.
 if (typeof setInterval !== "undefined") {
   setInterval(
     () => {
-      adminAuthProvider.cleanupExpiredSessions();
+      adminAuthProvider.cleanupExpiredSessions().catch((error) => {
+        console.error("AdminAuthProvider: cleanup de sesiones falló:", error);
+      });
     },
     60 * 60 * 1000,
   );

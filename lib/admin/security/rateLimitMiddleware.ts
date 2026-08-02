@@ -26,17 +26,17 @@ function getClientIp(request: NextRequest): string {
  * @param extraIdentifier - additional identifier component (e.g. an admin
  * session id) mixed into the rate limit key alongside the client IP.
  */
-export function rateLimitMiddleware(
+export async function rateLimitMiddleware(
   request: NextRequest,
   config: RateLimitConfig,
   extraIdentifier?: string,
-): NextResponse | null {
+): Promise<NextResponse | null> {
   const clientIp = getClientIp(request);
   const identifier = extraIdentifier
     ? `${clientIp}:${extraIdentifier}:${request.nextUrl.pathname}`
     : `${clientIp}:${request.nextUrl.pathname}`;
 
-  const result = checkRateLimit(identifier, config);
+  const result = await checkRateLimit(identifier, config);
 
   if (!result.allowed) {
     const retryAfter = Math.ceil(

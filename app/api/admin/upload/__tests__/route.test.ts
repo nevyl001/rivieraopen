@@ -91,9 +91,9 @@ function makeFormData(overrides?: {
 }
 
 describe("POST /api/admin/upload", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
-    resetRateLimit(`unknown:${VALID_SESSION}:/api/admin/upload`);
+    await resetRateLimit(`unknown:${VALID_SESSION}:/api/admin/upload`);
     (fileUploadService.validateImage as jest.Mock).mockReturnValue({
       valid: true,
     });

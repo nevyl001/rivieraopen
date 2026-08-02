@@ -6,7 +6,7 @@ import { RATE_LIMITS } from "@/lib/admin/security/rateLimit";
 
 export async function POST(request: NextRequest) {
   // Apply rate limiting for login attempts
-  const rateLimitResponse = rateLimitMiddleware(request, RATE_LIMITS.LOGIN);
+  const rateLimitResponse = await rateLimitMiddleware(request, RATE_LIMITS.LOGIN);
   if (rateLimitResponse) {
     return rateLimitResponse;
   }

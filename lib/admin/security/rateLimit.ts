@@ -1,96 +1,63 @@
 /**
  * Rate limiting implementation for API routes
- * Tracks requests per IP address and enforces limits
+ * Tracks requests per IP address (and session, for admin routes) and
+ * enforces limits.
  */
 
-interface RateLimitEntry {
-  count: number;
-  resetAt: Date;
+import type { RateLimitConfig, RateLimitResult, RateLimitStore } from "./rateLimitStore";
+import { InMemoryRateLimitStore } from "./rateLimitStore";
+import { SupabaseRateLimitStore } from "./supabaseRateLimitStore";
+import { getSupabaseAdminClient } from "@/lib/supabaseAdminClient";
+
+export type { RateLimitConfig, RateLimitResult } from "./rateLimitStore";
+
+/**
+ * Picks a rate limit store: Supabase-backed when SUPABASE_SERVICE_ROLE_KEY
+ * is configured (consistent across serverless instances), otherwise an
+ * in-memory Map (only valid for a single long-lived process, e.g. local
+ * dev).
+ */
+function defaultStore(): RateLimitStore {
+  if (getSupabaseAdminClient()) {
+    return new SupabaseRateLimitStore();
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    console.error(
+      "rateLimit: SUPABASE_SERVICE_ROLE_KEY no configurada. Los límites " +
+        "se aplican en memoria de proceso y pueden no ser consistentes " +
+        "entre instancias serverless.",
+    );
+  }
+
+  return new InMemoryRateLimitStore();
 }
 
-// In-memory rate limit store (in production, use Redis)
-const rateLimitStore = new Map<string, RateLimitEntry>();
-
-export interface RateLimitConfig {
-  windowMs: number; // Time window in milliseconds
-  maxRequests: number; // Maximum requests per window
-}
-
-export interface RateLimitResult {
-  allowed: boolean;
-  remaining: number;
-  resetAt: Date;
-}
+let store: RateLimitStore = defaultStore();
 
 /**
  * Check if a request is allowed based on rate limits
  */
-export function checkRateLimit(
+export async function checkRateLimit(
   identifier: string,
   config: RateLimitConfig,
-): RateLimitResult {
-  const now = new Date();
-  const entry = rateLimitStore.get(identifier);
-
-  // If no entry or entry has expired, create new entry
-  if (!entry || now > entry.resetAt) {
-    const resetAt = new Date(now.getTime() + config.windowMs);
-    rateLimitStore.set(identifier, { count: 1, resetAt });
-
-    return {
-      allowed: true,
-      remaining: config.maxRequests - 1,
-      resetAt,
-    };
-  }
-
-  // Check if limit exceeded
-  if (entry.count >= config.maxRequests) {
-    return {
-      allowed: false,
-      remaining: 0,
-      resetAt: entry.resetAt,
-    };
-  }
-
-  // Increment count
-  entry.count++;
-  rateLimitStore.set(identifier, entry);
-
-  return {
-    allowed: true,
-    remaining: config.maxRequests - entry.count,
-    resetAt: entry.resetAt,
-  };
-}
-
-/**
- * Clean up expired rate limit entries
- */
-export function cleanupExpiredRateLimits(): void {
-  const now = new Date();
-  for (const [identifier, entry] of rateLimitStore.entries()) {
-    if (now > entry.resetAt) {
-      rateLimitStore.delete(identifier);
-    }
-  }
+): Promise<RateLimitResult> {
+  return store.increment(identifier, config);
 }
 
 /**
  * Reset rate limit for an identifier (useful for testing)
  */
-export function resetRateLimit(identifier: string): void {
-  rateLimitStore.delete(identifier);
+export async function resetRateLimit(identifier: string): Promise<void> {
+  await store.reset(identifier);
 }
 
-// Clean up expired entries every 5 minutes
-if (typeof setInterval !== "undefined") {
-  setInterval(
-    () => {
-      cleanupExpiredRateLimits();
-    },
-    5 * 60 * 1000,
-  );
+/**
+ * Test-only hook to swap the underlying store (e.g. a shared in-memory
+ * store to simulate two serverless instances, or a mocked Supabase store).
+ */
+export function __setRateLimitStoreForTests(newStore: RateLimitStore): void {
+  store = newStore;
 }
 
 // Predefined rate limit configurations
