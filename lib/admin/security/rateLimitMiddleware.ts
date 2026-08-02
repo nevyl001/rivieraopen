@@ -4,7 +4,7 @@ import { checkRateLimit, RateLimitConfig } from "./rateLimit";
 /**
  * Get client IP address from request
  */
-function getClientIp(request: NextRequest): string {
+export function getClientIp(request: NextRequest): string {
   // Try to get IP from various headers (for proxies/load balancers)
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) {
