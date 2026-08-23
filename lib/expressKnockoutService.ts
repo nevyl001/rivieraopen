@@ -26,6 +26,19 @@ interface BracketSlot {
   };
 }
 
+/**
+ * torneo_express.bracket_slots may be a legacy array or a v2 envelope
+ * `{ v: 2, slots: BracketSlot[] }`. Always return a real array.
+ */
+export function normalizeBracketSlots(raw: unknown): BracketSlot[] {
+  if (Array.isArray(raw)) return raw as BracketSlot[];
+  if (raw && typeof raw === "object") {
+    const nested = (raw as { slots?: unknown }).slots;
+    if (Array.isArray(nested)) return nested as BracketSlot[];
+  }
+  return [];
+}
+
 interface TorneoPodium {
   campeonPairId: string | null;
   subcampeonPairId: string | null;
@@ -461,10 +474,7 @@ async function loadExpressPairCatalog(
     .eq("id", torneoId)
     .maybeSingle();
 
-  const slots = (torneo?.bracket_slots ?? []) as Array<{
-    type?: string;
-    qualifier?: { parejaId?: string; parejaLabel?: string };
-  }>;
+  const slots = normalizeBracketSlots(torneo?.bracket_slots);
 
   for (const slot of slots) {
     const parejaId = slot.qualifier?.parejaId;
@@ -528,10 +538,7 @@ async function loadPairIdsByPosition(
     .eq("id", torneoId)
     .maybeSingle();
 
-  const slots = (bracketRow?.bracket_slots ?? []) as Array<{
-    type?: string;
-    qualifier?: { parejaId?: string };
-  }>;
+  const slots = normalizeBracketSlots(bracketRow?.bracket_slots);
 
   for (const slot of slots) {
     if (slot.type !== "team" || !slot.qualifier?.parejaId) continue;
@@ -845,7 +852,7 @@ export async function supplementExpressKnockoutMatches(
     .maybeSingle();
 
   const catalog = await loadExpressPairCatalog(torneoId);
-  const bracketSlots = (torneo?.bracket_slots ?? []) as BracketSlot[];
+  const bracketSlots = normalizeBracketSlots(torneo?.bracket_slots);
 
   const playerPairId = await loadPairIdsByPosition(
     torneoId,

@@ -353,14 +353,22 @@ export const getJugadorPublico = cache(async function getJugadorPublico(
     const baseHistoryEvents = mapOfficialHistorialToHistoryEvents(
       officialProfile.historial
     );
-    const historyEvents = await enrichOfficialHistoryEvents(
-      baseHistoryEvents,
-      officialProfile.historial,
-      row.id,
-      row.legacy_player_id,
-      organizadorId,
-      row.nombre
-    );
+    let historyEvents = baseHistoryEvents;
+    try {
+      historyEvents = await enrichOfficialHistoryEvents(
+        baseHistoryEvents,
+        officialProfile.historial,
+        row.id,
+        row.legacy_player_id,
+        organizadorId,
+        row.nombre
+      );
+    } catch (enrichErr) {
+      console.error(
+        "getJugadorPublico: history enrichment failed, using base history:",
+        enrichErr instanceof Error ? enrichErr.message : enrichErr
+      );
+    }
 
     const baseProfile = mapRowToProfile(row, rank, points);
 
