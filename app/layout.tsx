@@ -21,8 +21,8 @@ const SITE_DESCRIPTION =
   "Cada partido suma a tu ranking, tu historial y tu progreso dentro de un circuito de pádel conectado por tecnología propia. Resultados, estadísticas y evolución en tiempo real.";
 const TWITTER_DESCRIPTION =
   "Cada partido suma a tu ranking, tu historial y tu progreso dentro de un circuito de pádel conectado por tecnología propia.";
-/** Place the final 1200×630 asset at public/og-riviera-open.jpg */
-const OG_IMAGE_PATH = "/og-riviera-open.jpg";
+/** Current public OG asset. Replace with premium 1200×630 at public/og-riviera-open.jpg when ready. */
+const OG_IMAGE_PATH = "/img/meta.jpg";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
