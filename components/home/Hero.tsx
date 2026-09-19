@@ -41,36 +41,31 @@ export function Hero() {
         className="relative z-10 text-center px-4 max-w-4xl mx-auto"
       >
         <AnimatedSection animation="slide-up" delay={0} rootMargin="0px">
-          <div className="mb-6 md:mb-8">
+          <div className="mb-5 md:mb-7">
             <Logo
               variant="badge"
-              width={200}
-              height={200}
-              className="mx-auto h-[180px] w-[180px] md:h-[200px] md:w-[200px] object-contain"
+              width={280}
+              height={320}
+              className="mx-auto h-auto w-[200px] md:w-[240px] lg:w-[280px] object-contain"
               priority
             />
+            <h1 className="sr-only">{t("hero.title")}</h1>
           </div>
         </AnimatedSection>
 
         <AnimatedSection animation="slide-up" delay={200} rootMargin="0px">
-          <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 md:mb-6 leading-tight">
-            {t("hero.title")}
-          </h1>
-        </AnimatedSection>
-
-        <AnimatedSection animation="slide-up" delay={400} rootMargin="0px">
-          <p className="text-lg md:text-2xl text-white/90 mb-3 md:mb-4 font-light">
+          <p className="font-heading text-2xl md:text-4xl lg:text-5xl font-semibold text-white mb-3 md:mb-4 leading-tight">
             {t("hero.subtitle")}
           </p>
         </AnimatedSection>
 
-        <AnimatedSection animation="slide-up" delay={600} rootMargin="0px">
+        <AnimatedSection animation="slide-up" delay={400} rootMargin="0px">
           <p className="text-base md:text-xl text-white/80 mb-6 md:mb-10 max-w-2xl mx-auto">
             {t("hero.description")}
           </p>
         </AnimatedSection>
 
-        <AnimatedSection animation="slide-up" delay={800} rootMargin="0px">
+        <AnimatedSection animation="slide-up" delay={600} rootMargin="0px">
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-4 md:mt-6">
             <Link href="/rankings">
               <Button
