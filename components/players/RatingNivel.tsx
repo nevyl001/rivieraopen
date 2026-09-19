@@ -22,6 +22,9 @@ function modoJuegoLabel(modo: string): string {
   return MODO_JUEGO_LABELS[modo] ?? modo.replace(/_/g, " ");
 }
 
+/** Nivel + FIABLE — fluorescent lime (pre-mono accent that read well) */
+const PROFILE_NIVEL_COLOR = "#a3e635";
+
 function fiabilidadBadge(
   fiabilidad: number,
   partidosJugados: number
@@ -32,7 +35,7 @@ function fiabilidadBadge(
   return "CALIBRANDO";
 }
 
-/** Badge accent — FIABLE pops; others stay quieter */
+/** Badge accent — FIABLE uses the same fluorescent lime as Nivel */
 function badgeAccent(badge: string): {
   color: string;
   borderColor: string;
@@ -41,9 +44,9 @@ function badgeAccent(badge: string): {
   switch (badge) {
     case "FIABLE":
       return {
-        color: PROFILE_DELTA_UP,
-        borderColor: `${PROFILE_DELTA_UP}66`,
-        backgroundColor: `${PROFILE_DELTA_UP}1A`,
+        color: PROFILE_NIVEL_COLOR,
+        borderColor: `${PROFILE_NIVEL_COLOR}66`,
+        backgroundColor: `${PROFILE_NIVEL_COLOR}1A`,
       };
     case "MEDIA":
       return {
@@ -65,10 +68,6 @@ function badgeAccent(badge: string): {
       };
   }
 }
-
-/** Nivel display — Riviera mint, same family as Riviera ID */
-const PROFILE_NIVEL_COLOR = "#1D9E75";
-
 
 function formatFechaCorta(iso: string): string {
   try {
