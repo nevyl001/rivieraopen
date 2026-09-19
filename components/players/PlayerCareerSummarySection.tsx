@@ -50,15 +50,6 @@ export function PlayerCareerSummarySection({
         </h2>
       )}
 
-      {summary.registrationClubName && (
-        <p className="mb-2 break-words text-[11px] text-[#777] lg:mb-4 lg:text-sm">
-          {t("passport.registrationClub")}:{" "}
-          <span className="text-[#ccc] lg:text-white">
-            {summary.registrationClubName}
-          </span>
-        </p>
-      )}
-
       <div className="grid grid-cols-2 gap-1.5 lg:grid-cols-3 lg:gap-3 xl:grid-cols-4">
         {primaryStats.map((stat) => (
           <StatCell key={stat.label} label={stat.label} value={stat.value} />
