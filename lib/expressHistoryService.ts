@@ -108,7 +108,10 @@ function uniqueIds(ids: Array<string | null | undefined>): string[] {
   return out;
 }
 
-/** Pure helper — exported for tests. */
+/** Pure helper — exported for tests.
+ * Only returns a legacy id when the display name maps to exactly one player
+ * in the tournament. Homonyms (same name, different ids) are ignored.
+ */
 export function collectLegacyIdsFromExpressPairEmbeds(
   embeds: Array<ParejaEmbed | null>,
   playerName: string | null | undefined
@@ -126,7 +129,10 @@ export function collectLegacyIdsFromExpressPairEmbeds(
       found.push(pareja.player2_id);
     }
   }
-  return uniqueIds(found);
+
+  const unique = uniqueIds(found);
+  // Ambiguous homonyms must not be used to attach match history.
+  return unique.length === 1 ? unique : [];
 }
 
 async function buildLegacyNameMap(

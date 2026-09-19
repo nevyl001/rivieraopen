@@ -183,7 +183,13 @@ async function resolveRetaLegacyPlayerIds(
     }
   }
 
-  return uniqueIds([...candidates, ...fromName]);
+  const uniqueFromName = uniqueIds(fromName);
+  // Homonyms in the same reta: do not guess which player is which.
+  if (uniqueFromName.length === 1) {
+    return uniqueIds([...candidates, uniqueFromName[0]]);
+  }
+
+  return candidates;
 }
 
 async function fetchRetaMatchesFromDb(

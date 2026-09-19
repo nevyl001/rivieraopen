@@ -110,68 +110,6 @@ function updateH2H(
   map.set(rivalId, current);
 }
 
-function normalizePlayerName(value: string): string {
-  return value.trim().toLowerCase().replace(/\s+/g, " ");
-}
-
-function parseOpponentNames(label: string): string[] {
-  return label
-    .split("/")
-    .map((name) => name.trim())
-    .filter(Boolean);
-}
-
-async function buildNameToJugadorMap(): Promise<Map<string, string>> {
-  const map = new Map<string, string>();
-  const supabase = getSupabaseClient();
-  if (!supabase) return map;
-
-  const { data } = await supabase
-    .from(OFFICIAL_RANKING_VIEW)
-    .select("id, nombre");
-
-  for (const row of data ?? []) {
-    const nombre = (row.nombre as string | null)?.trim();
-    if (!nombre) continue;
-    map.set(normalizePlayerName(nombre), row.id as string);
-  }
-
-  return map;
-}
-
-function applyHistoryToHeadToHead(
-  h2h: Map<string, H2HRecord>,
-  historyEvents: PlayerHistoryEvent[],
-  jugadorId: string,
-  nameToJugador: Map<string, string>
-): void {
-  for (const event of historyEvents) {
-    const matchDate = event.fecha;
-
-    for (const partido of event.partidos) {
-      if (
-        !partido.opponentLabel?.trim() ||
-        partido.opponentLabel.trim().toLowerCase() === "rival"
-      ) {
-        continue;
-      }
-
-      for (const opponentName of parseOpponentNames(partido.opponentLabel)) {
-        const rivalJugadorId = nameToJugador.get(
-          normalizePlayerName(opponentName)
-        );
-        if (!rivalJugadorId || rivalJugadorId === jugadorId) continue;
-        const outcome: "win" | "loss" | "draw" = partido.isDraw
-          ? "draw"
-          : partido.won
-            ? "win"
-            : "loss";
-        updateH2H(h2h, rivalJugadorId, outcome, matchDate);
-      }
-    }
-  }
-}
-
 async function buildLegacyToJugadorMap(): Promise<Map<string, string>> {
   const supabase = getSupabaseClient();
   if (!supabase) return new Map();
@@ -263,191 +201,194 @@ async function computeHeadToHead(
 ): Promise<Map<string, H2HRecord>> {
   const h2h = new Map<string, H2HRecord>();
   const supabase = getSupabaseClient();
-  if (!supabase || !legacyPlayerId?.trim()) return h2h;
+  if (!supabase) return h2h;
+
+  // Nunca resolver rivales por nombre: homónimos (p. ej. varios "Hector")
+  // enlazan al perfil equivocado. Solo IDs (legacy_player_id / jugador UUID).
+  if (legacyPlayerId?.trim()) {
+    const legacyToJugador = await buildLegacyToJugadorMap();
+
+    const rivalIdsFromPareja = (
+      pareja: ParejaEmbed | null,
+      outcome: "win" | "loss" | "draw",
+      matchDate: string | null
+    ) => {
+      if (!pareja) return;
+      for (const legacyId of [pareja.player1_id, pareja.player2_id]) {
+        if (!legacyId || legacyId === legacyPlayerId) continue;
+        const rivalJugadorId = legacyToJugador.get(legacyId);
+        if (!rivalJugadorId || rivalJugadorId === jugadorId) continue;
+        updateH2H(h2h, rivalJugadorId, outcome, matchDate);
+      }
+    };
+
+    const { data: torneos } = await supabase
+      .from("torneo_express")
+      .select("id")
+      .eq("organizador_id", organizadorId);
+
+    if (torneos?.length) {
+      const torneoIds = torneos.map((row) => row.id as string);
+      const { data: grupos } = await supabase
+        .from("torneo_express_grupos")
+        .select("id")
+        .in("torneo_id", torneoIds);
+
+      if (grupos?.length) {
+        const grupoIds = grupos.map((row) => row.id as string);
+        const { data: partidos } = await supabase
+          .from("torneo_express_partidos")
+          .select(
+            `
+            ganador_id,
+            pareja_local_id,
+            pareja_visitante_id,
+            created_at,
+            pareja_local:pareja_local_id ( player1_id, player2_id ),
+            pareja_visitante:pareja_visitante_id ( player1_id, player2_id )
+          `
+          )
+          .in("grupo_id", grupoIds)
+          .eq("estado", "jugado");
+
+        for (const raw of partidos ?? []) {
+          const local = unwrapPareja(raw.pareja_local);
+          const visit = unwrapPareja(raw.pareja_visitante);
+          const inLocal =
+            local?.player1_id === legacyPlayerId ||
+            local?.player2_id === legacyPlayerId;
+          const inVisit =
+            visit?.player1_id === legacyPlayerId ||
+            visit?.player2_id === legacyPlayerId;
+          if (!inLocal && !inVisit) continue;
+
+          const myParejaId = inLocal
+            ? raw.pareja_local_id
+            : raw.pareja_visitante_id;
+          const oppPareja = inLocal ? visit : local;
+          const won = Boolean(raw.ganador_id && raw.ganador_id === myParejaId);
+          const matchDate =
+            (raw.created_at as string | null)?.slice(0, 10) ?? null;
+          rivalIdsFromPareja(oppPareja, won ? "win" : "loss", matchDate);
+        }
+      }
+    }
+
+    const { data: pairs } = await supabase
+      .from("pairs")
+      .select("id")
+      .or(`player1_id.eq.${legacyPlayerId},player2_id.eq.${legacyPlayerId}`);
+
+    if (pairs?.length) {
+      const pairIds = pairs.map((row) => row.id as string);
+      const pairFilter = pairIds.join(",");
+
+      const { data: orgTournaments } = await supabase
+        .from("tournaments")
+        .select("id")
+        .eq("user_id", organizadorId);
+
+      if (orgTournaments?.length) {
+        const tournamentIds = orgTournaments.map((row) => row.id as string);
+        const { data: matches } = await supabase
+          .from("matches")
+          .select(
+            "id, pair1_id, pair2_id, pair1_score, pair2_score, created_at, games ( pair1_games, pair2_games )"
+          )
+          .in("tournament_id", tournamentIds)
+          .eq("status", "finished")
+          .or(`pair1_id.in.(${pairFilter}),pair2_id.in.(${pairFilter})`);
+
+        const seenMatchIds = new Set<string>();
+        const opponentPairIds = new Set<string>();
+
+        for (const raw of matches ?? []) {
+          if (seenMatchIds.has(raw.id as string)) continue;
+          seenMatchIds.add(raw.id as string);
+
+          const inPair1 = pairIds.includes(raw.pair1_id as string);
+          const inPair2 = pairIds.includes(raw.pair2_id as string);
+          if (!inPair1 && !inPair2) continue;
+
+          const oppPairId = inPair1
+            ? (raw.pair2_id as string)
+            : (raw.pair1_id as string);
+          opponentPairIds.add(oppPairId);
+        }
+
+        const pairIdToLegacy = new Map<string, string[]>();
+        if (opponentPairIds.size) {
+          const { data: oppPairs } = await supabase
+            .from("pairs")
+            .select("id, player1_id, player2_id")
+            .in("id", [...opponentPairIds]);
+
+          for (const pair of oppPairs ?? []) {
+            const ids = [pair.player1_id, pair.player2_id].filter(
+              (id): id is string => Boolean(id)
+            );
+            pairIdToLegacy.set(pair.id as string, ids);
+          }
+        }
+
+        for (const raw of matches ?? []) {
+          const inPair1 = pairIds.includes(raw.pair1_id as string);
+          const inPair2 = pairIds.includes(raw.pair2_id as string);
+          if (!inPair1 && !inPair2) continue;
+
+          const isPair1 = inPair1;
+          const gameRows = Array.isArray(raw.games)
+            ? raw.games
+            : raw.games
+              ? [raw.games]
+              : [];
+
+          let outcome: "win" | "loss" | "draw";
+          if (gameRows.length) {
+            let myGames = 0;
+            let oppGames = 0;
+            for (const game of gameRows) {
+              myGames += isPair1
+                ? Number(game.pair1_games ?? 0)
+                : Number(game.pair2_games ?? 0);
+              oppGames += isPair1
+                ? Number(game.pair2_games ?? 0)
+                : Number(game.pair1_games ?? 0);
+            }
+            outcome =
+              myGames > oppGames ? "win" : myGames < oppGames ? "loss" : "draw";
+          } else {
+            const myScore = isPair1
+              ? Number(raw.pair1_score ?? 0)
+              : Number(raw.pair2_score ?? 0);
+            const oppScore = isPair1
+              ? Number(raw.pair2_score ?? 0)
+              : Number(raw.pair1_score ?? 0);
+            if (myScore === 0 && oppScore === 0) continue;
+            outcome =
+              myScore > oppScore ? "win" : myScore < oppScore ? "loss" : "draw";
+          }
+
+          const oppPairId = isPair1
+            ? (raw.pair2_id as string)
+            : (raw.pair1_id as string);
+          const oppLegacyIds = pairIdToLegacy.get(oppPairId) ?? [];
+          const matchDate =
+            (raw.created_at as string | null)?.slice(0, 10) ?? null;
+
+          for (const legacyId of oppLegacyIds) {
+            if (legacyId === legacyPlayerId) continue;
+            const rivalJugadorId = legacyToJugador.get(legacyId);
+            if (!rivalJugadorId || rivalJugadorId === jugadorId) continue;
+            updateH2H(h2h, rivalJugadorId, outcome, matchDate);
+          }
+        }
+      }
+    }
+  }
 
   if (historyEvents.length) {
-    const nameToJugador = await buildNameToJugadorMap();
-    applyHistoryToHeadToHead(h2h, historyEvents, jugadorId, nameToJugador);
     await applyDueloEventsToHeadToHead(h2h, historyEvents, jugadorId);
-    return h2h;
-  }
-
-  const legacyToJugador = await buildLegacyToJugadorMap();
-
-  const rivalIdsFromPareja = (
-    pareja: ParejaEmbed | null,
-    outcome: "win" | "loss" | "draw",
-    matchDate: string | null
-  ) => {
-    if (!pareja) return;
-    for (const legacyId of [pareja.player1_id, pareja.player2_id]) {
-      if (!legacyId || legacyId === legacyPlayerId) continue;
-      const rivalJugadorId = legacyToJugador.get(legacyId);
-      if (!rivalJugadorId || rivalJugadorId === jugadorId) continue;
-      updateH2H(h2h, rivalJugadorId, outcome, matchDate);
-    }
-  };
-
-  const { data: torneos } = await supabase
-    .from("torneo_express")
-    .select("id")
-    .eq("organizador_id", organizadorId);
-
-  if (torneos?.length) {
-    const torneoIds = torneos.map((row) => row.id as string);
-    const { data: grupos } = await supabase
-      .from("torneo_express_grupos")
-      .select("id")
-      .in("torneo_id", torneoIds);
-
-    if (grupos?.length) {
-      const grupoIds = grupos.map((row) => row.id as string);
-      const { data: partidos } = await supabase
-        .from("torneo_express_partidos")
-        .select(
-          `
-          ganador_id,
-          pareja_local_id,
-          pareja_visitante_id,
-          created_at,
-          pareja_local:pareja_local_id ( player1_id, player2_id ),
-          pareja_visitante:pareja_visitante_id ( player1_id, player2_id )
-        `
-        )
-        .in("grupo_id", grupoIds)
-        .eq("estado", "jugado");
-
-      for (const raw of partidos ?? []) {
-        const local = unwrapPareja(raw.pareja_local);
-        const visit = unwrapPareja(raw.pareja_visitante);
-        const inLocal =
-          local?.player1_id === legacyPlayerId ||
-          local?.player2_id === legacyPlayerId;
-        const inVisit =
-          visit?.player1_id === legacyPlayerId ||
-          visit?.player2_id === legacyPlayerId;
-        if (!inLocal && !inVisit) continue;
-
-        const myParejaId = inLocal
-          ? raw.pareja_local_id
-          : raw.pareja_visitante_id;
-        const oppPareja = inLocal ? visit : local;
-        const won = Boolean(raw.ganador_id && raw.ganador_id === myParejaId);
-        const matchDate = (raw.created_at as string | null)?.slice(0, 10) ?? null;
-        rivalIdsFromPareja(oppPareja, won ? "win" : "loss", matchDate);
-      }
-    }
-  }
-
-  const { data: pairs } = await supabase
-    .from("pairs")
-    .select("id")
-    .or(`player1_id.eq.${legacyPlayerId},player2_id.eq.${legacyPlayerId}`);
-
-  if (pairs?.length) {
-    const pairIds = pairs.map((row) => row.id as string);
-    const pairFilter = pairIds.join(",");
-
-    const { data: orgTournaments } = await supabase
-      .from("tournaments")
-      .select("id")
-      .eq("user_id", organizadorId);
-
-    if (orgTournaments?.length) {
-      const tournamentIds = orgTournaments.map((row) => row.id as string);
-      const { data: matches } = await supabase
-        .from("matches")
-        .select(
-          "id, pair1_id, pair2_id, pair1_score, pair2_score, created_at, games ( pair1_games, pair2_games )"
-        )
-        .in("tournament_id", tournamentIds)
-        .eq("status", "finished")
-        .or(`pair1_id.in.(${pairFilter}),pair2_id.in.(${pairFilter})`);
-
-      const seenMatchIds = new Set<string>();
-      const opponentPairIds = new Set<string>();
-
-      for (const raw of matches ?? []) {
-        if (seenMatchIds.has(raw.id as string)) continue;
-        seenMatchIds.add(raw.id as string);
-
-        const inPair1 = pairIds.includes(raw.pair1_id as string);
-        const inPair2 = pairIds.includes(raw.pair2_id as string);
-        if (!inPair1 && !inPair2) continue;
-
-        const oppPairId = inPair1
-          ? (raw.pair2_id as string)
-          : (raw.pair1_id as string);
-        opponentPairIds.add(oppPairId);
-      }
-
-      const pairIdToLegacy = new Map<string, string[]>();
-      if (opponentPairIds.size) {
-        const { data: oppPairs } = await supabase
-          .from("pairs")
-          .select("id, player1_id, player2_id")
-          .in("id", [...opponentPairIds]);
-
-        for (const pair of oppPairs ?? []) {
-          const ids = [pair.player1_id, pair.player2_id].filter(
-            (id): id is string => Boolean(id)
-          );
-          pairIdToLegacy.set(pair.id as string, ids);
-        }
-      }
-
-      for (const raw of matches ?? []) {
-        const inPair1 = pairIds.includes(raw.pair1_id as string);
-        const inPair2 = pairIds.includes(raw.pair2_id as string);
-        if (!inPair1 && !inPair2) continue;
-
-        const isPair1 = inPair1;
-        const gameRows = Array.isArray(raw.games)
-          ? raw.games
-          : raw.games
-            ? [raw.games]
-            : [];
-
-        let outcome: "win" | "loss" | "draw";
-        if (gameRows.length) {
-          let myGames = 0;
-          let oppGames = 0;
-          for (const game of gameRows) {
-            myGames += isPair1
-              ? Number(game.pair1_games ?? 0)
-              : Number(game.pair2_games ?? 0);
-            oppGames += isPair1
-              ? Number(game.pair2_games ?? 0)
-              : Number(game.pair1_games ?? 0);
-          }
-          outcome =
-            myGames > oppGames ? "win" : myGames < oppGames ? "loss" : "draw";
-        } else {
-          const myScore = isPair1
-            ? Number(raw.pair1_score ?? 0)
-            : Number(raw.pair2_score ?? 0);
-          const oppScore = isPair1
-            ? Number(raw.pair2_score ?? 0)
-            : Number(raw.pair1_score ?? 0);
-          if (myScore === 0 && oppScore === 0) continue;
-          outcome =
-            myScore > oppScore ? "win" : myScore < oppScore ? "loss" : "draw";
-        }
-
-        const oppPairId = isPair1
-          ? (raw.pair2_id as string)
-          : (raw.pair1_id as string);
-        const oppLegacyIds = pairIdToLegacy.get(oppPairId) ?? [];
-        const matchDate = (raw.created_at as string | null)?.slice(0, 10) ?? null;
-
-        for (const legacyId of oppLegacyIds) {
-          if (legacyId === legacyPlayerId) continue;
-          const rivalJugadorId = legacyToJugador.get(legacyId);
-          if (!rivalJugadorId || rivalJugadorId === jugadorId) continue;
-          updateH2H(h2h, rivalJugadorId, outcome, matchDate);
-        }
-      }
-    }
   }
 
   return h2h;

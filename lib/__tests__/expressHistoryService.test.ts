@@ -39,20 +39,47 @@ describe("collectLegacyIdsFromExpressPairEmbeds", () => {
     expect(ids).toEqual(["player-1"]);
   });
 
-  it("devuelve vacío sin nombre de jugador", () => {
-    expect(collectLegacyIdsFromExpressPairEmbeds([], "Nevyl")).toEqual([]);
-    expect(
-      collectLegacyIdsFromExpressPairEmbeds(
-        [
-          {
-            player1_id: "player-1",
-            player2_id: "player-2",
-            player1_name: "Nevyl",
-            player2_name: "Axel",
-          },
-        ],
-        null
-      )
-    ).toEqual([]);
+  it("devuelve vacío si el nombre es homónimo (varios ids distintos)", () => {
+    const ids = collectLegacyIdsFromExpressPairEmbeds(
+      [
+        {
+          player1_id: "hector-ranking",
+          player2_id: "partner-a",
+          player1_name: "Hector",
+          player2_name: "Diego",
+        },
+        {
+          player1_id: "hector-reta",
+          player2_id: "partner-b",
+          player1_name: "Hector",
+          player2_name: "Jorge",
+        },
+      ],
+      "Hector"
+    );
+
+    expect(ids).toEqual([]);
+  });
+
+  it("acepta el mismo id repetido en varias parejas", () => {
+    const ids = collectLegacyIdsFromExpressPairEmbeds(
+      [
+        {
+          player1_id: "nevyl-id",
+          player2_id: "axel-id",
+          player1_name: "Nevyl",
+          player2_name: "Axel A",
+        },
+        {
+          player1_id: "nevyl-id",
+          player2_id: "other-id",
+          player1_name: "Nevyl",
+          player2_name: "Otro",
+        },
+      ],
+      "Nevyl"
+    );
+
+    expect(ids).toEqual(["nevyl-id"]);
   });
 });
