@@ -1,5 +1,19 @@
 import type { Metadata } from "next";
+import { Bebas_Neue, Manrope } from "next/font/google";
 import { RankingsPageClient } from "./RankingsPageClient";
+
+const bebasNeue = Bebas_Neue({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-fp-display",
+  display: "swap",
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-fp-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Rankings - Riviera Open",
@@ -20,5 +34,9 @@ export const metadata: Metadata = {
 };
 
 export default function RankingsPage() {
-  return <RankingsPageClient />;
+  return (
+    <div className={`${bebasNeue.variable} ${manrope.variable}`}>
+      <RankingsPageClient />
+    </div>
+  );
 }

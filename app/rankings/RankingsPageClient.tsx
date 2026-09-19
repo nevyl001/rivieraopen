@@ -85,41 +85,43 @@ export function RankingsPageClient() {
     selectedGender === "Male" ? t("genders.varonil") : t("genders.femenil");
 
   return (
-    <div className="pt-32 pb-16 bg-gray-50">
-      <Container>
-        <div className="text-center mb-10">
-          <h1 className="font-heading text-5xl font-bold text-primary mb-4">
-            {t("title")}
+    <div className="bg-[#F7F7F7] pb-16 pt-24 md:pt-28">
+      <Container className="max-w-[76rem]">
+        <header className="mb-6 md:mb-8">
+          <h1 className="font-[family-name:var(--font-fp-display)] text-[2.75rem] leading-[0.9] tracking-wide text-[#111111] sm:text-5xl md:text-[3.5rem]">
+            <span className="block">RANKING</span>
+            <span className="block">RIVIERA OPEN</span>
           </h1>
-          <p className="text-lg text-text-secondary max-w-2xl mx-auto">
-            {t("description")}
+          <p className="mt-3 font-[family-name:var(--font-fp-sans)] text-sm text-[#737373] md:text-[15px]">
+            Ranking oficial del circuito
           </p>
-        </div>
+          <p className="mt-1 font-[family-name:var(--font-fp-sans)] text-xs text-[#8A8A8A] md:text-sm">
+            Resultados y participación actualizados automáticamente.
+          </p>
+        </header>
 
-        {/* Gender first */}
-        <div className="mb-6">
+        <div className="mb-5">
           <GenderTabs
             selectedGender={selectedGender}
             onGenderChange={setSelectedGender}
           />
         </div>
 
-        {/* Then category */}
-        <div className="mb-6">
+        <div className="mb-5 border-b border-[#E8E8E8] pb-1">
           <LevelTabs
             selectedLevel={selectedLevel}
             onLevelChange={setSelectedLevel}
           />
         </div>
 
-        <div className="mb-10">
+        <div className="mb-6">
           <label htmlFor="player-name-search" className="sr-only">
             {t("labels.searchByName")}
           </label>
-          <div className="relative max-w-xl mx-auto">
+          <div className="relative">
             <Search
-              size={20}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none"
+              size={18}
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#8A8A8A]"
               aria-hidden
             />
             <input
@@ -128,14 +130,14 @@ export function RankingsPageClient() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t("labels.searchPlaceholder")}
-              className="w-full pl-12 pr-12 py-3.5 bg-white border border-gray-200 rounded-full text-primary placeholder:text-text-secondary/70 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              className="h-12 w-full rounded-xl border border-[#E5E5E5] bg-white pl-11 pr-11 font-[family-name:var(--font-fp-sans)] text-sm text-[#111111] placeholder:text-[#8A8A8A] transition-colors focus:border-[#111111] focus:outline-none"
               autoComplete="off"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-text-secondary hover:text-primary hover:bg-gray-100 transition-colors"
+                className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-[#737373] transition-colors hover:text-[#111111]"
                 aria-label={t("labels.clearSearch")}
               >
                 <X size={18} />
@@ -145,18 +147,27 @@ export function RankingsPageClient() {
         </div>
 
         {isLoading ? (
-          <div className="text-center py-16">
-            <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-accent border-t-transparent mb-4" />
-            <p className="text-text-secondary text-lg">Cargando...</p>
+          <div className="space-y-0 overflow-hidden rounded-xl border border-[#E8E8E8] bg-white">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="flex items-center gap-4 border-b border-[#ECECEC] px-4 py-5 last:border-b-0"
+              >
+                <div className="h-8 w-10 animate-pulse rounded bg-[#EFEFEF]" />
+                <div className="h-14 w-14 animate-pulse rounded-full bg-[#EFEFEF]" />
+                <div className="h-4 flex-1 animate-pulse rounded bg-[#EFEFEF]" />
+                <div className="h-6 w-12 animate-pulse rounded bg-[#EFEFEF]" />
+              </div>
+            ))}
           </div>
         ) : (
           <>
-            <div className="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+            <div className="mb-3 flex items-end justify-between gap-3">
               <div>
-                <h2 className="font-heading text-2xl md:text-3xl font-semibold text-primary">
-                  {genderLabel} · {categoryLabel}
+                <h2 className="font-[family-name:var(--font-fp-sans)] text-sm font-semibold uppercase tracking-[0.12em] text-[#111111]">
+                  {categoryLabel} · {genderLabel}
                 </h2>
-                <p className="text-text-secondary mt-1">
+                <p className="mt-1 font-[family-name:var(--font-fp-sans)] text-xs text-[#737373]">
                   {searchQuery.trim()
                     ? t("labels.showingFiltered", {
                         count: filteredPlayers.length,
@@ -170,27 +181,27 @@ export function RankingsPageClient() {
                 </p>
               </div>
               {filteredPlayers.length > 0 && (
-                <p className="text-xs uppercase tracking-widest text-text-secondary">
+                <p className="hidden font-[family-name:var(--font-fp-sans)] text-[10px] uppercase tracking-[0.16em] text-[#8A8A8A] sm:block">
                   {t("labels.rank")} · {t("labels.pts")}
                 </p>
               )}
             </div>
 
             {filteredPlayers.length > 0 ? (
-              <div className="space-y-3">
+              <div className="overflow-hidden rounded-xl border border-[#E8E8E8] bg-white">
                 {filteredPlayers.map((player) => (
                   <PlayerRankingCard key={player.id} player={player} />
                 ))}
               </div>
             ) : players.length > 0 ? (
-              <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
-                <p className="text-text-secondary text-lg">
+              <div className="rounded-xl border border-[#E8E8E8] bg-white px-6 py-16 text-center">
+                <p className="font-[family-name:var(--font-fp-sans)] text-sm text-[#737373]">
                   {t("messages.noSearchResults")}
                 </p>
               </div>
             ) : (
-              <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
-                <p className="text-text-secondary text-lg">
+              <div className="rounded-xl border border-[#E8E8E8] bg-white px-6 py-16 text-center">
+                <p className="font-[family-name:var(--font-fp-sans)] text-sm text-[#737373]">
                   {t("messages.noPlayers")}
                 </p>
               </div>
@@ -198,6 +209,7 @@ export function RankingsPageClient() {
           </>
         )}
 
+        {/* Checkpoint: reglas originales sin rediseñar aún */}
         <RankingPointSystem />
       </Container>
     </div>

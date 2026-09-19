@@ -3,10 +3,11 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Player } from "@/lib/types";
-import { Trophy } from "lucide-react";
 import { useTranslation } from "@/lib/hooks/useTranslation";
 import { PlayerSocialIcons } from "@/components/rankings/PlayerSocialIcons";
 import { buildPlayerProfilePath } from "@/lib/playerProfileRoutes";
+import { formatFeaturedRank } from "@/lib/featuredPlayersContrast";
+import { getCategoryTranslationKey } from "@/lib/categoryUtils";
 
 interface PlayerRankingCardProps {
   player: Player;
@@ -16,6 +17,9 @@ export function PlayerRankingCard({ player }: PlayerRankingCardProps) {
   const { t } = useTranslation("rankings");
   const router = useRouter();
   const profileHref = buildPlayerProfilePath(player.id, player.rivieraId);
+  const name = [player.firstName, player.lastName].filter(Boolean).join(" ");
+  const isTopThree = player.rank <= 3;
+  const categoryLabel = t(getCategoryTranslationKey(player.category));
 
   const handleCardClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest("a[data-social-link]")) {
@@ -24,63 +28,84 @@ export function PlayerRankingCard({ player }: PlayerRankingCardProps) {
     router.push(profileHref);
   };
 
-  const isTopThree = player.rank <= 3;
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      router.push(profileHref);
+    }
+  };
 
   return (
     <article
+      role="link"
+      tabIndex={0}
       onClick={handleCardClick}
-      className="group relative flex items-center gap-4 md:gap-5 bg-white rounded-2xl border border-gray-100 px-4 py-4 md:px-6 md:py-5 cursor-pointer transition-all duration-300 hover:border-accent/25 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]"
+      onKeyDown={handleKeyDown}
+      aria-label={`${formatFeaturedRank(player.rank)}. ${name}, ${player.points} ${t("labels.pts")}`}
+      className="group flex cursor-pointer items-center gap-3 border-b border-[#ECECEC] px-3 py-4 transition-[background-color,transform] duration-200 ease-out hover:bg-[#FAFAFA] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#111] motion-reduce:transition-none md:gap-5 md:px-5 md:py-5 md:hover:translate-x-0.5"
     >
-      {/* Rank */}
-      <div
-        className={`shrink-0 w-11 h-11 md:w-14 md:h-14 rounded-full flex items-center justify-center font-bold text-sm md:text-lg transition-colors ${
+      <span
+        className={`w-10 shrink-0 font-[family-name:var(--font-fp-display)] leading-none tracking-tight tabular-nums md:w-14 ${
           isTopThree
-            ? "bg-primary text-white"
-            : "bg-gray-50 text-primary group-hover:bg-primary group-hover:text-white"
+            ? "text-[1.75rem] text-[#111111] md:text-[2.5rem]"
+            : "text-[1.5rem] text-[#3A3A3A] md:text-[2rem]"
         }`}
       >
-        {player.rank}
-      </div>
+        {formatFeaturedRank(player.rank)}
+      </span>
 
-      {/* Photo */}
-      <div className="relative w-12 h-12 md:w-16 md:h-16 rounded-full overflow-hidden shrink-0 ring-2 ring-gray-100 group-hover:ring-accent/20 transition-all">
+      <div
+        className={`relative shrink-0 overflow-hidden rounded-full bg-[#E8E8E8] ${
+          player.rank === 1
+            ? "h-14 w-14 md:h-16 md:w-16"
+            :           isTopThree
+              ? "h-[3.25rem] w-[3.25rem] md:h-14 md:w-14"
+              : "h-[3.25rem] w-[3.25rem] md:h-14 md:w-14"
+        }`}
+      >
         <Image
           src={player.photo}
-          alt={`${player.firstName} ${player.lastName}`}
+          alt=""
           fill
           unoptimized
-          className="object-cover"
-          sizes="(max-width: 768px) 48px, 64px"
+          className="object-cover object-center"
+          sizes="(max-width: 768px) 56px, 64px"
         />
       </div>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 min-w-0">
-          <h3 className="font-heading text-base md:text-xl font-semibold text-primary truncate group-hover:text-accent transition-colors min-w-0 flex-1">
-            {player.firstName} {player.lastName}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start gap-2">
+          <h3
+            className={`min-w-0 flex-1 break-normal font-[family-name:var(--font-fp-sans)] font-semibold uppercase leading-snug text-[#111111] ${
+              isTopThree
+                ? "text-[0.95rem] md:text-lg"
+                : "text-sm md:text-base"
+            }`}
+          >
+            {name}
           </h3>
           <PlayerSocialIcons
             socials={player.socials}
             size="sm"
-            className="shrink-0"
+            className="mt-0.5 shrink-0 opacity-60 transition-opacity group-hover:opacity-100"
           />
         </div>
-        <div className="flex items-center gap-1.5 mt-0.5 text-xs md:text-sm text-text-secondary md:hidden">
-          <Trophy size={12} className="text-accent shrink-0" />
-          <span>
-            {player.points.toLocaleString()} {t("labels.pts")}
-          </span>
-        </div>
+        <p className="mt-1 font-[family-name:var(--font-fp-sans)] text-[11px] uppercase tracking-[0.14em] text-[#737373]">
+          {categoryLabel}
+        </p>
       </div>
 
-      {/* Points — desktop */}
-      <div className="hidden md:flex flex-col items-end shrink-0 min-w-[5rem]">
-        <span className="font-heading text-2xl font-bold text-primary leading-none">
+      <div className="shrink-0 text-right">
+        <p
+          className={`font-[family-name:var(--font-fp-display)] leading-none tabular-nums text-[#111111] ${
+            isTopThree ? "text-2xl md:text-3xl" : "text-xl md:text-2xl"
+          }`}
+        >
           {player.points.toLocaleString()}
-        </span>
-        <span className="text-xs text-text-secondary mt-1 uppercase tracking-wide">
+        </p>
+        <p className="mt-1 font-[family-name:var(--font-fp-sans)] text-[10px] uppercase tracking-[0.16em] text-[#8A8A8A]">
           {t("labels.pts")}
-        </span>
+        </p>
       </div>
     </article>
   );
