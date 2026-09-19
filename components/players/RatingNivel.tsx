@@ -80,12 +80,14 @@ export function RatingNivel({
     return { w, h, polyline: coords.join(" ") };
   }, [evolutionPoints]);
 
+  const recentMoves = useMemo(() => historial.slice(0, 4), [historial]);
+
   return (
     <section
-      className={`w-full rounded-[10px] border border-[#222] bg-[#111] px-4 py-4 ${className}`.trim()}
+      className={`flex w-full flex-col rounded-[10px] border border-[#222] bg-[#111] px-4 py-3.5 ${className}`.trim()}
       aria-label="Nivel de juego"
     >
-      <div className="mb-2 flex items-start justify-between gap-3">
+      <div className="mb-1.5 flex items-start justify-between gap-3">
         <div>
           <p className="m-0 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-white/45">
             Nivel
@@ -108,7 +110,7 @@ export function RatingNivel({
         ) : null}
       </div>
 
-      <p className="mb-3 text-[0.78rem] text-white/55">
+      <p className="mb-2.5 text-[0.78rem] text-white/55">
         {!tienePartidosRating
           ? "Nivel base 3.00 · aún sin partidos de rating"
           : `Fiabilidad del nivel: ${fiabPct}% · ${partidosJugados || historial.length} partido${
@@ -121,7 +123,7 @@ export function RatingNivel({
           width="100%"
           height={evolutionSvg.h}
           viewBox={`0 0 ${evolutionSvg.w} ${evolutionSvg.h}`}
-          className="mb-3.5 block"
+          className="mb-2.5 block"
           aria-hidden
         >
           <polyline
@@ -134,18 +136,18 @@ export function RatingNivel({
           />
         </svg>
       ) : !tienePartidosRating ? (
-        <p className="mb-3.5 text-[0.8rem] italic leading-snug text-white/42">
+        <p className="mb-2.5 text-[0.8rem] italic leading-snug text-white/42">
           Juega tu primer partido competitivo para empezar a mover tu nivel
         </p>
       ) : null}
 
-      {historial.length > 0 ? (
-        <div>
-          <p className="mb-2 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-white/40">
+      {recentMoves.length > 0 ? (
+        <div className="mt-auto">
+          <p className="mb-1.5 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-white/40">
             Últimos movimientos
           </p>
-          <ul className="m-0 flex list-none flex-col gap-2 p-0">
-            {historial.map((item) => {
+          <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
+            {recentMoves.map((item) => {
               const up = item.delta >= 0;
               const deltaColor = up ? "#34d399" : "#f87171";
               const arrow = up ? "▲" : "▼";
