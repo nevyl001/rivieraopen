@@ -18,17 +18,17 @@ function PointTable({ section }: { section: PointSection }) {
   const { t } = useTranslation("rankings");
 
   return (
-    <div className="h-fit self-start">
-      <h4 className="font-[family-name:var(--font-fp-display)] text-2xl tracking-wide text-[#111111] md:text-[1.75rem]">
+    <div>
+      <h4 className="font-[family-name:var(--font-fp-sans)] text-base font-semibold tracking-normal text-[#111111] md:text-lg">
         {section.title}
       </h4>
       {section.subtitle && (
-        <p className="mt-1 font-[family-name:var(--font-fp-sans)] text-sm text-[#737373]">
+        <p className="mt-1 font-[family-name:var(--font-fp-sans)] text-sm font-normal text-[#737373]">
           {section.subtitle}
         </p>
       )}
 
-      <div className="mt-4 grid grid-cols-[1fr_auto] gap-x-4 pb-2 font-[family-name:var(--font-fp-sans)] text-[10px] font-medium uppercase tracking-[0.14em] text-[#8A8A8A]">
+      <div className="mt-4 grid grid-cols-[1fr_auto] gap-x-4 pb-2 font-[family-name:var(--font-fp-sans)] text-[11px] font-medium uppercase tracking-[0.14em] text-[#8A8A8A]">
         <span>{t("pointSystem.table.concept")}</span>
         <span>{t("pointSystem.table.points")}</span>
       </div>
@@ -36,9 +36,9 @@ function PointTable({ section }: { section: PointSection }) {
 
       {section.rows.map((row) => (
         <div key={row.concept}>
-          <div className="grid grid-cols-[1fr_auto] gap-x-4 py-3 font-[family-name:var(--font-fp-sans)] text-sm">
+          <div className="grid grid-cols-[1fr_auto] items-baseline gap-x-4 py-3 font-[family-name:var(--font-fp-sans)] text-sm font-normal">
             <span className="text-[#111111]">{row.concept}</span>
-            <span className="font-semibold tabular-nums text-[#111111]">
+            <span className="font-medium tabular-nums text-[#111111]">
               {row.points}
             </span>
           </div>
@@ -47,7 +47,7 @@ function PointTable({ section }: { section: PointSection }) {
       ))}
 
       {section.note && (
-        <p className="mt-3 font-[family-name:var(--font-fp-sans)] text-sm italic text-[#737373]">
+        <p className="mt-3 font-[family-name:var(--font-fp-sans)] text-sm font-normal italic text-[#737373]">
           {section.note}
         </p>
       )}
@@ -58,7 +58,7 @@ function PointTable({ section }: { section: PointSection }) {
 export function RankingPointSystem() {
   const { t } = useTranslation("rankings");
 
-  const sections: PointSection[] = [
+  const leftSections: PointSection[] = [
     {
       title: t("pointSystem.challenge.title"),
       rows: [
@@ -69,6 +69,26 @@ export function RankingPointSystem() {
       ],
     },
     {
+      title: t("pointSystem.duel2v2.title"),
+      rows: [
+        { concept: t("pointSystem.duel2v2.winner"), points: "50" },
+        { concept: t("pointSystem.duel2v2.loser"), points: "20" },
+      ],
+    },
+    {
+      title: t("pointSystem.league.title"),
+      rows: [
+        { concept: t("pointSystem.league.firstRegistration"), points: "100" },
+        { concept: t("pointSystem.league.winRound"), points: "+50" },
+        { concept: t("pointSystem.league.champion"), points: "500" },
+        { concept: t("pointSystem.league.runnerUp"), points: "250" },
+        { concept: t("pointSystem.league.thirdPlace"), points: "100" },
+      ],
+    },
+  ];
+
+  const rightSections: PointSection[] = [
+    {
       title: t("pointSystem.american.title"),
       note: t("pointSystem.american.note"),
       rows: [
@@ -77,13 +97,6 @@ export function RankingPointSystem() {
         { concept: t("pointSystem.american.champion"), points: "80" },
         { concept: t("pointSystem.american.runnerUp"), points: "40" },
         { concept: t("pointSystem.american.thirdPlace"), points: "20" },
-      ],
-    },
-    {
-      title: t("pointSystem.duel2v2.title"),
-      rows: [
-        { concept: t("pointSystem.duel2v2.winner"), points: "50" },
-        { concept: t("pointSystem.duel2v2.loser"), points: "20" },
       ],
     },
     {
@@ -100,16 +113,6 @@ export function RankingPointSystem() {
         { concept: t("pointSystem.tournament.semiFinalists"), points: "+50" },
       ],
     },
-    {
-      title: t("pointSystem.league.title"),
-      rows: [
-        { concept: t("pointSystem.league.firstRegistration"), points: "100" },
-        { concept: t("pointSystem.league.winRound"), points: "+50" },
-        { concept: t("pointSystem.league.champion"), points: "500" },
-        { concept: t("pointSystem.league.runnerUp"), points: "250" },
-        { concept: t("pointSystem.league.thirdPlace"), points: "100" },
-      ],
-    },
   ];
 
   const generalRules = [
@@ -121,30 +124,41 @@ export function RankingPointSystem() {
 
   return (
     <section className="mt-14 border-t border-[#E8E8E8] pt-10">
-      <h3 className="font-[family-name:var(--font-fp-display)] text-3xl tracking-wide text-[#111111] md:text-4xl">
+      <h3 className="font-[family-name:var(--font-fp-sans)] text-2xl font-bold tracking-normal text-[#111111] md:text-[1.75rem]">
         {t("labels.howRankingsWork")}
       </h3>
-      <p className="mt-3 max-w-2xl font-[family-name:var(--font-fp-sans)] text-sm leading-relaxed text-[#737373] md:text-[15px]">
+      <p className="mt-3 max-w-2xl font-[family-name:var(--font-fp-sans)] text-sm font-normal leading-relaxed text-[#737373] md:text-[15px]">
         {t("pointSystem.description")}
       </p>
 
-      <div className="mt-10 grid grid-cols-1 items-start gap-x-12 gap-y-10 lg:grid-cols-2">
-        {sections.map((section) => (
-          <PointTable key={section.title} section={section} />
-        ))}
+      {/* Independent columns — no shared grid rows */}
+      <div className="mt-10 flex flex-col gap-12 lg:flex-row lg:items-start lg:gap-14">
+        <div className="flex min-w-0 flex-1 flex-col gap-12">
+          {leftSections.map((section) => (
+            <PointTable key={section.title} section={section} />
+          ))}
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-12">
+          {rightSections.map((section) => (
+            <PointTable key={section.title} section={section} />
+          ))}
+        </div>
       </div>
 
       <div className="mt-12 border-t border-[#ECECEC] pt-8">
-        <h4 className="font-[family-name:var(--font-fp-display)] text-2xl tracking-wide text-[#111111]">
+        <h4 className="font-[family-name:var(--font-fp-sans)] text-base font-semibold tracking-normal text-[#111111] md:text-lg">
           {t("pointSystem.rules.title")}
         </h4>
-        <ul className="mt-4 space-y-0">
+        <ul className="mt-4 space-y-3.5">
           {generalRules.map((rule) => (
-            <li key={rule}>
-              <p className="py-3 font-[family-name:var(--font-fp-sans)] text-sm text-[#111111]">
-                {rule}
-              </p>
-              <div className="h-px w-full bg-[#ECECEC]" aria-hidden />
+            <li
+              key={rule}
+              className="flex gap-2.5 font-[family-name:var(--font-fp-sans)] text-sm font-normal leading-relaxed text-[#111111]"
+            >
+              <span className="shrink-0 select-none text-[#8A8A8A]" aria-hidden>
+                –
+              </span>
+              <span>{rule}</span>
             </li>
           ))}
         </ul>
