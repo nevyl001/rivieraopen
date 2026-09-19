@@ -23,13 +23,17 @@ function PlayerPhotoFrame({
   src,
   alt,
   priority = false,
+  title,
+  badges,
 }: {
   src: string;
   alt: string;
   priority?: boolean;
+  title?: string;
+  badges?: string[];
 }) {
   const frameClass =
-    "size-[280px] shrink-0 overflow-hidden rounded-2xl bg-[#111] ring-1 ring-[#2a2a2a] sm:size-[300px] lg:size-[320px]";
+    "relative size-[280px] shrink-0 overflow-hidden rounded-2xl bg-[#111] ring-1 ring-[#2a2a2a] sm:size-[300px] lg:size-[320px]";
 
   return (
     <div className={frameClass}>
@@ -41,6 +45,30 @@ function PlayerPhotoFrame({
         decoding="async"
         className="block h-full w-full object-cover object-[50%_22%]"
       />
+      {(title || (badges && badges.length > 0)) && (
+        <>
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 p-4 text-left">
+            {title && (
+              <h1 className="break-words text-[28px] font-medium leading-tight text-white drop-shadow-sm lg:text-[32px]">
+                {title}
+              </h1>
+            )}
+            {badges && badges.length > 0 && (
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
+                {badges.map((badge) => (
+                  <span
+                    key={badge}
+                    className="rounded-full border border-white/20 bg-black/45 px-2.5 py-0.5 text-[11px] text-white/90 backdrop-blur-sm"
+                  >
+                    {badge}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -443,26 +471,21 @@ export function PlayerProfile({ player }: PlayerProfileProps) {
       {/* Desktop passport header */}
       <div className="hidden flex-col items-center text-center lg:flex lg:flex-row lg:items-center lg:gap-8 lg:text-left">
         <div className="flex shrink-0 flex-col items-center">
-          <PlayerPhotoFrame src={player.photo} alt={playerName} priority />
+          <PlayerPhotoFrame
+            src={player.photo}
+            alt={playerName}
+            priority
+            title={playerName}
+            badges={[
+              fuerzaLabel,
+              player.gender === "Female"
+                ? t("genders.femenil")
+                : t("genders.varonil"),
+            ]}
+          />
         </div>
 
         <div className="flex w-full min-w-0 flex-1 flex-col gap-3 lg:gap-4">
-          <div className="w-full">
-            <h1 className="break-words text-[32px] font-medium leading-tight text-white">
-              {playerName}
-            </h1>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-[#444] px-3 py-1 text-xs text-[#aaa]">
-                {fuerzaLabel}
-              </span>
-              <span className="rounded-full border border-[#444] px-3 py-1 text-xs text-[#aaa]">
-                {player.gender === "Female"
-                  ? t("genders.femenil")
-                  : t("genders.varonil")}
-              </span>
-            </div>
-          </div>
-
           {passport?.rivieraId && (
             <div className="rounded-[10px] border border-[#1f1f1f] bg-[#111] px-4 py-3 text-left">
               <p className="text-[10px] uppercase tracking-wide text-[#555]">

@@ -36,8 +36,56 @@ import {
 } from "@/lib/playerPassportAnalyticsService";
 import { resolveShareProfileUrl } from "@/lib/playerPassportUrls";
 import { resolveJugadorIdFromProfileParam } from "@/lib/playerProfileRoutes";
+import type { OfficialHistorialEntry } from "@/lib/officialPlayerProfileService";
 
 const DEFAULT_PHOTO = "/img/players/players-1.png";
+
+/**
+ * Club de origen = club de registro del jugador.
+ * Orden: nombre explícito → columna club → nombre del organizador dueño →
+ * source_club_name de eventos de ese organizador → club más frecuente en historial.
+ * (No usa el evento más antiguo: eso puede ser un club visitado, no el de registro.)
+ */
+function resolveRegistrationClubName(options: {
+  explicit: string | null | undefined;
+  rowClub: string | null | undefined;
+  organizerName: string | null | undefined;
+  homeOrganizerId: string;
+  historial: OfficialHistorialEntry[];
+}): string | null {
+  const fromFields =
+    options.explicit?.trim() ||
+    options.rowClub?.trim() ||
+    options.organizerName?.trim() ||
+    null;
+  if (fromFields) return fromFields;
+
+  const homeId = options.homeOrganizerId.trim();
+  const counts = new Map<string, number>();
+
+  for (const entry of options.historial) {
+    const club = entry.source_club_name?.trim();
+    if (!club) continue;
+
+    const entryOrg = entry.metadata?.organizador_id?.trim();
+    if (homeId && entryOrg && entryOrg === homeId) {
+      return club;
+    }
+
+    counts.set(club, (counts.get(club) ?? 0) + 1);
+  }
+
+  let best: string | null = null;
+  let bestCount = 0;
+  for (const [club, count] of counts) {
+    if (count > bestCount) {
+      best = club;
+      bestCount = count;
+    }
+  }
+
+  return best;
+}
 
 interface JugadorStatsRow {
   jugador_id?: string;
@@ -442,12 +490,17 @@ export const getJugadorPublico = cache(async function getJugadorPublico(
       fetchOrganizerNamesByIds(organizerIds),
     ]);
 
-    // Prefer explicit registration club; fall back to jugador.club or organizador name.
-    const registrationClubName =
-      passportBase.registrationClubName?.trim() ||
-      row.club?.trim() ||
-      (organizadorId ? organizerNames.get(organizadorId)?.trim() : null) ||
-      null;
+    // Prefer explicit registration club; then jugador.club / organizador name;
+    // finally source_club_name from events at the player's home organizer.
+    const registrationClubName = resolveRegistrationClubName({
+      explicit: passportBase.registrationClubName,
+      rowClub: row.club,
+      organizerName: organizadorId
+        ? organizerNames.get(organizadorId)
+        : null,
+      homeOrganizerId: organizadorId,
+      historial: officialProfile.historial,
+    });
 
     const passport = {
       ...passportBase,
