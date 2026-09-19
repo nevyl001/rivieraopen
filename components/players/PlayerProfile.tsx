@@ -33,30 +33,30 @@ function PlayerPhotoFrame({
   badges?: string[];
 }) {
   return (
-    <div className="relative aspect-[3/4] w-full min-h-[420px] overflow-hidden rounded-[22px] bg-[#111] shadow-[0_28px_80px_rgba(0,0,0,0.55)] ring-1 ring-white/10 lg:min-h-[560px] lg:max-h-[720px]">
+    <div className="relative aspect-[4/5] w-full max-w-[400px] overflow-hidden rounded-2xl bg-[#111] shadow-[0_16px_48px_rgba(0,0,0,0.45)] ring-1 ring-[#2a2a2a]">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
         alt={alt}
         loading={priority ? "eager" : "lazy"}
         decoding="async"
-        className="absolute inset-0 h-full w-full object-cover object-[50%_18%]"
+        className="absolute inset-0 h-full w-full object-cover object-[50%_20%]"
       />
       {(title || (badges && badges.length > 0)) && (
         <>
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5 pb-6 text-left lg:p-7 lg:pb-8">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-4 pb-5 text-left">
             {title && (
-              <h1 className="break-words text-[34px] font-medium leading-[1.05] tracking-[-0.02em] text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.65)] lg:text-[44px]">
+              <h1 className="break-words text-[28px] font-medium leading-[1.08] tracking-[-0.01em] text-white drop-shadow-sm lg:text-[32px]">
                 {title}
               </h1>
             )}
             {badges && badges.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {badges.map((badge) => (
                   <span
                     key={badge}
-                    className="rounded-full border border-white/25 bg-black/50 px-3 py-1 text-xs tracking-wide text-white backdrop-blur-sm lg:text-[13px]"
+                    className="rounded-full border border-white/20 bg-black/50 px-2.5 py-0.5 text-[11px] text-white backdrop-blur-sm"
                   >
                     {badge}
                   </span>
@@ -465,9 +465,9 @@ export function PlayerProfile({ player }: PlayerProfileProps) {
         </button>
       </div>
 
-      {/* Desktop passport header — photo is the hero */}
-      <div className="hidden lg:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-stretch lg:gap-8 lg:text-left">
-        <div className="min-w-0">
+      {/* Desktop passport header */}
+      <div className="hidden lg:flex lg:items-start lg:gap-8 lg:text-left">
+        <div className="w-[400px] shrink-0">
           <PlayerPhotoFrame
             src={player.photo}
             alt={playerName}
@@ -482,7 +482,7 @@ export function PlayerProfile({ player }: PlayerProfileProps) {
           />
         </div>
 
-        <div className="flex min-w-0 flex-col justify-center gap-4">
+        <div className="flex min-w-0 flex-1 flex-col gap-3.5">
           {passport?.rivieraId && (
             <div className="rounded-[10px] border border-[#1f1f1f] bg-[#111] px-4 py-3 text-left">
               <p className="text-[10px] uppercase tracking-wide text-[#555]">

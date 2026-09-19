@@ -38,7 +38,7 @@ export function PlayerPublicPage({ player }: PlayerPublicPageProps) {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#0a0a0a] pt-20 pb-24 lg:pt-32 lg:pb-16">
-      <Container size="lg" className="max-w-full overflow-x-hidden px-3 sm:px-4 lg:px-6">
+      <Container size="md" className="max-w-full overflow-x-hidden px-3 sm:px-4">
         <Link
           href="/rankings"
           className="mb-3 flex w-full max-w-full items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#111] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:border-[#555] hover:bg-[#1a1a1a] lg:mb-8 lg:inline-flex lg:w-auto lg:justify-start"
