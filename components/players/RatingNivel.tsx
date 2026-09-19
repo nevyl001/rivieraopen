@@ -22,9 +22,9 @@ function fiabilidadBadge(
   if (partidosJugados === 0) {
     return { label: "INICIAL", color: "rgba(255, 255, 255, 0.55)" };
   }
-  if (fiabilidad >= 0.7) return { label: "FIABLE", color: "#34d399" };
-  if (fiabilidad >= 0.4) return { label: "MEDIA", color: "#fbbf24" };
-  return { label: "CALIBRANDO", color: "#fbbf24" };
+  if (fiabilidad >= 0.7) return { label: "FIABLE", color: "rgba(255, 255, 255, 0.7)" };
+  if (fiabilidad >= 0.4) return { label: "MEDIA", color: "rgba(255, 255, 255, 0.55)" };
+  return { label: "CALIBRANDO", color: "rgba(255, 255, 255, 0.45)" };
 }
 
 function formatFechaCorta(iso: string): string {
@@ -126,7 +126,7 @@ export function RatingNivel({
         >
           <polyline
             fill="none"
-            stroke="#a3e635"
+            stroke="rgba(255, 255, 255, 0.55)"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"

@@ -61,7 +61,7 @@ function StatusBadge({
         compact ? "px-2 py-0.5 text-[10px]" : "px-3 py-1 text-xs"
       } ${
         isOfficial
-          ? "border border-[#1D9E75]/30 bg-[#0d2e20] text-[#1D9E75]"
+          ? "border border-[#444] bg-[#1a1a1a] text-white"
           : "border border-[#444] bg-[#151515] text-[#aaa]"
       }`}
     >

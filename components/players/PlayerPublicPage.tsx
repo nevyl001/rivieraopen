@@ -41,7 +41,7 @@ export function PlayerPublicPage({ player }: PlayerPublicPageProps) {
       <Container size="md" className="max-w-full overflow-x-hidden px-3 sm:px-4">
         <Link
           href="/rankings"
-          className="mb-3 flex w-full max-w-full items-center justify-center gap-2 rounded-lg border border-[#333] px-3 py-2 text-sm font-medium text-white transition-colors hover:border-[#555] hover:bg-[#111] lg:mb-8 lg:inline-flex lg:w-auto lg:justify-start lg:px-4 lg:py-2.5"
+          className="mb-3 flex w-full max-w-full items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#111] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:border-[#555] hover:bg-[#1a1a1a] lg:mb-8 lg:inline-flex lg:w-auto lg:justify-start"
         >
           <ArrowLeft size={18} className="shrink-0 text-white" />
           <span className="whitespace-nowrap">Volver a Rankings</span>

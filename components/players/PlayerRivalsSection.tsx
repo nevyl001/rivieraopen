@@ -50,12 +50,12 @@ function RivalCard({ rival }: { rival: PlayerRival }) {
       <span
         className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium tabular-nums lg:px-2.5 lg:py-1 lg:text-xs ${
           h2hAdvantage
-            ? "bg-[#0d2e20] text-[#1D9E75]"
+            ? "border border-[#555] bg-white text-black"
             : h2hDisadvantage
-              ? "bg-[#2e1010] text-[#E85D5D]"
+              ? "border border-[#333] bg-[#2a2a2a] text-[#999]"
               : h2hNeutral
-                ? "bg-[#2a2410] text-[#D4A72C]"
-                : "bg-[#1a1a1a] text-[#aaa]"
+                ? "border border-[#333] bg-[#2a2a2a] text-[#999]"
+                : "border border-[#333] bg-[#1a1a1a] text-[#888]"
         }`}
       >
         {rival.draws > 0

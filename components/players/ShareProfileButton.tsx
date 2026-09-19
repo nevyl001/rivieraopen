@@ -87,7 +87,7 @@ export function ShareProfileButton({
     <button
       type="button"
       onClick={handleShare}
-      className={`flex w-full items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#111] px-4 py-3 text-sm font-medium text-white transition-colors hover:border-[#555] hover:bg-[#1a1a1a] lg:w-auto lg:self-start ${className}`}
+      className={`flex w-full items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#111] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:border-[#555] hover:bg-[#1a1a1a] lg:w-auto lg:self-start ${className}`}
     >
       {copied ? (
         <>

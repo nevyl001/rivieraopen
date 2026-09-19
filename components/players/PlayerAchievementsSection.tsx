@@ -31,8 +31,12 @@ export function PlayerAchievementsSection({
             key={achievement.id}
             className="flex items-start gap-2.5 rounded-lg border border-[#1f1f1f] bg-[#111] px-3 py-2.5 lg:gap-3 lg:rounded-[10px] lg:px-4 lg:py-3"
           >
-            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0a0a0a] text-[#D4A72C] lg:h-9 lg:w-9">
-              <Award size={16} className="lg:h-[18px] lg:w-[18px]" />
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0a0a0a] text-[#888] lg:h-9 lg:w-9">
+              <Award
+                size={16}
+                strokeWidth={1.5}
+                className="fill-none lg:h-[18px] lg:w-[18px]"
+              />
             </div>
             <div className="min-w-0 flex-1">
               <p className="break-words text-sm font-medium text-white lg:text-base">
