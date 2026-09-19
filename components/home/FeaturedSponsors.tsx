@@ -12,7 +12,7 @@ export function FeaturedSponsors() {
   if (sponsors.length === 0) return null;
 
   return (
-    <section className="py-24 md:py-32 bg-surface">
+    <section className="py-24 md:py-32 bg-background">
       <Container>
         <AnimatedSection className="text-center mb-16 md:mb-20">
           <AnimatedSection delay={0}>
