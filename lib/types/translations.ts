@@ -57,6 +57,9 @@ export interface HomeTranslations {
     upcomingTournaments: string;
     upcomingTournamentsDescription: string;
     featuredPlayers: string;
+    featuredPlayersKicker: string;
+    featuredPlayersLine1: string;
+    featuredPlayersLine2: string;
     featuredPlayersDescription: string;
     gallery: string;
     galleryDescription: string;
