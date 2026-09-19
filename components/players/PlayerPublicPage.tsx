@@ -104,7 +104,12 @@ export function PlayerPublicPage({ player }: PlayerPublicPageProps) {
               </PassportAccordion>
             )}
 
-            <PlayerHistorySection events={historyEvents} />
+            <PassportAccordion
+              title={t("profile.activityHistory")}
+              defaultOpen={false}
+            >
+              <PlayerHistorySection events={historyEvents} hideTitle />
+            </PassportAccordion>
 
             {facedRivals.length > 0 && (
               <PassportAccordion

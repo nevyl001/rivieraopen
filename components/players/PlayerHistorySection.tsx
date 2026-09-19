@@ -15,6 +15,7 @@ import { eventTypeLabel } from "@/lib/playerPassportAnalyticsService";
 
 interface PlayerHistorySectionProps {
   events: PassportHistoryEvent[];
+  hideTitle?: boolean;
 }
 
 function eventIcon(tipo: string) {
@@ -238,14 +239,23 @@ function HistoryEventCard({ event }: { event: PassportHistoryEvent }) {
   );
 }
 
-export function PlayerHistorySection({ events }: PlayerHistorySectionProps) {
+export function PlayerHistorySection({
+  events,
+  hideTitle = false,
+}: PlayerHistorySectionProps) {
   const { t } = useTranslation("rankings");
 
   return (
-    <div className="border-t border-[#222] pt-3 lg:pt-6">
-      <h2 className="mb-2 text-[10px] uppercase tracking-[0.18em] text-[#555] lg:mb-4">
-        {t("profile.activityHistory")}
-      </h2>
+    <div
+      className={
+        hideTitle ? undefined : "border-t border-[#222] pt-3 lg:pt-6"
+      }
+    >
+      {!hideTitle && (
+        <h2 className="mb-2 text-[10px] uppercase tracking-[0.18em] text-[#555] lg:mb-4">
+          {t("profile.activityHistory")}
+        </h2>
+      )}
 
       {events.length > 0 ? (
         <div className="space-y-1.5 lg:space-y-3">
