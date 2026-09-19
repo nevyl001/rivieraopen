@@ -47,19 +47,19 @@ function PlayerPhotoFrame({
       />
       {(title || (badges && badges.length > 0)) && (
         <>
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 p-4 text-left">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-3.5 pb-4 text-left">
             {title && (
-              <h1 className="break-words text-[28px] font-medium leading-tight text-white drop-shadow-sm lg:text-[32px]">
+              <h1 className="break-words text-[26px] font-medium leading-[1.1] text-white drop-shadow-sm lg:text-[30px]">
                 {title}
               </h1>
             )}
             {badges && badges.length > 0 && (
-              <div className="mt-2.5 flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5">
                 {badges.map((badge) => (
                   <span
                     key={badge}
-                    className="rounded-full border border-white/20 bg-black/45 px-2.5 py-0.5 text-[11px] text-white/90 backdrop-blur-sm"
+                    className="rounded-full border border-white/25 bg-black/55 px-2.5 py-0.5 text-[11px] text-white backdrop-blur-sm"
                   >
                     {badge}
                   </span>
