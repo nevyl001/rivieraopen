@@ -432,7 +432,7 @@ export const getJugadorPublico = cache(async function getJugadorPublico(
       ? (row.riviera_official_player_identity[0] ?? null)
       : (row.riviera_official_player_identity ?? null);
 
-    const [passport, organizerNames] = await Promise.all([
+    const [passportBase, organizerNames] = await Promise.all([
       loadPlayerPassportIdentity(row.id, {
         registrationOrganizerId: organizadorId,
         fallbackClubName: row.club,
@@ -441,6 +441,18 @@ export const getJugadorPublico = cache(async function getJugadorPublico(
       }),
       fetchOrganizerNamesByIds(organizerIds),
     ]);
+
+    // Prefer explicit registration club; fall back to jugador.club or organizador name.
+    const registrationClubName =
+      passportBase.registrationClubName?.trim() ||
+      row.club?.trim() ||
+      (organizadorId ? organizerNames.get(organizadorId)?.trim() : null) ||
+      null;
+
+    const passport = {
+      ...passportBase,
+      registrationClubName,
+    };
 
     const passportHistoryEvents = enrichHistoryEventsForPassport(
       historyEvents,
@@ -452,7 +464,7 @@ export const getJugadorPublico = cache(async function getJugadorPublico(
 
     const careerSummary = computeCareerSummary(
       historyEvents,
-      passport.registrationClubName ?? row.club
+      registrationClubName
     );
     const partners = computePartnerStats(
       historyEvents,
