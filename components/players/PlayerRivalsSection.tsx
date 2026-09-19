@@ -5,10 +5,6 @@ import Link from "next/link";
 import { PlayerRival } from "@/lib/types/playerHistory";
 import { useTranslation } from "@/lib/hooks/useTranslation";
 import { buildPlayerProfilePath } from "@/lib/playerProfileRoutes";
-import {
-  PROFILE_DELTA_DOWN,
-  PROFILE_DELTA_UP,
-} from "@/components/players/PlayerSeasonChart";
 
 interface PlayerRivalsSectionProps {
   rivals: PlayerRival[];
@@ -21,23 +17,12 @@ function RivalCard({ rival }: { rival: PlayerRival }) {
   const h2hAdvantage = rival.wins > rival.losses;
   const h2hDisadvantage = rival.losses > rival.wins;
 
-  const pillStyle = h2hAdvantage
-    ? {
-        color: PROFILE_DELTA_UP,
-        borderColor: `${PROFILE_DELTA_UP}55`,
-        backgroundColor: `${PROFILE_DELTA_UP}18`,
-      }
+  // Filled pills + fluorescent accents (thin pastel borders read dull on dark)
+  const pillClass = h2hAdvantage
+    ? "border border-[#a3e635]/40 bg-[#1a2e0a] text-[#a3e635]"
     : h2hDisadvantage
-      ? {
-          color: PROFILE_DELTA_DOWN,
-          borderColor: `${PROFILE_DELTA_DOWN}55`,
-          backgroundColor: `${PROFILE_DELTA_DOWN}18`,
-        }
-      : {
-          color: "#999999",
-          borderColor: "#333333",
-          backgroundColor: "#1a1a1a",
-        };
+      ? "border border-[#f87171]/40 bg-[#2e1010] text-[#f87171]"
+      : "border border-[#D4A72C]/35 bg-[#2a2410] text-[#D4A72C]";
 
   return (
     <Link
@@ -68,8 +53,7 @@ function RivalCard({ rival }: { rival: PlayerRival }) {
       </div>
 
       <span
-        className="shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium tabular-nums lg:px-2.5 lg:py-1 lg:text-xs"
-        style={pillStyle}
+        className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums lg:px-2.5 lg:py-1 lg:text-xs ${pillClass}`}
       >
         {rival.draws > 0
           ? t("profile.rivals.h2hScoreWithDraws", {
