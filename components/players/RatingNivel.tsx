@@ -1,7 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
+import { useId, useMemo, useRef } from "react";
 import type { RatingHistorialEntry } from "@/lib/types/player";
+import {
+  PROFILE_CHART_STROKE_SOFT,
+  PROFILE_CHART_STROKE_WIDTH,
+  PROFILE_DELTA_DOWN,
+  PROFILE_DELTA_UP,
+} from "@/components/players/PlayerSeasonChart";
+import { useProfileChartDraw } from "@/components/players/useProfileChartDraw";
 
 const MODO_JUEGO_LABELS: Record<string, string> = {
   reta_rr: "Round Robin",
@@ -18,14 +25,50 @@ function modoJuegoLabel(modo: string): string {
 function fiabilidadBadge(
   fiabilidad: number,
   partidosJugados: number
-): { label: string; color: string } | null {
-  if (partidosJugados === 0) {
-    return { label: "INICIAL", color: "rgba(255, 255, 255, 0.55)" };
-  }
-  if (fiabilidad >= 0.7) return { label: "FIABLE", color: "rgba(255, 255, 255, 0.7)" };
-  if (fiabilidad >= 0.4) return { label: "MEDIA", color: "rgba(255, 255, 255, 0.55)" };
-  return { label: "CALIBRANDO", color: "rgba(255, 255, 255, 0.45)" };
+): string | null {
+  if (partidosJugados === 0) return "INICIAL";
+  if (fiabilidad >= 0.7) return "FIABLE";
+  if (fiabilidad >= 0.4) return "MEDIA";
+  return "CALIBRANDO";
 }
+
+/** Badge accent — FIABLE pops; others stay quieter */
+function badgeAccent(badge: string): {
+  color: string;
+  borderColor: string;
+  backgroundColor: string;
+} {
+  switch (badge) {
+    case "FIABLE":
+      return {
+        color: PROFILE_DELTA_UP,
+        borderColor: `${PROFILE_DELTA_UP}66`,
+        backgroundColor: `${PROFILE_DELTA_UP}1A`,
+      };
+    case "MEDIA":
+      return {
+        color: "#C4A574",
+        borderColor: "rgba(196, 165, 116, 0.4)",
+        backgroundColor: "rgba(196, 165, 116, 0.1)",
+      };
+    case "CALIBRANDO":
+      return {
+        color: "#D98888",
+        borderColor: "rgba(217, 136, 136, 0.4)",
+        backgroundColor: "rgba(217, 136, 136, 0.1)",
+      };
+    default:
+      return {
+        color: "#aaa",
+        borderColor: "rgba(255, 255, 255, 0.14)",
+        backgroundColor: "transparent",
+      };
+  }
+}
+
+/** Nivel display — Riviera mint, same family as Riviera ID */
+const PROFILE_NIVEL_COLOR = "#1D9E75";
+
 
 function formatFechaCorta(iso: string): string {
   try {
@@ -58,6 +101,9 @@ export function RatingNivel({
   const fiabPct = Math.round(fiabilidad * 100);
   const tienePartidosRating =
     partidosJugados > 0 || historial.length > 0;
+  const gradId = useId().replace(/:/g, "");
+  const pathRef = useRef<SVGPathElement>(null);
+  const areaRef = useRef<SVGPathElement>(null);
 
   const evolutionPoints = useMemo(() => {
     if (historial.length === 0) return [];
@@ -68,49 +114,57 @@ export function RatingNivel({
     if (evolutionPoints.length < 2) return null;
     const w = 280;
     const h = 48;
-    const pad = 4;
+    const padL = 4;
+    const padR = 10;
+    const padY = 4;
     const min = Math.min(...evolutionPoints) - 0.05;
     const max = Math.max(...evolutionPoints) + 0.05;
     const span = max - min || 0.1;
     const coords = evolutionPoints.map((val, i) => {
-      const x = pad + (i / (evolutionPoints.length - 1)) * (w - pad * 2);
-      const y = h - pad - ((val - min) / span) * (h - pad * 2);
-      return `${x},${y}`;
+      const x = padL + (i / (evolutionPoints.length - 1)) * (w - padL - padR);
+      const y = h - padY - ((val - min) / span) * (h - padY * 2);
+      return { x, y };
     });
-    return { w, h, polyline: coords.join(" ") };
+    const linePath = coords
+      .map((c, i) => `${i === 0 ? "M" : "L"} ${c.x} ${c.y}`)
+      .join(" ");
+    const last = coords[coords.length - 1];
+    const areaPath = `${linePath} L ${last.x} ${h - padY} L ${coords[0].x} ${h - padY} Z`;
+    return { w, h, linePath, areaPath, last };
   }, [evolutionPoints]);
+
+  useProfileChartDraw(pathRef, areaRef, [evolutionSvg?.linePath]);
 
   const recentMoves = useMemo(() => historial.slice(0, 4), [historial]);
 
   return (
     <section
-      className={`flex w-full flex-col rounded-[10px] border border-[#222] bg-[#111] px-4 py-3.5 ${className}`.trim()}
+      className={`flex w-full flex-col px-4 py-3.5 ${className}`.trim()}
       aria-label="Nivel de juego"
     >
       <div className="mb-1.5 flex items-start justify-between gap-3">
         <div>
-          <p className="m-0 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-white/45">
+          <p className="m-0 text-[10px] font-medium uppercase tracking-[0.18em] text-[#555]">
             Nivel
           </p>
-          <p className="m-0 mt-0.5 text-[1.75rem] font-extrabold leading-none text-[#a3e635] tabular-nums">
+          <p
+            className="m-0 mt-1 font-[family-name:var(--font-stack-sans-headline)] text-[2.15rem] font-normal leading-none tracking-wide tabular-nums"
+            style={{ color: PROFILE_NIVEL_COLOR }}
+          >
             {ratingLabel}
           </p>
         </div>
         {badge ? (
           <span
-            className="rounded-full border px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-[0.08em]"
-            style={{
-              color: badge.color,
-              borderColor: `${badge.color}55`,
-              backgroundColor: `${badge.color}18`,
-            }}
+            className="rounded-full border px-3 py-1 text-xs font-semibold tracking-wide"
+            style={badgeAccent(badge)}
           >
-            {badge.label}
+            {badge}
           </span>
         ) : null}
       </div>
 
-      <p className="mb-2.5 text-[0.78rem] text-white/55">
+      <p className="mb-2.5 text-[0.78rem] text-[#888]">
         {!tienePartidosRating
           ? "Nivel base 3.00 · aún sin partidos de rating"
           : `Fiabilidad del nivel: ${fiabPct}% · ${partidosJugados || historial.length} partido${
@@ -119,58 +173,93 @@ export function RatingNivel({
       </p>
 
       {evolutionSvg ? (
-        <svg
-          width="100%"
-          height={evolutionSvg.h}
-          viewBox={`0 0 ${evolutionSvg.w} ${evolutionSvg.h}`}
-          className="mb-2.5 block"
-          aria-hidden
+        <div
+          className="relative mb-2.5 w-full overflow-visible"
+          style={{ height: evolutionSvg.h }}
         >
-          <polyline
-            fill="none"
-            stroke="rgba(255, 255, 255, 0.55)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            points={evolutionSvg.polyline}
+          <svg
+            width="100%"
+            height={evolutionSvg.h}
+            viewBox={`0 0 ${evolutionSvg.w} ${evolutionSvg.h}`}
+            preserveAspectRatio="none"
+            className="absolute inset-0 block h-full w-full"
+            aria-hidden
+          >
+            <defs>
+              <linearGradient
+                id={`nivel-area-${gradId}`}
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.15" />
+                <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path
+              ref={areaRef}
+              d={evolutionSvg.areaPath}
+              fill={`url(#nivel-area-${gradId})`}
+              style={{ opacity: 0 }}
+            />
+            <path
+              ref={pathRef}
+              d={evolutionSvg.linePath}
+              fill="none"
+              stroke={PROFILE_CHART_STROKE_SOFT}
+              strokeWidth={PROFILE_CHART_STROKE_WIDTH}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+            />
+          </svg>
+          <span
+            className="profile-chart-end-dot profile-chart-end-dot--pulse"
+            style={{
+              left: `${(evolutionSvg.last.x / evolutionSvg.w) * 100}%`,
+              top: `${(evolutionSvg.last.y / evolutionSvg.h) * 100}%`,
+            }}
+            aria-hidden
           />
-        </svg>
+        </div>
       ) : !tienePartidosRating ? (
-        <p className="mb-2.5 text-[0.8rem] italic leading-snug text-white/42">
+        <p className="mb-2.5 text-[0.8rem] italic leading-snug text-[#555]">
           Juega tu primer partido competitivo para empezar a mover tu nivel
         </p>
       ) : null}
 
       {recentMoves.length > 0 ? (
         <div className="mt-auto">
-          <p className="mb-1.5 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-white/40">
+          <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-[#555]">
             Últimos movimientos
           </p>
-          <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
+          <ul className="m-0 flex list-none flex-col gap-0.5 p-0">
             {recentMoves.map((item) => {
               const up = item.delta >= 0;
-              const deltaColor = up ? "#34d399" : "#f87171";
               const arrow = up ? "▲" : "▼";
               const deltaSign = up ? "+" : "";
               return (
                 <li
                   key={item.id}
-                  className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-2 text-[0.78rem] text-white/[0.82]"
+                  className="group grid grid-cols-[auto_1fr_auto_auto] items-center gap-2 rounded-md px-1.5 py-1.5 text-[0.78rem] text-white/[0.82] transition-colors duration-150 hover:bg-white/[0.03]"
                 >
                   <span
-                    className="min-w-14 font-bold"
-                    style={{ color: deltaColor }}
+                    className="min-w-14 text-[0.82rem] font-semibold tabular-nums"
+                    style={{
+                      color: up ? PROFILE_DELTA_UP : PROFILE_DELTA_DOWN,
+                    }}
                   >
                     {arrow} {deltaSign}
                     {item.delta.toFixed(2)}
                   </span>
-                  <span className="text-white/65">
+                  <span className="text-[#888]">
                     {modoJuegoLabel(item.modo_juego)}
                   </span>
-                  <span className="font-semibold tabular-nums text-[#a3e635]">
+                  <span className="text-[0.9rem] font-semibold tabular-nums text-white">
                     {item.rating_despues.toFixed(2)}
                   </span>
-                  <span className="text-[0.72rem] text-white/40">
+                  <span className="text-[0.72rem] text-[#555]">
                     {formatFechaCorta(item.fecha)}
                   </span>
                 </li>

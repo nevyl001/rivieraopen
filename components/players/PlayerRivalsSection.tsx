@@ -5,6 +5,10 @@ import Link from "next/link";
 import { PlayerRival } from "@/lib/types/playerHistory";
 import { useTranslation } from "@/lib/hooks/useTranslation";
 import { buildPlayerProfilePath } from "@/lib/playerProfileRoutes";
+import {
+  PROFILE_DELTA_DOWN,
+  PROFILE_DELTA_UP,
+} from "@/components/players/PlayerSeasonChart";
 
 interface PlayerRivalsSectionProps {
   rivals: PlayerRival[];
@@ -16,8 +20,24 @@ function RivalCard({ rival }: { rival: PlayerRival }) {
 
   const h2hAdvantage = rival.wins > rival.losses;
   const h2hDisadvantage = rival.losses > rival.wins;
-  const h2hNeutral =
-    rival.wins === rival.losses && (rival.draws > 0 || rival.wins === 0);
+
+  const pillStyle = h2hAdvantage
+    ? {
+        color: PROFILE_DELTA_UP,
+        borderColor: `${PROFILE_DELTA_UP}55`,
+        backgroundColor: `${PROFILE_DELTA_UP}18`,
+      }
+    : h2hDisadvantage
+      ? {
+          color: PROFILE_DELTA_DOWN,
+          borderColor: `${PROFILE_DELTA_DOWN}55`,
+          backgroundColor: `${PROFILE_DELTA_DOWN}18`,
+        }
+      : {
+          color: "#999999",
+          borderColor: "#333333",
+          backgroundColor: "#1a1a1a",
+        };
 
   return (
     <Link
@@ -48,15 +68,8 @@ function RivalCard({ rival }: { rival: PlayerRival }) {
       </div>
 
       <span
-        className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium tabular-nums lg:px-2.5 lg:py-1 lg:text-xs ${
-          h2hAdvantage
-            ? "border border-[#555] bg-white text-black"
-            : h2hDisadvantage
-              ? "border border-[#333] bg-[#2a2a2a] text-[#999]"
-              : h2hNeutral
-                ? "border border-[#333] bg-[#2a2a2a] text-[#999]"
-                : "border border-[#333] bg-[#1a1a1a] text-[#888]"
-        }`}
+        className="shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium tabular-nums lg:px-2.5 lg:py-1 lg:text-xs"
+        style={pillStyle}
       >
         {rival.draws > 0
           ? t("profile.rivals.h2hScoreWithDraws", {

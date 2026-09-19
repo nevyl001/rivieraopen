@@ -10,16 +10,17 @@ interface PlayerSeasonRatingRowProps {
 
 export function PlayerSeasonRatingRow({ player }: PlayerSeasonRatingRowProps) {
   return (
-    <div className="grid grid-cols-1 items-stretch gap-3 lg:grid-cols-2 lg:gap-6">
+    <div className="rounded-[10px] border border-white/[0.07] bg-[#131313] shadow-[0_1px_0_rgba(255,255,255,0.04)] lg:grid lg:grid-cols-2 lg:divide-x lg:divide-white/[0.06]">
       <PlayerSeasonChart
         timeline={player.seasonTimeline ?? { season: 2026, points: [] }}
+        className="rounded-none border-0"
       />
       <RatingNivel
         rating={player.rating}
         fiabilidad={player.ratingFiabilidad}
         partidosJugados={player.ratingPartidos}
         historial={player.ratingHistorial ?? []}
-        className="h-full"
+        className="h-full rounded-none border-0 lg:border-l lg:border-white/[0.06]"
       />
     </div>
   );
