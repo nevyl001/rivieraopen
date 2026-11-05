@@ -17,6 +17,8 @@ import { getPlayerRivals } from "@/lib/playerRivalsService";
 import {
   normalizePlayerRatingFields,
   obtenerHistorialRatingPublic,
+  obtenerRatingPublicoBundle,
+  resolvePublicRatingSample,
 } from "@/lib/playerRatingService";
 import {
   getOfficialJugadorPublicProfile,
@@ -420,10 +422,13 @@ export const getJugadorPublico = cache(async function getJugadorPublico(
 
     const baseProfile = mapRowToProfile(row, rank, points);
 
-    const [computedStats, ratingHistorial] = await Promise.all([
+    const [computedStats, ratingBundle] = await Promise.all([
       computePlayerMatchStats(row.legacy_player_id, organizadorId),
-      obtenerHistorialRatingPublic(row.id, 10),
+      obtenerRatingPublicoBundle(row.id),
     ]);
+    const ratingHistorial =
+      ratingBundle?.historial ??
+      (await obtenerHistorialRatingPublic(row.id, 200));
 
     const seasonTimeline = await computePlayerSeasonTimeline(
       row.id,
@@ -532,9 +537,23 @@ export const getJugadorPublico = cache(async function getJugadorPublico(
     );
     const shareProfileUrl = resolveShareProfileUrl(row.id, passport.rivieraId);
 
+    const latestRated = ratingHistorial[0]?.rating_despues;
+    const ratingSample = resolvePublicRatingSample({
+      careerMatches: stats.totalPartidos,
+      ratedMatches:
+        ratingBundle?.ratedMatches ??
+        (ratingBundle ? 0 : ratingHistorial.length),
+    });
+
     return {
       ...baseProfile,
       stats,
+      rating:
+        latestRated != null && Number.isFinite(latestRated)
+          ? latestRated
+          : ratingBundle?.canonicalRating ?? baseProfile.rating,
+      ratingPartidos: ratingSample.partidos,
+      ratingFiabilidad: ratingSample.fiabilidad,
       ratingHistorial,
       seasonTimeline,
       historyEvents,
