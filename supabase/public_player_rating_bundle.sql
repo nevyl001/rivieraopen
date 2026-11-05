@@ -34,11 +34,10 @@ BEGIN
   FROM (
     SELECT p_jugador_id AS id
     UNION
-    SELECT pl.riviera_jugador_id
-    FROM public.riviera_official_player_profile_link mine
-    JOIN public.riviera_official_player_profile_link pl
-      ON pl.official_player_key = mine.official_player_key
-    WHERE mine.riviera_jugador_id = p_jugador_id
+    SELECT ids.riviera_jugador_id
+    FROM public._riviera_official_jugador_ids_for_key(
+      public.resolve_official_player_key_for_jugador(p_jugador_id)
+    ) ids
     UNION
     SELECT opa.jugador_id
     FROM public.organizer_player_access opa

@@ -1,6 +1,76 @@
 -- Historial público: el ledger de puntos no guarda rivales.
 -- El perfil oficial debe completar partidos_detalle desde jugador_participaciones
 -- para cualquier club (liga, reta, americano, duelo), sin reparar jugador por jugador.
+-- El tope anterior (100, con máximo interno de 500) cortaba carreras largas.
+
+CREATE OR REPLACE FUNCTION public.list_riviera_official_player_activity(
+  p_riviera_jugador_id uuid,
+  p_limit integer DEFAULT 5000
+)
+RETURNS TABLE(
+  ledger_id uuid,
+  participacion_id uuid,
+  official_player_key uuid,
+  source_organizador_id uuid,
+  source_club_name text,
+  event_type text,
+  event_id uuid,
+  event_name text,
+  points integer,
+  activity_at timestamp with time zone,
+  metadata jsonb
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+  SELECT
+    l.id AS ledger_id,
+    l.participacion_id,
+    l.official_player_key,
+    l.source_organizer_id,
+    l.source_club_name,
+    l.event_type,
+    l.event_id,
+    l.event_name,
+    l.points,
+    l.created_at AS activity_at,
+    l.metadata
+  FROM public.riviera_official_points_ledger l
+  WHERE l.official_player_key = public.resolve_official_player_key_for_jugador(p_riviera_jugador_id)
+    AND l.points > 0
+  ORDER BY l.created_at DESC, l.id DESC
+  LIMIT GREATEST(1, LEAST(COALESCE(p_limit, 5000), 5000));
+$function$;
+
+CREATE OR REPLACE FUNCTION public.list_riviera_official_legacy_participaciones(
+  p_riviera_jugador_id uuid,
+  p_limit integer DEFAULT 5000
+)
+RETURNS SETOF jugador_participaciones
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+  SELECT jp.*
+  FROM public.jugador_participaciones jp
+  WHERE jp.jugador_id IN (
+    SELECT ids.riviera_jugador_id
+    FROM public._riviera_official_jugador_ids_for_key(
+      public.resolve_official_player_key_for_jugador(p_riviera_jugador_id)
+    ) ids
+  )
+    AND COALESCE(jp.metadata->>'subtipo', '') <> 'ajuste_manual'
+    AND NOT EXISTS (
+      SELECT 1
+      FROM public.riviera_official_points_ledger l
+      WHERE l.participacion_id = jp.id
+    )
+  ORDER BY jp.fecha DESC, jp.created_at DESC
+  LIMIT GREATEST(1, LEAST(COALESCE(p_limit, 5000), 5000));
+$function$;
 
 CREATE OR REPLACE FUNCTION public.get_riviera_oficial_jugador_public_profile(p_jugador_id uuid)
 RETURNS jsonb
@@ -80,7 +150,7 @@ BEGIN
           END
         ) AS entry,
         row.activity_at AS sort_at
-        FROM public.list_riviera_official_player_activity(p_jugador_id, 100) row
+        FROM public.list_riviera_official_player_activity(p_jugador_id, 5000) row
         LEFT JOIN public.jugador_participaciones jp
           ON jp.id = row.participacion_id
         UNION ALL
@@ -98,7 +168,7 @@ BEGIN
           'metadata', jp.metadata
         ) AS entry,
         COALESCE(jp.fecha::timestamptz, jp.created_at) AS sort_at
-        FROM public.list_riviera_official_legacy_participaciones(p_jugador_id, 100) jp
+        FROM public.list_riviera_official_legacy_participaciones(p_jugador_id, 5000) jp
       ) combined
     ),
     '[]'::jsonb
