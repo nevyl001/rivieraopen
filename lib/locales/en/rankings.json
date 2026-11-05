@@ -154,7 +154,14 @@
       "noMatchDetail": "No match details available for this event.",
       "recordSummary": "{{wins}} wins · {{losses}} losses · {{draws}} draws",
       "noMatchDetailShort": "Per-match breakdown not available.",
-      "matchResultsNotSaved": "Opponents listed; individual match results were not saved for this reta."
+      "matchResultsNotSaved": "Opponents listed; individual match results were not saved for this reta.",
+      "participations": "Participations",
+      "eventsPlayed": "Events",
+      "achievements": "Achievements",
+      "activitiesOne": "1 activity",
+      "activitiesMany": "{{count}} activities",
+      "undated": "Undated",
+      "showMoreMonth": "Show more from this month"
     },
     "rivals": {
       "title": "Circuit rivals",

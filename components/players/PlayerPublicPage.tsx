@@ -108,7 +108,11 @@ export function PlayerPublicPage({ player }: PlayerPublicPageProps) {
               title={t("profile.activityHistory")}
               defaultOpen={false}
             >
-              <PlayerHistorySection events={historyEvents} hideTitle />
+              <PlayerHistorySection
+                events={historyEvents}
+                achievementCount={achievements.length}
+                hideTitle
+              />
             </PassportAccordion>
 
             {facedRivals.length > 0 && (
@@ -159,7 +163,10 @@ export function PlayerPublicPage({ player }: PlayerPublicPageProps) {
               <PlayerAchievementsSection achievements={achievements} />
             )}
 
-            <PlayerHistorySection events={historyEvents} />
+            <PlayerHistorySection
+              events={historyEvents}
+              achievementCount={achievements.length}
+            />
 
             <PlayerRivalsSection rivals={player.rivals ?? []} />
 

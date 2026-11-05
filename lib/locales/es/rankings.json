@@ -154,7 +154,14 @@
       "noMatchDetail": "Sin detalle de partidos para este evento.",
       "recordSummary": "{{wins}} victorias · {{losses}} derrotas · {{draws}} empates",
       "noMatchDetailShort": "Detalle por partido no disponible.",
-      "matchResultsNotSaved": "Enfrentamientos registrados; resultados individuales no guardados en esta reta."
+      "matchResultsNotSaved": "Enfrentamientos registrados; resultados individuales no guardados en esta reta.",
+      "participations": "Participaciones",
+      "eventsPlayed": "Eventos",
+      "achievements": "Logros",
+      "activitiesOne": "1 actividad",
+      "activitiesMany": "{{count}} actividades",
+      "undated": "Sin fecha",
+      "showMoreMonth": "Ver más de este mes"
     },
     "rivals": {
       "title": "Rivales del circuito",
