@@ -3,10 +3,9 @@
 import { useId, useMemo, useRef } from "react";
 import type { RatingHistorialEntry } from "@/lib/types/player";
 import {
-  PROFILE_CHART_STROKE_SOFT,
+  PROFILE_CHART_GRID,
+  PROFILE_CHART_STROKE,
   PROFILE_CHART_STROKE_WIDTH,
-  PROFILE_DELTA_DOWN,
-  PROFILE_DELTA_UP,
 } from "@/components/players/PlayerSeasonChart";
 import { useProfileChartDraw } from "@/components/players/useProfileChartDraw";
 
@@ -22,8 +21,10 @@ function modoJuegoLabel(modo: string): string {
   return MODO_JUEGO_LABELS[modo] ?? modo.replace(/_/g, " ");
 }
 
-/** Nivel + FIABLE — fluorescent lime (pre-mono accent that read well) */
-const PROFILE_NIVEL_COLOR = "#a3e635";
+const PROFILE_TEXT = "#F5F7FA";
+const PROFILE_MUTED = "#A1AAB8";
+const PROFILE_MOVE_UP = "#93C5FD";
+const PROFILE_MOVE_DOWN = "#F87171";
 
 function fiabilidadBadge(
   fiabilidad: number,
@@ -35,38 +36,24 @@ function fiabilidadBadge(
   return "CALIBRANDO";
 }
 
-/** Badge accent — FIABLE uses the same fluorescent lime as Nivel */
+/** Status pill stays quiet; calibration is not a chart accent */
 function badgeAccent(badge: string): {
   color: string;
   borderColor: string;
   backgroundColor: string;
 } {
-  switch (badge) {
-    case "FIABLE":
-      return {
-        color: PROFILE_NIVEL_COLOR,
-        borderColor: `${PROFILE_NIVEL_COLOR}66`,
-        backgroundColor: `${PROFILE_NIVEL_COLOR}1A`,
-      };
-    case "MEDIA":
-      return {
-        color: "#C4A574",
-        borderColor: "rgba(196, 165, 116, 0.4)",
-        backgroundColor: "rgba(196, 165, 116, 0.1)",
-      };
-    case "CALIBRANDO":
-      return {
-        color: "#D98888",
-        borderColor: "rgba(217, 136, 136, 0.4)",
-        backgroundColor: "rgba(217, 136, 136, 0.1)",
-      };
-    default:
-      return {
-        color: "#aaa",
-        borderColor: "rgba(255, 255, 255, 0.14)",
-        backgroundColor: "transparent",
-      };
+  if (badge === "FIABLE") {
+    return {
+      color: PROFILE_TEXT,
+      borderColor: "#2A2F38",
+      backgroundColor: "transparent",
+    };
   }
+  return {
+    color: PROFILE_MUTED,
+    borderColor: "#2A2F38",
+    backgroundColor: "transparent",
+  };
 }
 
 function formatFechaCorta(iso: string): string {
@@ -127,9 +114,10 @@ export function RatingNivel({
     const linePath = coords
       .map((c, i) => `${i === 0 ? "M" : "L"} ${c.x} ${c.y}`)
       .join(" ");
+    const first = coords[0];
     const last = coords[coords.length - 1];
     const areaPath = `${linePath} L ${last.x} ${h - padY} L ${coords[0].x} ${h - padY} Z`;
-    return { w, h, linePath, areaPath, last };
+    return { w, h, linePath, areaPath, first, last };
   }, [evolutionPoints]);
 
   useProfileChartDraw(pathRef, areaRef, [evolutionSvg?.linePath]);
@@ -143,19 +131,16 @@ export function RatingNivel({
     >
       <div className="mb-1.5 flex items-start justify-between gap-3">
         <div>
-          <p className="m-0 text-[10px] font-medium uppercase tracking-[0.18em] text-[#555]">
+          <p className="m-0 text-[10px] font-medium uppercase tracking-[0.18em] text-[#A1AAB8]">
             Nivel
           </p>
-          <p
-            className="m-0 mt-1 font-[family-name:var(--font-stack-sans-headline)] text-[2.15rem] font-normal leading-none tracking-wide tabular-nums"
-            style={{ color: PROFILE_NIVEL_COLOR }}
-          >
+          <p className="m-0 mt-1 font-[family-name:var(--font-stack-sans-headline)] text-[2.65rem] font-semibold leading-none tracking-tight text-[#F5F7FA] tabular-nums lg:text-[2.85rem]">
             {ratingLabel}
           </p>
         </div>
         {badge ? (
           <span
-            className="rounded-full border px-3 py-1 text-xs font-semibold tracking-wide"
+            className="rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em]"
             style={badgeAccent(badge)}
           >
             {badge}
@@ -163,7 +148,7 @@ export function RatingNivel({
         ) : null}
       </div>
 
-      <p className="mb-2.5 text-[0.78rem] text-[#888]">
+      <p className="mb-2.5 text-[0.78rem] text-[#A1AAB8]">
         {!tienePartidosRating
           ? "Nivel base 3.00 · aún sin partidos de rating"
           : `Fiabilidad del nivel: ${fiabPct}% · ${partidosJugados || historial.length} partido${
@@ -192,10 +177,22 @@ export function RatingNivel({
                 x2="0"
                 y2="1"
               >
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.15" />
-                <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+                <stop offset="0%" stopColor="#60A5FA" stopOpacity="0.28" />
+                <stop offset="100%" stopColor="#60A5FA" stopOpacity="0" />
               </linearGradient>
             </defs>
+            {[0.35, 0.7].map((step) => (
+              <line
+                key={step}
+                x1={4}
+                x2={evolutionSvg.w - 10}
+                y1={4 + (evolutionSvg.h - 8) * step}
+                y2={4 + (evolutionSvg.h - 8) * step}
+                stroke={PROFILE_CHART_GRID}
+                strokeWidth="1"
+                vectorEffect="non-scaling-stroke"
+              />
+            ))}
             <path
               ref={areaRef}
               d={evolutionSvg.areaPath}
@@ -206,7 +203,7 @@ export function RatingNivel({
               ref={pathRef}
               d={evolutionSvg.linePath}
               fill="none"
-              stroke={PROFILE_CHART_STROKE_SOFT}
+              stroke={PROFILE_CHART_STROKE}
               strokeWidth={PROFILE_CHART_STROKE_WIDTH}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -214,7 +211,15 @@ export function RatingNivel({
             />
           </svg>
           <span
-            className="profile-chart-end-dot profile-chart-end-dot--pulse"
+            className="profile-chart-start-dot"
+            style={{
+              left: `${(evolutionSvg.first.x / evolutionSvg.w) * 100}%`,
+              top: `${(evolutionSvg.first.y / evolutionSvg.h) * 100}%`,
+            }}
+            aria-hidden
+          />
+          <span
+            className="profile-chart-end-dot"
             style={{
               left: `${(evolutionSvg.last.x / evolutionSvg.w) * 100}%`,
               top: `${(evolutionSvg.last.y / evolutionSvg.h) * 100}%`,
@@ -223,14 +228,14 @@ export function RatingNivel({
           />
         </div>
       ) : !tienePartidosRating ? (
-        <p className="mb-2.5 text-[0.8rem] italic leading-snug text-[#555]">
+        <p className="mb-2.5 text-[0.8rem] italic leading-snug text-[#A1AAB8]">
           Juega tu primer partido competitivo para empezar a mover tu nivel
         </p>
       ) : null}
 
       {recentMoves.length > 0 ? (
         <div className="mt-auto">
-          <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-[#555]">
+          <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-[#A1AAB8]">
             Últimos movimientos
           </p>
           <ul className="m-0 flex list-none flex-col gap-0.5 p-0">
@@ -241,24 +246,22 @@ export function RatingNivel({
               return (
                 <li
                   key={item.id}
-                  className="group grid grid-cols-[auto_1fr_auto_auto] items-center gap-2 rounded-md px-1.5 py-1.5 text-[0.78rem] text-white/[0.82] transition-colors duration-150 hover:bg-white/[0.03]"
+                  className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-2 rounded-md px-1.5 py-1 text-[0.78rem] text-[#F5F7FA]"
                 >
                   <span
                     className="min-w-14 text-[0.82rem] font-semibold tabular-nums"
-                    style={{
-                      color: up ? PROFILE_DELTA_UP : PROFILE_DELTA_DOWN,
-                    }}
+                    style={{ color: up ? PROFILE_MOVE_UP : PROFILE_MOVE_DOWN }}
                   >
                     {arrow} {deltaSign}
                     {item.delta.toFixed(2)}
                   </span>
-                  <span className="text-[#888]">
+                  <span className="text-[#A1AAB8]">
                     {modoJuegoLabel(item.modo_juego)}
                   </span>
-                  <span className="text-[0.9rem] font-semibold tabular-nums text-white">
+                  <span className="text-[0.95rem] font-semibold tabular-nums text-[#F5F7FA]">
                     {item.rating_despues.toFixed(2)}
                   </span>
-                  <span className="text-[0.72rem] text-[#555]">
+                  <span className="text-[0.72rem] text-[#A1AAB8]">
                     {formatFechaCorta(item.fecha)}
                   </span>
                 </li>

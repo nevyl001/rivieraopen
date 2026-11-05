@@ -9,13 +9,25 @@ interface PlayerCareerSummarySectionProps {
   hideTitle?: boolean;
 }
 
-function StatCell({ label, value }: { label: string; value: string | number }) {
+function StatCell({
+  label,
+  value,
+  emphasis = false,
+}: {
+  label: string;
+  value: string | number;
+  emphasis?: boolean;
+}) {
   return (
-    <div className="rounded-lg border border-[#1f1f1f] bg-[#111] px-2.5 py-2 lg:rounded-[10px] lg:px-4 lg:py-3">
-      <p className="mb-0.5 text-[9px] uppercase tracking-wide text-[#555] lg:mb-1 lg:text-[10px]">
+    <div className="rounded-lg border border-[#2A2F38] bg-[#14171C] px-2.5 py-2.5 lg:rounded-[10px] lg:px-4 lg:py-3.5">
+      <p className="mb-1 text-[10px] uppercase tracking-[0.12em] text-[#A1AAB8] lg:text-[11px]">
         {label}
       </p>
-      <p className="text-base font-medium tabular-nums text-white lg:text-xl">
+      <p
+        className={`font-semibold tabular-nums leading-none text-[#F5F7FA] ${
+          emphasis ? "text-2xl lg:text-[1.85rem]" : "text-xl lg:text-2xl"
+        }`}
+      >
         {value}
       </p>
     </div>
@@ -45,7 +57,7 @@ export function PlayerCareerSummarySection({
   return (
     <div>
       {!hideTitle && (
-        <h2 className="mb-2 hidden text-[10px] uppercase tracking-[0.18em] text-[#555] lg:mb-4 lg:block">
+        <h2 className="mb-2 hidden text-[10px] uppercase tracking-[0.18em] text-[#A1AAB8] lg:mb-4 lg:block">
           {t("passport.careerTitle")}
         </h2>
       )}
@@ -60,7 +72,7 @@ export function PlayerCareerSummarySection({
             key={stat.label}
             className={`${expanded ? "block" : "hidden lg:block"}`}
           >
-            <StatCell label={stat.label} value={stat.value} />
+            <StatCell label={stat.label} value={stat.value} emphasis />
           </div>
         ))}
       </div>
