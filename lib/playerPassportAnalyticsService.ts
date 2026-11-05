@@ -121,7 +121,7 @@ export function computeClubParticipation(
 
   for (const event of events) {
     const club = event.sourceClubName?.trim();
-    if (!club) continue;
+    if (!club || club.toLowerCase() === "club") continue;
     counts.set(club, (counts.get(club) ?? 0) + 1);
   }
 

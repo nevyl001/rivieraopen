@@ -213,7 +213,7 @@ async function fetchOrganizerAccessRows(
           "nombre_organizador",
           "nombre_club",
           "club",
-        ]) ?? "Club",
+        ]) ?? "",
       organizerId: pickString(row, ["organizador_id", "organizer_id"]),
       isRegistration: Boolean(
         pickBoolean(row, [
@@ -391,7 +391,8 @@ export function listActiveClubsFromAccess(
 ): string[] {
   const names = new Set<string>();
   for (const row of accessRows) {
-    if (row.clubName.trim()) names.add(row.clubName.trim());
+    const club = row.clubName.trim();
+    if (club && club.toLowerCase() !== "club") names.add(club);
   }
   return [...names];
 }

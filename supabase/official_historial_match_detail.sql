@@ -72,6 +72,55 @@ AS $function$
   LIMIT GREATEST(1, LEAST(COALESCE(p_limit, 5000), 5000));
 $function$;
 
+-- «Club» es el placeholder de getOrganizerDisplayNameSync cuando el nombre
+-- aún no estaba en caché. No es un club. Se sustituye por el nombre real.
+CREATE OR REPLACE FUNCTION public.riviera_public_club_label(
+  p_names text[],
+  p_organizer_id text
+)
+RETURNS text
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_name text;
+  v_org uuid;
+BEGIN
+  SELECT btrim(candidate)
+  INTO v_name
+  FROM unnest(COALESCE(p_names, ARRAY[]::text[])) AS candidate
+  WHERE btrim(COALESCE(candidate, '')) <> ''
+    AND lower(btrim(candidate)) <> 'club'
+  LIMIT 1;
+
+  IF v_name IS NOT NULL THEN
+    RETURN v_name;
+  END IF;
+
+  BEGIN
+    v_org := NULLIF(btrim(COALESCE(p_organizer_id, '')), '')::uuid;
+  EXCEPTION
+    WHEN invalid_text_representation THEN
+      v_org := NULL;
+  END;
+
+  IF v_org IS NULL THEN
+    RETURN NULL;
+  END IF;
+
+  v_name := NULLIF(btrim(public.get_organizador_display_name(v_org)), '');
+  IF v_name IS NULL OR lower(v_name) = 'club' THEN
+    RETURN NULL;
+  END IF;
+
+  RETURN v_name;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.riviera_public_club_label(text[], text) FROM PUBLIC;
+
 CREATE OR REPLACE FUNCTION public.get_riviera_oficial_jugador_public_profile(p_jugador_id uuid)
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -120,10 +169,16 @@ BEGIN
           'event_id', row.event_id,
           'event_name', row.event_name,
           'points', row.points,
-          'source_club_name', COALESCE(
-            NULLIF(row.source_club_name, ''),
-            NULLIF(jp.metadata->>'club_name', ''),
-            NULLIF(jp.metadata->>'source_club_name', '')
+          'source_club_name', public.riviera_public_club_label(
+            ARRAY[
+              row.source_club_name,
+              jp.metadata->>'club_name',
+              jp.metadata->>'source_club_name'
+            ],
+            COALESCE(
+              row.source_organizador_id::text,
+              jp.metadata->>'organizador_id'
+            )
           ),
           'activity_at', row.activity_at,
           'metadata', CASE
@@ -160,9 +215,19 @@ BEGIN
           'event_id', jp.evento_id,
           'event_name', jp.evento_nombre,
           'points', jp.puntos_obtenidos,
-          'source_club_name', COALESCE(
-            NULLIF(jp.metadata->>'club_name', ''),
-            NULLIF(jp.metadata->>'source_club_name', '')
+          'source_club_name', public.riviera_public_club_label(
+            ARRAY[
+              jp.metadata->>'club_name',
+              jp.metadata->>'source_club_name'
+            ],
+            COALESCE(
+              jp.metadata->>'organizador_id',
+              (
+                SELECT rj.organizador_id::text
+                FROM public.riviera_jugadores rj
+                WHERE rj.id = jp.jugador_id
+              )
+            )
           ),
           'activity_at', COALESCE(jp.fecha::timestamptz, jp.created_at),
           'metadata', jp.metadata
