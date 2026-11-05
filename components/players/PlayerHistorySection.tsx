@@ -131,12 +131,17 @@ function HistoryEventCard({ event }: { event: PassportHistoryEvent }) {
                   {t("passport.historyPartners")}: {event.partners.join(" · ")}
                 </span>
               )}
-              {!open && event.partidos.length === 1 && (
-                <span className="break-words text-[#888]">
-                  {t("profile.history.vs")} {event.partidos[0].opponentLabel}
-                  {event.partidos[0].score && event.partidos[0].score !== "—"
-                    ? ` · ${event.partidos[0].score}`
-                    : ""}
+              {!open && event.partidos.length > 0 && (
+                <span className="break-words text-[#aaa]">
+                  {event.partidos
+                    .map((partido) => {
+                      const score =
+                        partido.score && partido.score !== "—"
+                          ? ` ${partido.score}`
+                          : "";
+                      return `${t("profile.history.vs")} ${partido.opponentLabel}${score}`;
+                    })
+                    .join(" · ")}
                 </span>
               )}
             </div>
