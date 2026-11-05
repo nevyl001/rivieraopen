@@ -70,8 +70,8 @@ function mapRowToPlayer(
     points,
     rank,
     contact: {
-      email: contact?.email ?? "",
-      phone: contact?.telefono ?? "",
+      email: "",
+      phone: "",
     },
     socials: {
       ...(contact?.instagram_url ? { instagram: contact.instagram_url } : {}),
