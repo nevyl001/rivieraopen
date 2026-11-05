@@ -113,24 +113,48 @@ function findRatingChangeForEvent(
   return { delta: match.delta, after: match.rating_despues };
 }
 
+function foldClubName(name: string): string {
+  return name
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function preferClubLabel(current: string, next: string): string {
+  const score = (name: string) => {
+    const plain = name.normalize("NFD").replace(/\p{Diacritic}/gu, "");
+    return (plain === name ? 0 : 4) + (name.includes(" ") ? 2 : 0);
+  };
+  const delta = score(next) - score(current);
+  if (delta !== 0) return delta > 0 ? next : current;
+  return next.length > current.length ? next : current;
+}
+
 export function computeClubParticipation(
   events: PlayerHistoryEvent[],
   registrationClubName: string | null
 ): PlayerClubParticipation[] {
-  const counts = new Map<string, number>();
+  const counts = new Map<string, { label: string; eventCount: number }>();
 
-  for (const event of events) {
-    const club = event.sourceClubName?.trim();
-    if (!club || club.toLowerCase() === "club") continue;
-    counts.set(club, (counts.get(club) ?? 0) + 1);
-  }
+  const add = (raw: string | null | undefined, eventsToAdd: number) => {
+    const club = raw?.trim();
+    if (!club || foldClubName(club) === "club") return;
+    const key = foldClubName(club);
+    const current = counts.get(key);
+    if (!current) {
+      counts.set(key, { label: club, eventCount: eventsToAdd });
+      return;
+    }
+    current.eventCount += eventsToAdd;
+    current.label = preferClubLabel(current.label, club);
+  };
 
-  if (registrationClubName?.trim() && !counts.has(registrationClubName.trim())) {
-    counts.set(registrationClubName.trim(), 0);
-  }
+  for (const event of events) add(event.sourceClubName, 1);
+  add(registrationClubName, 0);
 
-  return [...counts.entries()]
-    .map(([clubName, eventCount]) => ({ clubName, eventCount }))
+  return [...counts.values()]
+    .map(({ label, eventCount }) => ({ clubName: label, eventCount }))
     .sort((a, b) => b.eventCount - a.eventCount || a.clubName.localeCompare(b.clubName));
 }
 

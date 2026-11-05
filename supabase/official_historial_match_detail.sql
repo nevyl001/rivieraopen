@@ -72,8 +72,8 @@ AS $function$
   LIMIT GREATEST(1, LEAST(COALESCE(p_limit, 5000), 5000));
 $function$;
 
--- «Club» es el placeholder de getOrganizerDisplayNameSync cuando el nombre
--- aún no estaba en caché. No es un club. Se sustituye por el nombre real.
+-- El nombre guardado puede ser un alias («Hackpadel», «Club»).
+-- El club visible es el nombre comercial del organizador.
 CREATE OR REPLACE FUNCTION public.riviera_public_club_label(
   p_names text[],
   p_organizer_id text
@@ -88,17 +88,6 @@ DECLARE
   v_name text;
   v_org uuid;
 BEGIN
-  SELECT btrim(candidate)
-  INTO v_name
-  FROM unnest(COALESCE(p_names, ARRAY[]::text[])) AS candidate
-  WHERE btrim(COALESCE(candidate, '')) <> ''
-    AND lower(btrim(candidate)) <> 'club'
-  LIMIT 1;
-
-  IF v_name IS NOT NULL THEN
-    RETURN v_name;
-  END IF;
-
   BEGIN
     v_org := NULLIF(btrim(COALESCE(p_organizer_id, '')), '')::uuid;
   EXCEPTION
@@ -106,14 +95,21 @@ BEGIN
       v_org := NULL;
   END;
 
-  IF v_org IS NULL THEN
-    RETURN NULL;
+  IF v_org IS NOT NULL THEN
+    v_name := NULLIF(btrim(public.get_organizador_display_name(v_org)), '');
+    IF v_name IS NOT NULL
+       AND lower(v_name) <> 'club'
+       AND lower(v_name) <> 'club deportivo riviera' THEN
+      RETURN v_name;
+    END IF;
   END IF;
 
-  v_name := NULLIF(btrim(public.get_organizador_display_name(v_org)), '');
-  IF v_name IS NULL OR lower(v_name) = 'club' THEN
-    RETURN NULL;
-  END IF;
+  SELECT btrim(candidate)
+  INTO v_name
+  FROM unnest(COALESCE(p_names, ARRAY[]::text[])) AS candidate
+  WHERE btrim(COALESCE(candidate, '')) <> ''
+    AND lower(btrim(candidate)) NOT IN ('club', 'club deportivo riviera')
+  LIMIT 1;
 
   RETURN v_name;
 END;
