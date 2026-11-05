@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { sanitizeSupabaseFetch } from "@/lib/supabaseApiKey";
 
 const PLACEHOLDER_KEYS = new Set([
   "pega_aqui_tu_anon_key",
@@ -37,7 +38,9 @@ export function getSupabaseClient(): SupabaseClient | null {
   }
 
   if (!client) {
-    client = createClient(url!, anonKey!);
+    client = createClient(url!, anonKey!, {
+      global: { fetch: sanitizeSupabaseFetch(anonKey!) },
+    });
   }
 
   return client;

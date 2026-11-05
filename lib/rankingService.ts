@@ -17,8 +17,6 @@ interface JugadorContactRow {
   id: string;
   instagram_url: string | null;
   facebook_url: string | null;
-  email: string | null;
-  telefono: string | null;
 }
 
 function splitNombre(nombre: string | null): { firstName: string; lastName: string } {
@@ -94,7 +92,7 @@ async function fetchContactByIds(
 
   const { data, error } = await supabase
     .from("riviera_jugadores")
-    .select("id, instagram_url, facebook_url, email, telefono")
+    .select("id, instagram_url, facebook_url")
     .in("id", ids);
 
   if (error) {
