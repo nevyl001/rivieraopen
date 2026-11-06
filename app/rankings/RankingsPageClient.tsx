@@ -1,15 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Search, X } from "lucide-react";
 import { Container } from "@/components/ui";
-import { LevelTabs } from "@/components/rankings/LevelTabs";
-import { GenderTabs } from "@/components/rankings/GenderTabs";
-import { PlayerRankingCard } from "@/components/rankings/PlayerRankingCard";
+import { RankingFilters } from "@/components/rankings/RankingFilters";
+import { RankingHeader } from "@/components/rankings/RankingHeader";
+import { RankingPlayerRow } from "@/components/rankings/RankingPlayerRow";
 import { RankingPointSystem } from "@/components/rankings/RankingPointSystem";
+import { RankingShareDialog } from "@/components/rankings/RankingShareDialog";
+import { RankingTopThree } from "@/components/rankings/RankingTopThree";
 import { Category, Gender, Player } from "@/lib/types";
 import { useTranslation } from "@/lib/hooks/useTranslation";
 import { getCategoryTranslationKey } from "@/lib/categoryUtils";
+import {
+  ranksSharingPosition,
+  splitOfficialPodium,
+} from "@/lib/rankingPresentation";
 
 function normalizeSearch(text: string): string {
   return text
@@ -22,7 +27,6 @@ function normalizeSearch(text: string): string {
 function playerMatchesSearch(player: Player, query: string): boolean {
   const normalizedQuery = normalizeSearch(query);
   if (!normalizedQuery) return true;
-
   const fullName = normalizeSearch(`${player.firstName} ${player.lastName}`);
   return fullName.includes(normalizedQuery);
 }
@@ -34,6 +38,7 @@ export function RankingsPageClient() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sharePlayer, setSharePlayer] = useState<Player | null>(null);
 
   useEffect(() => {
     setSearchQuery("");
@@ -42,6 +47,12 @@ export function RankingsPageClient() {
   const filteredPlayers = useMemo(
     () => players.filter((player) => playerMatchesSearch(player, searchQuery)),
     [players, searchQuery]
+  );
+
+  const searching = searchQuery.trim().length > 0;
+  const podium = useMemo(
+    () => (searching ? { featured: [], rest: filteredPlayers } : splitOfficialPodium(filteredPlayers)),
+    [filteredPlayers, searching]
   );
 
   useEffect(() => {
@@ -59,22 +70,16 @@ export function RankingsPageClient() {
 
         const data = await res.json();
         if (cancelled) return;
-
         setPlayers(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("RankingsPageClient:", err);
-        if (!cancelled) {
-          setPlayers([]);
-        }
+        if (!cancelled) setPlayers([]);
       } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
+        if (!cancelled) setIsLoading(false);
       }
     }
 
     loadRankings();
-
     return () => {
       cancelled = true;
     };
@@ -85,90 +90,35 @@ export function RankingsPageClient() {
     selectedGender === "Male" ? t("genders.varonil") : t("genders.femenil");
 
   return (
-    <div className="bg-[#F7F7F7] pb-16 pt-24 md:pt-28">
+    <div className="overflow-x-clip bg-[#F7F7F7] pb-16 pt-24 md:pt-28">
       <Container className="max-w-[76rem]">
-        <header className="mb-6 md:mb-8">
-          <h1 className="font-[family-name:var(--font-fp-display)] text-[2.75rem] leading-[0.9] tracking-wide text-[#111111] sm:text-5xl md:text-[3.5rem]">
-            <span className="block">RANKING</span>
-            <span className="block">RIVIERA OPEN</span>
-          </h1>
-          <p className="mt-3 font-[family-name:var(--font-fp-sans)] text-sm text-[#737373] md:text-[15px]">
-            Ranking oficial del circuito
-          </p>
-          <p className="mt-1 font-[family-name:var(--font-fp-sans)] text-xs text-[#8A8A8A] md:text-sm">
-            Resultados y participación actualizados automáticamente.
-          </p>
-        </header>
-
-        <div className="mb-5">
-          <GenderTabs
-            selectedGender={selectedGender}
-            onGenderChange={setSelectedGender}
-          />
-        </div>
-
-        <div className="mb-5 border-b border-[#E8E8E8] pb-1">
-          <LevelTabs
-            selectedLevel={selectedLevel}
-            onLevelChange={setSelectedLevel}
-          />
-        </div>
-
-        <div className="mb-6">
-          <label htmlFor="player-name-search" className="sr-only">
-            {t("labels.searchByName")}
-          </label>
-          <div className="relative">
-            <Search
-              size={18}
-              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#8A8A8A]"
-              aria-hidden
-            />
-            <input
-              id="player-name-search"
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t("labels.searchPlaceholder")}
-              className="h-12 w-full rounded-xl border border-[#E5E5E5] bg-white pl-11 pr-11 font-[family-name:var(--font-fp-sans)] text-sm text-[#111111] placeholder:text-[#8A8A8A] transition-colors focus:border-[#111111] focus:outline-none"
-              autoComplete="off"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-[#737373] transition-colors hover:text-[#111111]"
-                aria-label={t("labels.clearSearch")}
-              >
-                <X size={18} />
-              </button>
-            )}
-          </div>
-        </div>
+        <RankingHeader />
+        <RankingFilters
+          selectedGender={selectedGender}
+          selectedLevel={selectedLevel}
+          searchQuery={searchQuery}
+          onGenderChange={(gender) => {
+            setIsLoading(true);
+            setSelectedGender(gender);
+          }}
+          onLevelChange={(level) => {
+            setIsLoading(true);
+            setSelectedLevel(level);
+          }}
+          onSearchChange={setSearchQuery}
+        />
 
         {isLoading ? (
-          <div className="space-y-0 overflow-hidden rounded-xl border border-[#E8E8E8] bg-white">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="flex items-center gap-4 border-b border-[#ECECEC] px-4 py-5 last:border-b-0"
-              >
-                <div className="h-8 w-10 animate-pulse rounded bg-[#EFEFEF]" />
-                <div className="h-14 w-14 animate-pulse rounded-full bg-[#EFEFEF]" />
-                <div className="h-4 flex-1 animate-pulse rounded bg-[#EFEFEF]" />
-                <div className="h-6 w-12 animate-pulse rounded bg-[#EFEFEF]" />
-              </div>
-            ))}
-          </div>
+          <RankingSkeleton />
         ) : (
           <>
-            <div className="mb-3 flex items-end justify-between gap-3">
+            <div className="mb-4 flex items-end justify-between gap-3">
               <div>
-                <h2 className="font-[family-name:var(--font-fp-sans)] text-sm font-semibold uppercase tracking-[0.12em] text-[#111111]">
+                <h2 className="font-[family-name:var(--font-fp-sans)] text-sm font-semibold uppercase tracking-[0.14em] text-[#101010]">
                   {categoryLabel} · {genderLabel}
                 </h2>
                 <p className="mt-1 font-[family-name:var(--font-fp-sans)] text-xs text-[#737373]">
-                  {searchQuery.trim()
+                  {searching
                     ? t("labels.showingFiltered", {
                         count: filteredPlayers.length,
                         total: players.length,
@@ -180,38 +130,79 @@ export function RankingsPageClient() {
                       }`}
                 </p>
               </div>
-              {filteredPlayers.length > 0 && (
-                <p className="hidden font-[family-name:var(--font-fp-sans)] text-[10px] uppercase tracking-[0.16em] text-[#8A8A8A] sm:block">
-                  {t("labels.rank")} · {t("labels.pts")}
-                </p>
-              )}
             </div>
 
             {filteredPlayers.length > 0 ? (
-              <div className="overflow-hidden rounded-xl border border-[#E8E8E8] bg-white">
-                {filteredPlayers.map((player) => (
-                  <PlayerRankingCard key={player.id} player={player} />
-                ))}
-              </div>
+              <>
+                <RankingTopThree
+                  players={podium.featured}
+                  roster={players}
+                  genderLabel={genderLabel}
+                  onShare={setSharePlayer}
+                />
+                {podium.rest.length > 0 && (
+                  <div className="flex flex-col gap-2.5">
+                    {podium.rest.map((player) => (
+                      <RankingPlayerRow
+                        key={player.id}
+                        player={player}
+                        tied={ranksSharingPosition(players, player.rank)}
+                        onShare={setSharePlayer}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             ) : players.length > 0 ? (
-              <div className="rounded-xl border border-[#E8E8E8] bg-white px-6 py-16 text-center">
-                <p className="font-[family-name:var(--font-fp-sans)] text-sm text-[#737373]">
-                  {t("messages.noSearchResults")}
-                </p>
-              </div>
+              <EmptyState message={t("messages.noSearchResults")} />
             ) : (
-              <div className="rounded-xl border border-[#E8E8E8] bg-white px-6 py-16 text-center">
-                <p className="font-[family-name:var(--font-fp-sans)] text-sm text-[#737373]">
-                  {t("messages.noPlayers")}
-                </p>
-              </div>
+              <EmptyState message={t("messages.noPlayers")} />
             )}
           </>
         )}
 
-        {/* Checkpoint: reglas originales sin rediseñar aún */}
         <RankingPointSystem />
       </Container>
+      <RankingShareDialog
+        player={sharePlayer}
+        genderLabel={genderLabel}
+        onClose={() => setSharePlayer(null)}
+      />
+    </div>
+  );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="rounded-2xl border border-[#E7E7E7] bg-white px-6 py-16 text-center">
+      <p className="font-[family-name:var(--font-fp-sans)] text-sm text-[#737373]">
+        {message}
+      </p>
+    </div>
+  );
+}
+
+function RankingSkeleton() {
+  return (
+    <div aria-hidden>
+      <div className="mb-8 grid grid-cols-2 items-end gap-3 md:grid-cols-3">
+        <div className="col-span-2 h-80 animate-pulse rounded-2xl bg-[#E7E7E7] md:col-span-1 md:h-[28rem]" />
+        <div className="h-56 animate-pulse rounded-2xl bg-[#EFEFEF] md:h-96" />
+        <div className="h-56 animate-pulse rounded-2xl bg-[#EFEFEF] md:h-96" />
+      </div>
+      <div className="flex flex-col gap-2.5">
+        {[0, 1, 2].map((item) => (
+          <div
+            key={item}
+            className="flex h-[104px] items-center gap-4 rounded-xl border border-[#E7E7E7] bg-white px-4 md:h-[120px]"
+          >
+            <div className="h-8 w-10 animate-pulse rounded bg-[#F1F1F1]" />
+            <div className="h-[75px] w-14 animate-pulse rounded-[10px] bg-[#F1F1F1]" />
+            <div className="h-4 flex-1 animate-pulse rounded bg-[#F1F1F1]" />
+            <div className="h-6 w-12 animate-pulse rounded bg-[#F1F1F1]" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

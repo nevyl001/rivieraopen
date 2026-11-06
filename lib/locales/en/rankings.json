@@ -105,9 +105,31 @@
       "liveRanking": "Check the live ranking and your history in the app."
     }
   },
+  "page": {
+    "official": "Official standings",
+    "title": "RANKINGS RIVIERA",
+    "subtitle": "Every match counts. Every position is earned.",
+    "description": "Official Riviera Open player standings.",
+    "top": "Leading positions",
+    "tie": "Tie",
+    "shareRanking": "Share ranking",
+    "viewProfile": "View profile",
+    "instagram": "Instagram"
+  },
+  "share": {
+    "title": "Ranking card",
+    "download": "Download PNG",
+    "shareFile": "Share image",
+    "copyLink": "Copy profile link",
+    "copied": "Link copied",
+    "preparing": "Preparing card…",
+    "failed": "The card could not be generated.",
+    "close": "Close",
+    "unavailable": "This browser cannot attach the image. Download it or copy the profile link."
+  },
   "messages": {
-    "noPlayers": "No players found at this level.",
-    "noSearchResults": "No players found with that name.",
+    "noPlayers": "No players are registered in this category.",
+    "noSearchResults": "We couldn't find players with that name.",
     "loadingRankings": "Loading rankings...",
     "playerNotFound": "Player not found."
   },

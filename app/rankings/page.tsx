@@ -35,7 +35,10 @@ export const metadata: Metadata = {
 
 export default function RankingsPage() {
   return (
-    <div className={`${bebasNeue.variable} ${manrope.variable}`}>
+    <div
+      data-ranking-root
+      className={`${bebasNeue.variable} ${manrope.variable}`}
+    >
       <RankingsPageClient />
     </div>
   );

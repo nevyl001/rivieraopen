@@ -105,9 +105,31 @@
       "liveRanking": "Consulta el ranking en vivo y tu historial en la app."
     }
   },
+  "page": {
+    "official": "Clasificación oficial",
+    "title": "RANKINGS RIVIERA",
+    "subtitle": "Cada partido cuenta. Cada posición se conquista.",
+    "description": "Clasificación oficial de jugadores Riviera Open.",
+    "top": "Primeros lugares",
+    "tie": "Empate",
+    "shareRanking": "Compartir ranking",
+    "viewProfile": "Ver perfil",
+    "instagram": "Instagram"
+  },
+  "share": {
+    "title": "Tarjeta de ranking",
+    "download": "Descargar PNG",
+    "shareFile": "Compartir imagen",
+    "copyLink": "Copiar enlace del perfil",
+    "copied": "Enlace copiado",
+    "preparing": "Preparando tarjeta…",
+    "failed": "No se pudo generar la tarjeta.",
+    "close": "Cerrar",
+    "unavailable": "Este navegador no puede adjuntar la imagen. Descárgala o copia el enlace del perfil."
+  },
   "messages": {
-    "noPlayers": "No se encontraron jugadores en este nivel.",
-    "noSearchResults": "No se encontraron jugadores con ese nombre.",
+    "noPlayers": "No hay jugadores registrados en esta categoría.",
+    "noSearchResults": "No encontramos jugadores con ese nombre.",
     "loadingRankings": "Cargando rankings...",
     "playerNotFound": "Jugador no encontrado."
   },
