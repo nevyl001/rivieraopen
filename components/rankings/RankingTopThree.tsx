@@ -36,20 +36,11 @@ export function RankingTopThree({
   const classic = isClassicPodium(players);
   const ordered = players;
 
+  const count = players.length;
+
   return (
-    <section
-      aria-label={t("page.top")}
-      className={`ranking-rise mb-8 md:mb-10 ${
-        players.length === 1 ? "mx-auto max-w-md" : ""
-      } ${players.length === 2 ? "mx-auto max-w-3xl" : ""}`}
-    >
-      <div
-        className={
-          classic
-            ? "mx-auto grid w-full max-w-5xl grid-cols-[1fr_1.15fr_1fr] items-end gap-2 md:gap-4"
-            : "mx-auto grid w-full max-w-5xl grid-cols-2 gap-2 lg:grid-cols-3 lg:gap-4"
-        }
-      >
+    <section aria-label={t("page.top")} className="ranking-rise mb-8 md:mb-10">
+      <div className="mx-auto flex w-full max-w-5xl flex-wrap items-end justify-center gap-2 md:gap-4">
         {ordered.map((player) => {
           const lead = player.rank === 1;
           const name = playerDisplayName(player);
@@ -58,19 +49,26 @@ export function RankingTopThree({
             : null;
           const categoryLabel = t(getCategoryTranslationKey(player.category));
           const tied = ranksSharingPosition(roster, player.rank);
-          const placement =
-            classic && player.rank === 1
-              ? "col-start-2 row-start-1"
-              : classic && player.rank === 2
-                ? "col-start-1 row-start-1"
-                : classic && player.rank === 3
-                  ? "col-start-3 row-start-1"
-                  : "";
+          const frame =
+            count === 1
+              ? "w-[min(72vw,280px)]"
+              : count === 2
+                ? "w-[min(44vw,250px)]"
+                : lead
+                  ? "w-[min(32%,260px)]"
+                  : "w-[min(28%,220px)]";
+          const placement = classic
+            ? player.rank === 1
+              ? "order-2"
+              : player.rank === 2
+                ? "order-1"
+                : "order-3"
+            : "";
 
           return (
             <article
               key={player.id}
-              className={`relative overflow-hidden rounded-2xl border ${placement} ${
+              className={`relative overflow-hidden rounded-2xl border ${frame} ${placement} ${
                 lead
                   ? "border-[#101010] bg-[#101010] text-white"
                   : "border-[#E7E7E7] bg-white text-[#101010]"
@@ -87,17 +85,14 @@ export function RankingTopThree({
                 src={officialPortraitSrc(player.photo)}
                 name={name}
                 priority={lead}
-                sizes="(max-width: 768px) 90vw, 360px"
+                fit="contain"
+                sizes="(max-width: 768px) 34vw, 260px"
                 initialsClassName={lead ? "text-6xl" : "text-5xl"}
-                className={`w-full ${
-                  lead
-                    ? "h-[clamp(168px,30vh,320px)]"
-                    : "h-[clamp(148px,26vh,270px)]"
-                }`}
+                className="aspect-square w-full"
               />
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-2 pb-2 pt-10 text-white sm:px-3 sm:pb-3 sm:pt-14">
-                <div className="flex items-end justify-between gap-2">
-                  <p className="font-[family-name:var(--font-fp-display)] text-4xl leading-none tabular-nums sm:text-5xl md:text-6xl">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-1.5 pb-1.5 pt-5 text-white sm:px-3 sm:pb-3 sm:pt-14">
+                <div className="flex items-end justify-between gap-1">
+                  <p className="font-[family-name:var(--font-fp-display)] text-xl leading-none tabular-nums sm:text-5xl md:text-6xl">
                     {formatFeaturedRank(player.rank)}
                   </p>
                   {lead && (
@@ -106,23 +101,23 @@ export function RankingTopThree({
                       alt=""
                       width={28}
                       height={28}
-                      className="mb-1 h-5 w-5 opacity-80 sm:h-7 sm:w-7"
+                      className="mb-0.5 h-3.5 w-3.5 opacity-80 sm:mb-1 sm:h-7 sm:w-7"
                     />
                   )}
                 </div>
-                <h2 className="mt-1 line-clamp-2 break-words font-[family-name:var(--font-fp-sans)] text-sm font-semibold leading-tight sm:text-base md:text-lg">
+                <h2 className="mt-0.5 line-clamp-2 break-words font-[family-name:var(--font-fp-sans)] text-[11px] font-semibold leading-tight sm:mt-1 sm:text-base md:text-lg">
                   {name}
                 </h2>
-                <p className="mt-0.5 font-[family-name:var(--font-fp-sans)] text-[9px] uppercase tracking-[0.14em] text-white/70 sm:text-[10px]">
+                <p className="mt-0.5 hidden font-[family-name:var(--font-fp-sans)] text-[10px] uppercase tracking-[0.14em] text-white/70 sm:block">
                   {categoryLabel} · {genderLabel}
                   {tied ? ` · ${t("page.tie")}` : ""}
                 </p>
-                <div className="mt-2 flex items-end justify-between gap-1">
+                <div className="mt-1 flex items-end justify-between gap-1 sm:mt-2">
                   <div>
-                    <p className="font-[family-name:var(--font-fp-display)] text-2xl leading-none tabular-nums sm:text-3xl md:text-4xl">
+                    <p className="font-[family-name:var(--font-fp-display)] text-lg leading-none tabular-nums sm:text-3xl md:text-4xl">
                       {formatNumber(player.points)}
                     </p>
-                    <p className="mt-0.5 font-[family-name:var(--font-fp-sans)] text-[9px] uppercase tracking-[0.14em] text-white/70 sm:text-[10px]">
+                    <p className="mt-0.5 font-[family-name:var(--font-fp-sans)] text-[8px] uppercase tracking-[0.14em] text-white/70 sm:text-[10px]">
                       {t("labels.pts")}
                     </p>
                   </div>

@@ -11,6 +11,7 @@ interface RankingPortraitProps {
   sizes: string;
   priority?: boolean;
   initialsClassName?: string;
+  fit?: "cover" | "contain";
 }
 
 export function RankingPortrait({
@@ -20,12 +21,17 @@ export function RankingPortrait({
   sizes,
   priority = false,
   initialsClassName = "text-3xl",
+  fit = "cover",
 }: RankingPortraitProps) {
   const [failed, setFailed] = useState(false);
   const showPhoto = Boolean(src) && !failed;
 
   return (
-    <div className={`relative overflow-hidden bg-[#F1F1F1] ${className}`}>
+    <div
+      className={`relative overflow-hidden ${
+        fit === "contain" ? "bg-transparent" : "bg-[#F1F1F1]"
+      } ${className}`}
+    >
       {showPhoto ? (
         <Image
           src={src as string}
@@ -33,7 +39,11 @@ export function RankingPortrait({
           fill
           priority={priority}
           sizes={sizes}
-          className="object-cover object-[center_18%]"
+          className={
+            fit === "contain"
+              ? "object-contain object-center"
+              : "object-cover object-[center_18%]"
+          }
           onError={() => setFailed(true)}
         />
       ) : (
