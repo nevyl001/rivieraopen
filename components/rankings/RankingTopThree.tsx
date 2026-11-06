@@ -40,7 +40,13 @@ export function RankingTopThree({
 
   return (
     <section aria-label={t("page.top")} className="ranking-rise mb-8 md:mb-10">
-      <div className="mx-auto flex w-full max-w-5xl flex-wrap items-end justify-center gap-2 md:gap-4">
+      <div
+        className={
+          classic
+            ? "mx-auto grid w-full max-w-5xl grid-cols-2 items-end gap-2 md:flex md:justify-center md:gap-4"
+            : "mx-auto flex w-full max-w-5xl flex-wrap items-end justify-center gap-2 md:gap-4"
+        }
+      >
         {ordered.map((player) => {
           const lead = player.rank === 1;
           const name = playerDisplayName(player);
@@ -49,20 +55,23 @@ export function RankingTopThree({
             : null;
           const categoryLabel = t(getCategoryTranslationKey(player.category));
           const tied = ranksSharingPosition(roster, player.rank);
-          const frame =
-            count === 1
+          const frame = classic
+            ? lead
+              ? "col-span-2 w-full md:w-[min(32%,260px)]"
+              : "w-full md:w-[min(28%,220px)]"
+            : count === 1
               ? "w-[min(72vw,280px)]"
               : count === 2
                 ? "w-[min(44vw,250px)]"
                 : lead
-                  ? "w-[min(32%,260px)]"
-                  : "w-[min(28%,220px)]";
+                  ? "w-full md:w-[min(32%,260px)]"
+                  : "w-[min(46%,220px)]";
           const placement = classic
             ? player.rank === 1
-              ? "order-2"
+              ? "md:order-2"
               : player.rank === 2
-                ? "order-1"
-                : "order-3"
+                ? "md:order-1"
+                : "md:order-3"
             : "";
 
           return (
@@ -86,13 +95,21 @@ export function RankingTopThree({
                 name={name}
                 priority={lead}
                 fit="contain"
-                sizes="(max-width: 768px) 34vw, 260px"
+                sizes={
+                  lead
+                    ? "(max-width: 768px) 92vw, 260px"
+                    : "(max-width: 768px) 46vw, 220px"
+                }
                 initialsClassName={lead ? "text-6xl" : "text-5xl"}
                 className="aspect-square w-full"
               />
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-1.5 pb-1.5 pt-5 text-white sm:px-3 sm:pb-3 sm:pt-14">
-                <div className="flex items-end justify-between gap-1">
-                  <p className="font-[family-name:var(--font-fp-display)] text-xl leading-none tabular-nums sm:text-5xl md:text-6xl">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-3 pb-3 pt-10 text-white md:px-3 md:pb-3 md:pt-14">
+                <div className="flex items-end justify-between gap-2">
+                  <p
+                    className={`font-[family-name:var(--font-fp-display)] leading-none tabular-nums md:text-6xl ${
+                      lead ? "text-5xl" : "text-4xl"
+                    }`}
+                  >
                     {formatFeaturedRank(player.rank)}
                   </p>
                   {lead && (
@@ -101,23 +118,31 @@ export function RankingTopThree({
                       alt=""
                       width={28}
                       height={28}
-                      className="mb-0.5 h-3.5 w-3.5 opacity-80 sm:mb-1 sm:h-7 sm:w-7"
+                      className="mb-1 h-6 w-6 opacity-80 md:h-7 md:w-7"
                     />
                   )}
                 </div>
-                <h2 className="mt-0.5 line-clamp-2 break-words font-[family-name:var(--font-fp-sans)] text-[11px] font-semibold leading-tight sm:mt-1 sm:text-base md:text-lg">
+                <h2
+                  className={`mt-1 line-clamp-2 break-words font-[family-name:var(--font-fp-sans)] font-semibold leading-tight md:text-lg ${
+                    lead ? "text-lg" : "text-sm"
+                  }`}
+                >
                   {name}
                 </h2>
-                <p className="mt-0.5 hidden font-[family-name:var(--font-fp-sans)] text-[10px] uppercase tracking-[0.14em] text-white/70 sm:block">
+                <p className="mt-0.5 font-[family-name:var(--font-fp-sans)] text-[10px] uppercase tracking-[0.14em] text-white/70">
                   {categoryLabel} · {genderLabel}
                   {tied ? ` · ${t("page.tie")}` : ""}
                 </p>
-                <div className="mt-1 flex items-end justify-between gap-1 sm:mt-2">
+                <div className="mt-2 flex items-end justify-between gap-1">
                   <div>
-                    <p className="font-[family-name:var(--font-fp-display)] text-lg leading-none tabular-nums sm:text-3xl md:text-4xl">
+                    <p
+                      className={`font-[family-name:var(--font-fp-display)] leading-none tabular-nums md:text-4xl ${
+                        lead ? "text-3xl" : "text-2xl"
+                      }`}
+                    >
                       {formatNumber(player.points)}
                     </p>
-                    <p className="mt-0.5 font-[family-name:var(--font-fp-sans)] text-[8px] uppercase tracking-[0.14em] text-white/70 sm:text-[10px]">
+                    <p className="mt-0.5 font-[family-name:var(--font-fp-sans)] text-[10px] uppercase tracking-[0.14em] text-white/70">
                       {t("labels.pts")}
                     </p>
                   </div>
