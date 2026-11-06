@@ -46,8 +46,8 @@ export function RankingTopThree({
       <div
         className={
           classic
-            ? "mx-auto grid w-full max-w-5xl grid-cols-2 items-end gap-3 md:grid-cols-[1fr_1.15fr_1fr] md:gap-4"
-            : "grid grid-cols-1 gap-3 sm:grid-cols-2 md:mx-auto md:w-fit lg:grid-cols-3"
+            ? "mx-auto grid w-full max-w-5xl grid-cols-[1fr_1.15fr_1fr] items-end gap-2 md:gap-4"
+            : "mx-auto grid w-full max-w-5xl grid-cols-2 gap-2 lg:grid-cols-3 lg:gap-4"
         }
       >
         {ordered.map((player) => {
@@ -60,14 +60,12 @@ export function RankingTopThree({
           const tied = ranksSharingPosition(roster, player.rank);
           const placement =
             classic && player.rank === 1
-              ? "col-span-2 md:col-span-1 md:col-start-2 md:row-start-1"
+              ? "col-start-2 row-start-1"
               : classic && player.rank === 2
-                ? "md:col-start-1 md:row-start-1"
+                ? "col-start-1 row-start-1"
                 : classic && player.rank === 3
-                  ? "md:col-start-3 md:row-start-1"
-                  : lead && players.length > 2
-                    ? "sm:col-span-2 lg:col-span-1"
-                    : "";
+                  ? "col-start-3 row-start-1"
+                  : "";
 
           return (
             <article
@@ -91,15 +89,15 @@ export function RankingTopThree({
                 priority={lead}
                 sizes="(max-width: 768px) 90vw, 360px"
                 initialsClassName={lead ? "text-6xl" : "text-5xl"}
-                className={`aspect-[3/4] w-full md:aspect-auto ${
+                className={`w-full ${
                   lead
-                    ? "md:h-[clamp(220px,30vh,320px)]"
-                    : "md:h-[clamp(190px,26vh,270px)]"
+                    ? "h-[clamp(168px,30vh,320px)]"
+                    : "h-[clamp(148px,26vh,270px)]"
                 }`}
               />
-              <div className="pointer-events-none relative px-4 pb-4 pt-3 md:absolute md:inset-x-0 md:bottom-0 md:bg-gradient-to-t md:from-black/80 md:via-black/35 md:to-transparent md:px-3 md:pb-3 md:pt-16 md:text-white">
-                <div className="flex items-end justify-between gap-3">
-                  <p className="font-[family-name:var(--font-fp-display)] text-5xl leading-none tabular-nums md:text-6xl">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-2 pb-2 pt-10 text-white sm:px-3 sm:pb-3 sm:pt-14">
+                <div className="flex items-end justify-between gap-2">
+                  <p className="font-[family-name:var(--font-fp-display)] text-4xl leading-none tabular-nums sm:text-5xl md:text-6xl">
                     {formatFeaturedRank(player.rank)}
                   </p>
                   {lead && (
@@ -108,31 +106,23 @@ export function RankingTopThree({
                       alt=""
                       width={28}
                       height={28}
-                      className="mb-1 hidden h-7 w-7 opacity-80 md:block"
+                      className="mb-1 h-5 w-5 opacity-80 sm:h-7 sm:w-7"
                     />
                   )}
                 </div>
-                <h2 className="mt-2 line-clamp-2 break-words font-[family-name:var(--font-fp-sans)] text-lg font-semibold leading-tight">
+                <h2 className="mt-1 line-clamp-2 break-words font-[family-name:var(--font-fp-sans)] text-sm font-semibold leading-tight sm:text-base md:text-lg">
                   {name}
                 </h2>
-                <p
-                  className={`mt-1 font-[family-name:var(--font-fp-sans)] text-[10px] uppercase tracking-[0.16em] ${
-                    lead ? "text-[#A3A3A3] md:text-white/70" : "text-[#737373] md:text-white/70"
-                  }`}
-                >
+                <p className="mt-0.5 font-[family-name:var(--font-fp-sans)] text-[9px] uppercase tracking-[0.14em] text-white/70 sm:text-[10px]">
                   {categoryLabel} · {genderLabel}
                   {tied ? ` · ${t("page.tie")}` : ""}
                 </p>
-                <div className="mt-3 flex items-end justify-between gap-2">
+                <div className="mt-2 flex items-end justify-between gap-1">
                   <div>
-                    <p className="font-[family-name:var(--font-fp-display)] text-3xl leading-none tabular-nums md:text-4xl">
+                    <p className="font-[family-name:var(--font-fp-display)] text-2xl leading-none tabular-nums sm:text-3xl md:text-4xl">
                       {formatNumber(player.points)}
                     </p>
-                    <p
-                      className={`mt-1 font-[family-name:var(--font-fp-sans)] text-[10px] uppercase tracking-[0.16em] ${
-                        lead ? "text-[#A3A3A3] md:text-white/70" : "text-[#737373] md:text-white/70"
-                      }`}
-                    >
+                    <p className="mt-0.5 font-[family-name:var(--font-fp-sans)] text-[9px] uppercase tracking-[0.14em] text-white/70 sm:text-[10px]">
                       {t("labels.pts")}
                     </p>
                   </div>
@@ -141,8 +131,10 @@ export function RankingTopThree({
                       profileHref={profileHref}
                       instagramHref={instagramHref(player.socials.instagram)}
                       onShare={() => onShare(player)}
-                      tone={lead ? "dark" : "photo"}
+                      tone="photo"
                       showProfile={false}
+                      compact
+                      density="row"
                     />
                   </div>
                 </div>

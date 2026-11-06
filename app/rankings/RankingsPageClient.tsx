@@ -185,10 +185,10 @@ function EmptyState({ message }: { message: string }) {
 function RankingSkeleton() {
   return (
     <div aria-hidden>
-      <div className="mx-auto mb-8 grid w-full max-w-5xl grid-cols-2 items-end gap-3 md:grid-cols-3 md:gap-4">
-        <div className="col-span-2 h-72 animate-pulse rounded-2xl bg-[#E7E7E7] md:col-span-1 md:h-[clamp(220px,30vh,320px)]" />
-        <div className="h-56 animate-pulse rounded-2xl bg-[#EFEFEF] md:h-[clamp(190px,26vh,270px)]" />
-        <div className="h-56 animate-pulse rounded-2xl bg-[#EFEFEF] md:h-[clamp(190px,26vh,270px)]" />
+      <div className="mx-auto mb-8 grid w-full max-w-5xl grid-cols-[1fr_1.15fr_1fr] items-end gap-2 md:gap-4">
+        <div className="h-[clamp(148px,26vh,270px)] animate-pulse rounded-2xl bg-[#EFEFEF]" />
+        <div className="h-[clamp(168px,30vh,320px)] animate-pulse rounded-2xl bg-[#E7E7E7]" />
+        <div className="h-[clamp(148px,26vh,270px)] animate-pulse rounded-2xl bg-[#EFEFEF]" />
       </div>
       <div className="flex flex-col gap-2.5">
         {[0, 1, 2].map((item) => (
