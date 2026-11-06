@@ -9,8 +9,9 @@ interface RankingActionsProps {
   profileHref: string | null;
   instagramHref: string | null;
   onShare: () => void;
-  tone?: "light" | "dark";
+  tone?: "light" | "dark" | "photo";
   density?: "full" | "row";
+  showProfile?: boolean;
 }
 
 export function RankingActions({
@@ -19,12 +20,15 @@ export function RankingActions({
   onShare,
   tone = "light",
   density = "full",
+  showProfile = true,
 }: RankingActionsProps) {
   const { t } = useTranslation("rankings");
   const button =
     tone === "dark"
       ? "border-white/25 bg-white/10 text-white hover:bg-white/20"
-      : "border-[#E7E7E7] bg-white text-[#101010] hover:bg-[#F7F7F7]";
+      : tone === "photo"
+        ? "border-[#E7E7E7] bg-white text-[#101010] hover:bg-[#F7F7F7] md:border-white/30 md:bg-black/45 md:text-white md:hover:bg-black/60"
+        : "border-[#E7E7E7] bg-white text-[#101010] hover:bg-[#F7F7F7]";
 
   return (
     <div className="flex shrink-0 items-center gap-1">
@@ -40,7 +44,7 @@ export function RankingActions({
           <InstagramIcon size={16} />
         </a>
       )}
-      {profileHref && (
+      {showProfile && profileHref && (
         <Link
           href={profileHref}
           data-ranking-action

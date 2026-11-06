@@ -46,8 +46,8 @@ export function RankingTopThree({
       <div
         className={
           classic
-            ? "grid grid-cols-2 items-end gap-3 md:grid-cols-[0.92fr_1.16fr_0.92fr] md:gap-5"
-            : "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+            ? "mx-auto grid w-full max-w-5xl grid-cols-2 items-end gap-3 md:grid-cols-[1fr_1.15fr_1fr] md:gap-4"
+            : "grid grid-cols-1 gap-3 sm:grid-cols-2 md:mx-auto md:w-fit lg:grid-cols-3"
         }
       >
         {ordered.map((player) => {
@@ -91,54 +91,59 @@ export function RankingTopThree({
                 priority={lead}
                 sizes="(max-width: 768px) 90vw, 360px"
                 initialsClassName={lead ? "text-6xl" : "text-5xl"}
-                className="aspect-[3/4] w-full"
+                className={`aspect-[3/4] w-full md:aspect-auto ${
+                  lead
+                    ? "md:h-[clamp(220px,30vh,320px)]"
+                    : "md:h-[clamp(190px,26vh,270px)]"
+                }`}
               />
-              <div className="pointer-events-none relative px-4 pb-4 pt-3 md:px-5 md:pb-5">
+              <div className="pointer-events-none relative px-4 pb-4 pt-3 md:absolute md:inset-x-0 md:bottom-0 md:bg-gradient-to-t md:from-black/80 md:via-black/35 md:to-transparent md:px-3 md:pb-3 md:pt-16 md:text-white">
                 <div className="flex items-end justify-between gap-3">
-                  <p className="font-[family-name:var(--font-fp-display)] text-6xl leading-none tabular-nums md:text-7xl">
+                  <p className="font-[family-name:var(--font-fp-display)] text-5xl leading-none tabular-nums md:text-6xl">
                     {formatFeaturedRank(player.rank)}
                   </p>
                   {lead && (
                     <Image
                       src="/img/logo-badge.png"
                       alt=""
-                      width={36}
-                      height={36}
-                      className="mb-1 h-8 w-8 opacity-80"
+                      width={28}
+                      height={28}
+                      className="mb-1 hidden h-7 w-7 opacity-80 md:block"
                     />
                   )}
                 </div>
-                <h2 className="mt-2 line-clamp-2 break-words font-[family-name:var(--font-fp-sans)] text-lg font-semibold leading-tight md:text-xl">
+                <h2 className="mt-2 line-clamp-2 break-words font-[family-name:var(--font-fp-sans)] text-lg font-semibold leading-tight">
                   {name}
                 </h2>
                 <p
                   className={`mt-1 font-[family-name:var(--font-fp-sans)] text-[10px] uppercase tracking-[0.16em] ${
-                    lead ? "text-[#A3A3A3]" : "text-[#737373]"
+                    lead ? "text-[#A3A3A3] md:text-white/70" : "text-[#737373] md:text-white/70"
                   }`}
                 >
                   {categoryLabel} · {genderLabel}
                   {tied ? ` · ${t("page.tie")}` : ""}
                 </p>
-                <div className="mt-4 flex items-end justify-between gap-3">
+                <div className="mt-3 flex items-end justify-between gap-2">
                   <div>
-                    <p className="font-[family-name:var(--font-fp-display)] text-4xl leading-none tabular-nums md:text-5xl">
+                    <p className="font-[family-name:var(--font-fp-display)] text-3xl leading-none tabular-nums md:text-4xl">
                       {formatNumber(player.points)}
                     </p>
                     <p
                       className={`mt-1 font-[family-name:var(--font-fp-sans)] text-[10px] uppercase tracking-[0.16em] ${
-                        lead ? "text-[#A3A3A3]" : "text-[#737373]"
+                        lead ? "text-[#A3A3A3] md:text-white/70" : "text-[#737373] md:text-white/70"
                       }`}
                     >
                       {t("labels.pts")}
                     </p>
                   </div>
                   <div className="pointer-events-auto relative z-20">
-                  <RankingActions
-                    profileHref={profileHref}
-                    instagramHref={instagramHref(player.socials.instagram)}
-                    onShare={() => onShare(player)}
-                    tone={lead ? "dark" : "light"}
-                  />
+                    <RankingActions
+                      profileHref={profileHref}
+                      instagramHref={instagramHref(player.socials.instagram)}
+                      onShare={() => onShare(player)}
+                      tone={lead ? "dark" : "photo"}
+                      showProfile={false}
+                    />
                   </div>
                 </div>
               </div>
